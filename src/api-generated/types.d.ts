@@ -1175,6 +1175,8 @@ declare namespace ApiTypes {
   export interface SubmissionBasicMetaDto {
     id: number;
     isPublic: boolean;
+    contestId?: number;
+    contestProblemIndex?: number;
     codeLanguage: string;
     answerSize: number;
     score: number;
@@ -1200,6 +1202,8 @@ declare namespace ApiTypes {
   export interface SubmissionMetaDto {
     id: number;
     isPublic: boolean;
+    contestId?: number;
+    contestProblemIndex?: number;
     codeLanguage: string;
     answerSize: number;
     score: number;
@@ -1228,11 +1232,20 @@ declare namespace ApiTypes {
   }
   export interface SubmitRequestDto {
     problemId: number;
+    contestId?: number;
+    contestProblemIndex?: number;
     content: {};
     uploadInfo?: ApiTypes.FileUploadInfoDto;
   }
   export interface SubmitResponseDto {
-    error?: "PERMISSION_DENIED" | "NO_SUCH_PROBLEM" | "FILE_TOO_LARGE" | "FILE_UUID_EXISTS" | "FILE_NOT_UPLOADED";
+    error?:
+      | "PERMISSION_DENIED"
+      | "NO_SUCH_PROBLEM"
+      | "NO_SUCH_CONTEST"
+      | "CONTEST_NOT_RUNNING"
+      | "FILE_TOO_LARGE"
+      | "FILE_UUID_EXISTS"
+      | "FILE_NOT_UPLOADED";
     submissionId?: number;
     signedUploadRequest?: ApiTypes.SignedFileUploadRequestDto;
   }

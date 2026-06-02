@@ -50,6 +50,8 @@ return {
   error: {
     PERMISSION_DENIED: "権限がありません。",
     NO_SUCH_PROBLEM: "問題が存在しません。",
+    NO_SUCH_CONTEST: "コンテストが存在しません。",
+    CONTEST_NOT_RUNNING: "コンテストは開催中ではありません。",
     NO_DISPLAY_ID: "ID を設定してください。",
     INVALID_DISPLAY_ID: "ID は整数にしてください。",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "公開する問題には ID を設定してください。",

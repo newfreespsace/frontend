@@ -196,7 +196,10 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   const navigation = useNavigationChecked();
 
   useEffect(() => {
-    appState.enterNewPage(`${_(".title")} #${props.meta.id}`, "submissions");
+    appState.enterNewPage(
+      `${_(".title")} #${props.meta.id}`,
+      props.meta.contestId ? ("contests" as any) : "submissions"
+    );
   }, [appState.locale, props.meta]);
 
   // The meta only provides fields not changing with progress
@@ -988,6 +991,42 @@ export default defineRoute(async request => {
   ).default;
 
   // Load highlight
+  const highlightLanguageList =
+    (ProblemTypeSubmissionView.getHighlightLanguageList &&
+      ProblemTypeSubmissionView.getHighlightLanguageList(queryResult.content)) ||
+    [];
+
+  if (highlightLanguageList.some(lang => CodeFormatter.isLanguageSupported(lang))) {
+    await CodeFormatter.ready;
+  }
+
+  return (
+    <SubmissionPage key={uuid()} {...(queryResult as any)} ProblemTypeSubmissionView={ProblemTypeSubmissionView} />
+  );
+});
+
+export const contest = defineRoute(async request => {
+  const contestId = Number(request.params.id);
+  const submissionId = Number(request.params.sid);
+  const queryResult = await fetchData(submissionId || 0);
+
+  if (queryResult.meta.contestId !== contestId) {
+    throw new RouteError(makeToBeLocalizedText("submission.error.PERMISSION_DENIED"));
+  }
+
+  const ProblemTypeSubmissionView: ProblemTypeSubmissionView = (
+    await (() => {
+      switch (queryResult.meta.problem.type) {
+        case "Traditional":
+          return import("./types/TraditionalProblemSubmissionView");
+        case "Interaction":
+          return import("./types/InteractionProblemSubmissionView");
+        case "SubmitAnswer":
+          return import("./types/SubmitAnswerProblemSubmissionView");
+      }
+    })()
+  ).default;
+
   const highlightLanguageList =
     (ProblemTypeSubmissionView.getHighlightLanguageList &&
       ProblemTypeSubmissionView.getHighlightLanguageList(queryResult.content)) ||

@@ -13,13 +13,21 @@ import { CodeLanguage } from "@/interfaces/CodeLanguage";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 
-function parseSubmissionMeta(submission: ApiTypes.SubmissionMetaDto) {
+function parseSubmissionMeta(submission: ApiTypes.SubmissionMetaDto, _: ReturnType<typeof useLocalizer>) {
+  const inContest = !!submission.contestId && !!submission.contestProblemIndex;
+  const contestProblemLabel = inContest ? String.fromCharCode(64 + submission.contestProblemIndex) : null;
+
   return {
     submission,
-    submissionLink: `/s/${submission.id}`,
+    submissionLink: inContest ? `/c/${submission.contestId}/s/${submission.id}` : `/s/${submission.id}`,
     timeString: friendlyFormatDateTime(submission.submitTime),
-    problemIdString: getProblemIdString(submission.problem),
-    problemUrl: getProblemUrl(submission.problem)
+    problemIdString: inContest ? `#${contestProblemLabel}` : getProblemIdString(submission.problem),
+    problemDisplayName: inContest
+      ? `#${contestProblemLabel}. ${submission.problemTitle}`
+      : getProblemDisplayName(submission.problem, submission.problemTitle, _),
+    problemUrl: inContest
+      ? `/c/${submission.contestId}/p/${submission.contestProblemIndex}`
+      : getProblemUrl(submission.problem)
   };
 }
 
@@ -79,7 +87,10 @@ interface SubmissionItemProps {
 export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
   const _ = useLocalizer("submission_item");
 
-  const { submission, submissionLink, timeString, problemIdString, problemUrl } = parseSubmissionMeta(props.submission);
+  const { submission, submissionLink, timeString, problemDisplayName, problemUrl } = parseSubmissionMeta(
+    props.submission,
+    _
+  );
 
   const [refAnswerInfoIcon, setRefAnswerInfoIcon] = useState<HTMLElement>();
 
@@ -100,7 +111,7 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
       <Table.Cell className={style.columnProblemAndSubmitter} textAlign="left">
         <div className={style.problem}>
           <EmojiRenderer>
-            <Link href={problemUrl}>{getProblemDisplayName(submission.problem, submission.problemTitle, _)}</Link>
+            <Link href={problemUrl}>{problemDisplayName}</Link>
           </EmojiRenderer>
         </div>
         <div className={style.submitter}>
@@ -209,7 +220,10 @@ interface SubmissionItemMobileProps {
 export const SubmissionItemMobile: React.FC<SubmissionItemMobileProps> = props => {
   const _ = useLocalizer("submission_item");
 
-  const { submission, submissionLink, timeString, problemIdString, problemUrl } = parseSubmissionMeta(props.submission);
+  const { submission, submissionLink, timeString, problemDisplayName, problemUrl } = parseSubmissionMeta(
+    props.submission,
+    _
+  );
 
   const importantField = props.importantField || "submitTime";
 
@@ -238,7 +252,7 @@ export const SubmissionItemMobile: React.FC<SubmissionItemMobileProps> = props =
           <div>
             <div>
               <EmojiRenderer>
-                <Link href={problemUrl}>{getProblemDisplayName(submission.problem, submission.problemTitle, _)}</Link>
+                <Link href={problemUrl}>{problemDisplayName}</Link>
               </EmojiRenderer>
             </div>
             <div>
@@ -284,7 +298,7 @@ interface SubmissionItemExtraRowsProps {
 export const SubmissionItemExtraRows: React.FC<SubmissionItemExtraRowsProps> = props => {
   const _ = useLocalizer("submission_item");
 
-  const { submission, timeString, problemIdString, problemUrl } = parseSubmissionMeta(props.submission);
+  const { submission, timeString, problemDisplayName, problemUrl } = parseSubmissionMeta(props.submission, _);
 
   const columnStatus = (props.statusPopup || (x => x))(
     <div className={style.extraRowsColumnStatus}>
@@ -302,7 +316,7 @@ export const SubmissionItemExtraRows: React.FC<SubmissionItemExtraRowsProps> = p
   const columnProblem = (
     <div className={style.extraRowsColumnProblem}>
       <Icon name="book" />
-      <Link href={problemUrl}>{getProblemDisplayName(submission.problem, submission.problemTitle, _)}</Link>
+      <Link href={problemUrl}>{problemDisplayName}</Link>
     </div>
   );
 

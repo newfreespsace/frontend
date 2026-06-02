@@ -8,7 +8,10 @@ export default {
       "/": lazy(() => import("./view/ContestViewPage")),
       "/edit": lazy(() => import("./edit/ContestEditPage")),
       "/ranklist": lazy(() => import("./ranklist/ContestRanklistPage")),
-      "/p/:pid": getRoute(() => import("@/pages/problem/view/ProblemViewPage"), "contest")
+      "/p/:pid": getRoute(() => import("@/pages/problem/view/ProblemViewPage"), "contest"),
+      "/s/:sid": lazy(async () => ({
+        default: (await import("@/pages/submission/submission/SubmissionPage")).contest
+      }))
     }),
     "/": lazy(() => import("./contests/ContestsPage"))
   }),

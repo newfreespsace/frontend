@@ -50,6 +50,8 @@ return {
   error: {
     PERMISSION_DENIED: "Permission denied.",
     NO_SUCH_PROBLEM: "No such problem.",
+    NO_SUCH_CONTEST: "No such contest.",
+    CONTEST_NOT_RUNNING: "The contest is not running.",
     NO_DISPLAY_ID: "Please set ID first.",
     INVALID_DISPLAY_ID: "ID must be an integer.",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "A public problem must have an ID.",

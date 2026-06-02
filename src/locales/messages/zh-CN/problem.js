@@ -49,6 +49,8 @@ return {
   error: {
     PERMISSION_DENIED: "权限不足。",
     NO_SUCH_PROBLEM: "无此题目。",
+    NO_SUCH_CONTEST: "无此比赛。",
+    CONTEST_NOT_RUNNING: "比赛当前不在进行中，无法提交。",
     NO_DISPLAY_ID: "请先设置题目 ID。",
     INVALID_DISPLAY_ID: "ID 必须为整数。",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "已公开的题目必须拥有 ID。",

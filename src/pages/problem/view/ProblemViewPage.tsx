@@ -383,6 +383,12 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       api.submission.submit,
       {
         problemId: props.problem.meta.id,
+        ...(inContest
+          ? {
+              contestId: props.contest.id,
+              contestProblemIndex: props.contestPid
+            }
+          : {}),
         content: submissionContent
       },
       () => recaptcha("SubmitProblem"),
@@ -395,7 +401,9 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       toast.error(_(`.error.${response.error}`));
     } else {
       setModified(false);
-      navigation.navigate(`/s/${response.submissionId}`);
+      navigation.navigate(
+        inContest ? `/c/${props.contest.id}/s/${response.submissionId}` : `/s/${response.submissionId}`
+      );
     }
 
     setSubmitPending(false);
