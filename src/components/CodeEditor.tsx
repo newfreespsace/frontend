@@ -21,7 +21,7 @@ registerRulesForLanguage("haskell", new AceHighlightHaskell());
 
 // Monaco themes
 
-Object.entries(import.meta.globEager("../assets/monaco-themes/*.json")).forEach(([filename, data]) => {
+Object.entries(import.meta.glob("../assets/monaco-themes/*.json", { eager: true })).forEach(([filename, data]) => {
   Monaco.editor.defineTheme(path.basename(filename, ".json"), data as any);
 });
 

@@ -1,0 +1,52 @@
+diff --git a/node_modules/@vitejs/plugin-legacy/dist/index.cjs b/node_modules/@vitejs/plugin-legacy/dist/index.cjs
+index 07d62cb..96a0d18 100644
+--- a/node_modules/@vitejs/plugin-legacy/dist/index.cjs
++++ b/node_modules/@vitejs/plugin-legacy/dist/index.cjs
+@@ -109,7 +109,7 @@ const legacyEntryId = "vite-legacy-entry";
+ const systemJSInlineCode = `System.import(document.getElementById('${legacyEntryId}').getAttribute('data-src'))`;
+ const detectModernBrowserVarName = "__vite_is_modern_browser";
+ const detectModernBrowserDetector = `import.meta.url;import("_").catch(()=>1);(async function*(){})().next()`;
+-const detectModernBrowserCode = `${detectModernBrowserDetector};if(location.protocol!="file:"){window.${detectModernBrowserVarName}=true}`;
++const detectModernBrowserCode = (extraCode = "") => `let f=true;try{${detectModernBrowserDetector};${extraCode}}catch(e){f=false;}if(location.protocol!="file:"){window.${detectModernBrowserVarName}=f}`;
+ const dynamicFallbackInlineCode = `!function(){if(window.${detectModernBrowserVarName})return;console.warn("vite: loading legacy chunks, syntax error above and the same error below should be ignored");var e=document.getElementById("${legacyPolyfillId}"),n=document.createElement("script");n.src=e.src,n.onload=function(){${systemJSInlineCode}},document.body.appendChild(n)}();`;
+ const modernChunkLegacyGuard = `export function __vite_legacy_guard(){${detectModernBrowserDetector}};`;
+ 
+@@ -611,13 +611,7 @@ function viteLegacyPlugin(options = {}) {
+         tags.push({
+           tag: "script",
+           attrs: { type: "module" },
+-          children: detectModernBrowserCode,
+-          injectTo: "head"
+-        });
+-        tags.push({
+-          tag: "script",
+-          attrs: { type: "module" },
+-          children: dynamicFallbackInlineCode,
++          children: detectModernBrowserCode(options.modernFeatureTestExtraCode),
+           injectTo: "head"
+         });
+       }
+@@ -836,7 +830,7 @@ const hash = (
+ const cspHashes = [
+   safari10NoModuleFix,
+   systemJSInlineCode,
+-  detectModernBrowserCode,
++  detectModernBrowserCode(),
+   dynamicFallbackInlineCode
+ ].map((i) => hash("sha256", i, "base64"));
+ 
+diff --git a/node_modules/@vitejs/plugin-legacy/dist/index.d.ts b/node_modules/@vitejs/plugin-legacy/dist/index.d.ts
+index 3872f9a..e6fc0d8 100644
+--- a/node_modules/@vitejs/plugin-legacy/dist/index.d.ts
++++ b/node_modules/@vitejs/plugin-legacy/dist/index.d.ts
+@@ -31,6 +31,10 @@ interface Options {
+      * default: true
+      */
+     renderModernChunks?: boolean;
++    /**
++     * default: ''
++     */
++    modernFeatureTestExtraCode?: string;
+ }
+ 
+ declare function viteLegacyPlugin(options?: Options): Plugin[];

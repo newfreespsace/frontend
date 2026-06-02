@@ -143,6 +143,24 @@ const externalPackageVersions = Object.fromEntries(
   ])
 );
 
+const devBundledPackages = ["react", "react-dom", "mobx", "axios", "noty", "semantic-ui-react"];
+
+const externalPackagesForVite = Object.entries(baseExternalPackages)
+  .filter(([packageName, { globalVariableName }]) => {
+    if (!globalVariableName) return false;
+    if (isDev && devBundledPackages.includes(packageName)) return false;
+    return true;
+  })
+  .map(([packageName, { globalVariableName }]) => [packageName, globalVariableName]);
+
+const externalPackagesForHtml = Object.entries(baseExternalPackages).map(
+  ([packageName, { cdnjsName, devScript, prodScript, css }]) => [
+    cdnjsName || packageName,
+    isDev && devBundledPackages.includes(packageName) ? null : !isDev && prodScript ? prodScript : devScript,
+    css
+  ]
+);
+
 export default defineConfig({
   server: {
     port: 3000,
@@ -157,19 +175,13 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [["@babel/plugin-proposal-decorators", { legacy: true }], ["@babel/plugin-proposal-class-properties"]]
+        plugins: [["@babel/plugin-proposal-decorators", { legacy: true }], ["@babel/plugin-transform-class-properties"]]
       }
     }),
     compileTime(),
     ejs({
       gitCommitInfo: getGitCommitInfo(),
-      externalPackages: Object.entries(baseExternalPackages).map(
-        ([packageName, { cdnjsName, devScript, prodScript, css }]) => [
-          cdnjsName || packageName,
-          !isDev && prodScript ? prodScript : devScript,
-          css
-        ]
-      ),
+      externalPackages: externalPackagesForHtml,
       externalPackageVersions
     }),
     svgo({
@@ -244,13 +256,10 @@ export default defineConfig({
     prismjs({
       languages: fs.readFileSync(".prism-languages", "utf-8").trim().split("\n")
     }),
+
     externals({
       "monaco-editor": "Monaco",
-      ...Object.fromEntries(
-        Object.entries(baseExternalPackages)
-          .filter(([, { globalVariableName }]) => globalVariableName)
-          .map(([packageName, { globalVariableName }]) => [packageName, globalVariableName])
-      )
+      ...Object.fromEntries(externalPackagesForVite)
     }),
     visualizer()
   ],
