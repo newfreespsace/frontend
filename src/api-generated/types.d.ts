@@ -914,6 +914,8 @@ declare namespace ApiTypes {
     locale: "en_US" | "zh_CN" | "ja_JP";
     problemId: number;
     problemDisplayId: number;
+    contestId: number;
+    contestProblemIndex: number;
     submitter: string;
     codeLanguage: string;
     status:

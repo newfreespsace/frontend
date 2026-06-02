@@ -35,6 +35,8 @@ const SUBMISSIONS_PER_PAGE = appState.serverPreference.pagination.submissions;
 interface SubmissionsQuery {
   problemId: number;
   problemDisplayId: number;
+  contestId: number;
+  contestProblemIndex: number;
   submitter: string;
   codeLanguage: CodeLanguage;
   status: SubmissionStatus;
@@ -47,6 +49,10 @@ function normalizeQuery(query: Record<string, string>): SubmissionsQuery {
     problemId: Number(query.problemId) ? Number(query.problemId) : null,
     problemDisplayId:
       Number(query.problemDisplayId) && !Number(query.problemId) ? Number(query.problemDisplayId) : null,
+    contestId: Number.isSafeInteger(Number(query.contestId)) ? Number(query.contestId) : null,
+    contestProblemIndex: Number.isSafeInteger(Number(query.contestProblemIndex))
+      ? Number(query.contestProblemIndex)
+      : null,
     submitter: isValidUsername(query.submitter) ? query.submitter : null,
     codeLanguage: Object.values(CodeLanguage).includes(query.codeLanguage as CodeLanguage)
       ? (query.codeLanguage as CodeLanguage)
@@ -80,7 +86,7 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
   const navigation = useNavigationChecked();
 
   useEffect(() => {
-    appState.enterNewPage(_(".title"), "submissions");
+    appState.enterNewPage(_(".title"), props.query.contestId ? ("contests" as any) : "submissions");
   }, [appState.locale]);
 
   useEffect(() => {
@@ -113,7 +119,8 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
     if (!checkQueryProblemId()) return toast.error(_(".query_error.INVALID_PROBLEM_ID"));
     else if (!filterMySubmissions && !checkQuerySubmitter()) return toast.error(_(".query_error.INVALID_USERNAME"));
 
-    const query: Partial<SubmissionsQuery> = {};
+    const query: Partial<SubmissionsQuery> = props.query.contestId ? { contestId: props.query.contestId } : {};
+    if (props.query.contestProblemIndex) query.contestProblemIndex = props.query.contestProblemIndex;
     if (queryProblemId && queryProblemId.toUpperCase().startsWith("P"))
       query.problemId = Number(queryProblemId.substr(1));
     if (queryProblemId && !queryProblemId.toUpperCase().startsWith("P"))

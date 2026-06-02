@@ -62,7 +62,7 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
               {_(".ranklist")}
             </Button>
           )}
-          <Button as={Link} href={{ pathname: "/s", query: { problemId: contest.problemIds.join(",") } }}>
+          <Button as={Link} href={{ pathname: "/s", query: { contestId: contest.id.toString() } }}>
             <Icon name="hourglass half" />
             {_(".submissions")}
           </Button>

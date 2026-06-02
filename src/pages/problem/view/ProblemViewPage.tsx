@@ -676,19 +676,28 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 as={Link}
                 href={{
                   pathname: "/s",
-                  query:
-                    props.idType === "id"
-                      ? {
-                          problemId: props.problem.meta.id.toString()
-                        }
-                      : {
-                          problemDisplayId: props.problem.meta.displayId.toString()
-                        }
+                  query: inContest
+                    ? {
+                        contestId: props.contest.id.toString(),
+                        contestProblemIndex: props.contestPid.toString()
+                      }
+                    : props.idType === "id"
+                    ? {
+                        problemId: props.problem.meta.id.toString()
+                      }
+                    : {
+                        problemDisplayId: props.problem.meta.displayId.toString()
+                      }
                 }}
               />
 
               {inContest && ProblemTypeView.enableStatistics() && (
-                <Menu.Item name={_(".action.back_to_contest")} icon="arrow left" as={Link} href={{ pathname: "/c" }} />
+                <Menu.Item
+                  name={_(".action.back_to_contest")}
+                  icon="arrow left"
+                  as={Link}
+                  href={{ pathname: `/c/${props.contest.id}` }}
+                />
               )}
 
               {!inContest && ProblemTypeView.enableStatistics() && (
