@@ -1,0 +1,29 @@
+return {
+  new_title: "コンテストを作成",
+  edit_title: "コンテストを編集",
+  title: "タイトル",
+  subtitle: "概要",
+  information: "お知らせ",
+  start_time: "開始時刻",
+  end_time: "終了時刻",
+  type: "形式",
+  type_acm: "ACM",
+  type_ioi: "IOI",
+  type_noi: "NOI",
+  is_public: "公開する",
+  hide_statistics: "終了まで統計を隠す",
+  problems: "問題",
+  admins: "管理者",
+  add_problem: "問題を検索して追加",
+  add_admin: "管理者を検索して追加",
+  save: "保存",
+  cancel: "キャンセル",
+  error: {
+    PERMISSION_DENIED: "権限がありません。",
+    NO_SUCH_CONTEST: "コンテストが存在しません。",
+    EMPTY_TITLE: "タイトルは必須です。",
+    INVALID_TIME_RANGE: "時間範囲が無効です。",
+    NO_SUCH_PROBLEM: "問題が存在しません。",
+    NO_SUCH_USER: "ユーザーが存在しません。"
+  }
+};

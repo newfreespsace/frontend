@@ -1,6 +1,107 @@
 // This file is generated automatically, do NOT modify it.
 
 declare namespace ApiTypes {
+  export interface ContestMetaDto {
+    id: number;
+    title: string;
+    subtitle: string;
+    information: string;
+    startTime: string; // date-time
+    endTime: string; // date-time
+    type: "noi" | "ioi" | "acm";
+    isPublic: boolean;
+    hideStatistics: boolean;
+    holderId: number;
+    problemIds: number[];
+    adminIds: number[];
+    rankingParams: {};
+  }
+  export interface ContestProblemDto {
+    meta: ApiTypes.ProblemMetaDto;
+    title: string;
+    status?: string;
+    score?: number;
+    submissionId?: number;
+    accepted?: boolean;
+    unacceptedCount?: number;
+    statistics?: {
+      attempt: number;
+      accepted: number;
+      partially?: number;
+    };
+  }
+  export interface ContestRanklistRowDto {
+    rank: number;
+    user: ApiTypes.UserMetaDto;
+    score: number;
+    timeSpent: number;
+    scoreDetails: {};
+  }
+  export interface QueryContestsRequestDto {
+    skipCount: number;
+    takeCount: number;
+    nonpublic?: boolean;
+  }
+  export interface QueryContestsResponseDto {
+    error?: "PERMISSION_DENIED";
+    count?: number;
+    result?: ApiTypes.ContestMetaDto[];
+    permissions?: {
+      createContest: boolean;
+      filterNonpublic: boolean;
+    };
+  }
+  export interface GetContestRequestDto {
+    contestId: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestResponseDto {
+    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
+    meta?: ApiTypes.ContestMetaDto;
+    holder?: ApiTypes.UserMetaDto;
+    admins?: ApiTypes.UserMetaDto[];
+    problems?: ApiTypes.ContestProblemDto[];
+    permissions?: {
+      manage: boolean;
+      viewRanklist: boolean;
+      viewStatistics: boolean;
+      unveiled: boolean;
+    };
+  }
+  export interface SaveContestRequestDto {
+    contestId?: number;
+    title: string;
+    subtitle: string;
+    information: string;
+    startTime: string;
+    endTime: string;
+    type: "noi" | "ioi" | "acm";
+    isPublic: boolean;
+    hideStatistics: boolean;
+    problemIds: number[];
+    adminIds: number[];
+    rankingParams: {};
+  }
+  export interface SaveContestResponseDto {
+    error?:
+      | "PERMISSION_DENIED"
+      | "NO_SUCH_CONTEST"
+      | "EMPTY_TITLE"
+      | "INVALID_TIME_RANGE"
+      | "NO_SUCH_PROBLEM"
+      | "NO_SUCH_USER";
+    contestId?: number;
+  }
+  export interface GetContestRanklistRequestDto {
+    contestId: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestRanklistResponseDto {
+    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
+    meta?: ApiTypes.ContestMetaDto;
+    problems?: ApiTypes.ContestProblemDto[];
+    rows?: ApiTypes.ContestRanklistRowDto[];
+  }
   export interface AddJudgeClientRequestDto {
     name: string;
     allowedHosts: string[];

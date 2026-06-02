@@ -1,0 +1,29 @@
+return {
+  new_title: "添加比赛",
+  edit_title: "编辑比赛",
+  title: "比赛名称",
+  subtitle: "简介",
+  information: "信息与公告",
+  start_time: "开始时间",
+  end_time: "结束时间",
+  type: "赛制",
+  type_acm: "ACM",
+  type_ioi: "IOI",
+  type_noi: "NOI",
+  is_public: "公开比赛",
+  hide_statistics: "比赛结束前隐藏统计",
+  problems: "题目",
+  admins: "管理员",
+  add_problem: "搜索并添加题目",
+  add_admin: "搜索并添加管理员",
+  save: "保存",
+  cancel: "取消",
+  error: {
+    PERMISSION_DENIED: "您没有权限进行此操作。",
+    NO_SUCH_CONTEST: "无此比赛。",
+    EMPTY_TITLE: "比赛名不能为空。",
+    INVALID_TIME_RANGE: "比赛时间无效。",
+    NO_SUCH_PROBLEM: "题目不存在。",
+    NO_SUCH_USER: "用户不存在。"
+  }
+};

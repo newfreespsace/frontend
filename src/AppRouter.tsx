@@ -117,6 +117,7 @@ const AppRouter: React.FC = () => {
           "/register": lazy(() => import("./pages/auth/register")),
           "/forgot": lazy(() => import("./pages/auth/forgot")),
           "/p": getRoute(() => import("./pages/problem"), "p"),
+          "/c": getRoute(() => import("./pages/contest"), "c"),
           "/s": getRoute(() => import("./pages/submission"), "s"),
           "/u": getRoute(() => import("./pages/user"), "u"),
           "/user": getRoute(() => import("./pages/user"), "user"),
@@ -126,6 +127,8 @@ const AppRouter: React.FC = () => {
           ...legacyRoutes({
             "/problem": getRoute(() => import("./pages/problem"), "problem"),
             "/problems": getRoute(() => import("./pages/problem"), "problems"),
+            "/contest": getRoute(() => import("./pages/contest"), "contest"),
+            "/contests": getRoute(() => import("./pages/contest"), "contests"),
             "/submissions": redirect(request => ({ pathname: "/s", query: request.query })),
             "/submission/:id": redirect(request => `/s/${request.params.id}`),
             "/ranklist": redirect("/u"),
