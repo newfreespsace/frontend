@@ -22,6 +22,7 @@ return {
   },
   action: {
     submit: "提出",
+    back_to_contest: "コンテストへ戻る",
     login_to_submit: "ログインして提出してください",
     submission: "提出一覧",
     statistics: "統計",

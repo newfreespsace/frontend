@@ -22,6 +22,7 @@ return {
   },
   action: {
     submit: "Submit",
+    back_to_contest: "Back to contest",
     login_to_submit: "Login to submit",
     submission: "Submissions",
     statistics: "Statistics",

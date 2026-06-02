@@ -16,6 +16,10 @@ export const saveContest = createPostApi<ApiTypes.SaveContestRequestDto, ApiType
   "contest/saveContest",
   false
 );
+export const getContestProblem = createPostApi<
+  ApiTypes.GetContestProblemRequestDto,
+  ApiTypes.GetContestProblemResponseDto
+>("contest/getContestProblem", false);
 export const getContestRanklist = createPostApi<
   ApiTypes.GetContestRanklistRequestDto,
   ApiTypes.GetContestRanklistResponseDto

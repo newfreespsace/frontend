@@ -124,10 +124,13 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
 }
 
 interface ProblemViewPageProps {
-  idType: "id" | "displayId";
+  idType?: "id" | "displayId";
   requestedLocale: Locale;
   problem: ApiTypes.GetProblemResponseDto;
   ProblemTypeView: ProblemTypeView<any>;
+
+  contest?: ApiTypes.ContestMetaDto;
+  contestPid?: number;
 }
 
 let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
@@ -136,6 +139,9 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
 
   const isMobile = useScreenWidthWithin(0, 768);
 
+  const inContest = !!props.contest;
+  const contestProblemLabel = inContest ? String.fromCharCode(64 + props.contestPid) : null;
+
   const [idString, title, all] = getProblemDisplayName(
     props.problem.meta,
     props.problem.localizedContentsOfLocale.title,
@@ -143,9 +149,14 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
     "tuple"
   );
 
+  const displayedProblemTitle = inContest ? `${contestProblemLabel}. ${title}` : all;
+
   useEffect(() => {
-    appState.enterNewPage(`${all} - ${_(".title")}`, "problem_set");
-  }, [appState.locale, props.problem]);
+    appState.enterNewPage(
+      inContest ? `${props.contest.title} - ${displayedProblemTitle}` : `${all} - ${_(".title")}`,
+      inContest ? ("contests" as any) : "problem_set"
+    );
+  }, [appState.locale, props.problem, props.contest]);
 
   const recaptcha = useRecaptcha();
 
@@ -424,9 +435,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               </Link>
             )}
             <EmojiRenderer>
-              <span>
-                {idString}.&nbsp;{title}
-              </span>
+              <span>{inContest ? displayedProblemTitle : `${idString}. ${title}`}</span>
             </EmojiRenderer>
             {props.problem.meta.locales.length > 1 && (
               <Dropdown icon="globe" className={style.languageSelectIcon}>
@@ -451,6 +460,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               </Dropdown>
             )}
           </Header>
+
           <div className={style.labels}>
             {!props.problem.meta.isPublic && (
               <Label size={isMobile ? "small" : null} color="red" basic>
@@ -668,7 +678,12 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                         }
                 }}
               />
-              {ProblemTypeView.enableStatistics() && (
+
+              {inContest && ProblemTypeView.enableStatistics() && (
+                <Menu.Item name={_(".action.back_to_contest")} icon="arrow left" as={Link} href={{ pathname: "/c" }} />
+              )}
+
+              {!inContest && ProblemTypeView.enableStatistics() && (
                 <Menu.Item
                   name={_(".action.statistics")}
                   icon="sort content ascending"
@@ -676,123 +691,134 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   href={getProblemUrl(props.problem.meta, { subRoute: "statistics/fastest" })}
                 />
               )}
-              <Menu.Item
-                as={Link}
-                href={{
-                  pathname: "/d",
-                  query: {
-                    problemId: props.problem.meta.id
-                  }
-                }}
-              >
-                <Icon name="comments" />
-                {_(".action.discussion")}
-                {props.problem.discussionCount ? (
-                  <Label
-                    className={style.discussionCount}
-                    circular
-                    content={props.problem.discussionCount}
-                    size="tiny"
-                  />
-                ) : null}
-              </Menu.Item>
-              <Menu.Item
-                name={_(".action.files")}
-                icon="folder open"
-                as={Link}
-                href={getProblemUrl(props.problem.meta, { subRoute: "files" })}
-              />
-            </Menu>
-            <Menu pointing secondary vertical className={`${style.actionMenu} ${style.secondActionMenu}`}>
-              {props.problem.permissionOfCurrentUser.includes("Modify") && (
+
+              {!inContest && (
                 <Menu.Item
-                  name={_(".action.edit")}
-                  icon="edit"
                   as={Link}
                   href={{
-                    pathname: getProblemUrl(props.problem.meta, { subRoute: "edit" }),
-                    query: props.requestedLocale
-                      ? {
-                          locale: props.requestedLocale
-                        }
-                      : null
+                    pathname: "/d",
+                    query: {
+                      problemId: props.problem.meta.id
+                    }
                   }}
-                />
+                >
+                  <Icon name="comments" />
+                  {_(".action.discussion")}
+                  {props.problem.discussionCount ? (
+                    <Label
+                      className={style.discussionCount}
+                      circular
+                      content={props.problem.discussionCount}
+                      size="tiny"
+                    />
+                  ) : null}
+                </Menu.Item>
               )}
-              {props.problem.permissionOfCurrentUser.includes("Modify") && (
+              {!inContest && (
                 <Menu.Item
-                  name={_(".action.judge_settings")}
-                  icon="cog"
+                  name={_(".action.files")}
+                  icon="folder open"
                   as={Link}
-                  href={getProblemUrl(props.problem.meta, { subRoute: "judge-settings" })}
-                />
-              )}
-              {
-                // Normal users won't interested in permissions
-                // Only show permission manage button when the user have write permission
-                props.problem.permissionOfCurrentUser.includes("Modify") && (
-                  <Menu.Item onClick={onClickPermissionManage}>
-                    <Icon name="key" />
-                    {_(".action.permission_manage")}
-                    <Loader size="tiny" active={permissionManagerLoading} />
-                  </Menu.Item>
-                )
-              }
-              {props.problem.permissionOfCurrentUser.includes("ManagePublicness") && (
-                <Popup
-                  trigger={<Menu.Item name={_(".action.set_display_id")} icon="hashtag" />}
-                  content={
-                    <Form>
-                      <Form.Input
-                        style={{ width: 230 }}
-                        placeholder={_(".action.set_display_id_new")}
-                        value={setDisplayIdInputValue}
-                        autoComplete="username"
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSetDisplayIdInputValue(e.target.value)}
-                        onKeyPress={onEnterPress(() => onSetDisplayId())}
-                      />
-                      <Button loading={setDisplayIdPending} onClick={onSetDisplayId}>
-                        {_(".action.set_display_id_submit")}
-                      </Button>
-                    </Form>
-                  }
-                  on="click"
-                  position="top left"
-                />
-              )}
-              {props.problem.permissionOfCurrentUser.includes("ManagePublicness") && (
-                <Popup
-                  trigger={
-                    <Menu.Item
-                      name={props.problem.meta.isPublic ? _(".action.set_non_public") : _(".action.set_public")}
-                      icon={props.problem.meta.isPublic ? "eye slash" : "eye"}
-                    />
-                  }
-                  content={
-                    <Button
-                      loading={setPublicPending}
-                      color={props.problem.meta.isPublic ? null : "green"}
-                      content={
-                        props.problem.meta.isPublic
-                          ? _(".action.set_non_public_confirm")
-                          : _(".action.set_public_confirm")
-                      }
-                      onClick={() => onSetPublic(!props.problem.meta.isPublic)}
-                    />
-                  }
-                  on="click"
-                  position="top left"
-                />
-              )}
-              {props.problem.permissionOfCurrentUser.includes("Delete") && (
-                <Menu.Item
-                  className={style.menuItemDangerous}
-                  name={_(".action.delete")}
-                  icon="delete"
-                  onClick={deleteDialog.open}
+                  href={getProblemUrl(props.problem.meta, { subRoute: "files" })}
                 />
               )}
             </Menu>
+            {!inContest && (
+              <>
+                <Menu pointing secondary vertical className={`${style.actionMenu} ${style.secondActionMenu}`}>
+                  {props.problem.permissionOfCurrentUser.includes("Modify") && (
+                    <Menu.Item
+                      name={_(".action.edit")}
+                      icon="edit"
+                      as={Link}
+                      href={{
+                        pathname: getProblemUrl(props.problem.meta, { subRoute: "edit" }),
+                        query: props.requestedLocale
+                          ? {
+                              locale: props.requestedLocale
+                            }
+                          : null
+                      }}
+                    />
+                  )}
+                  {props.problem.permissionOfCurrentUser.includes("Modify") && (
+                    <Menu.Item
+                      name={_(".action.judge_settings")}
+                      icon="cog"
+                      as={Link}
+                      href={getProblemUrl(props.problem.meta, { subRoute: "judge-settings" })}
+                    />
+                  )}
+                  {
+                    // Normal users won't interested in permissions
+                    // Only show permission manage button when the user have write permission
+                    props.problem.permissionOfCurrentUser.includes("Modify") && (
+                      <Menu.Item onClick={onClickPermissionManage}>
+                        <Icon name="key" />
+                        {_(".action.permission_manage")}
+                        <Loader size="tiny" active={permissionManagerLoading} />
+                      </Menu.Item>
+                    )
+                  }
+                  {props.problem.permissionOfCurrentUser.includes("ManagePublicness") && (
+                    <Popup
+                      trigger={<Menu.Item name={_(".action.set_display_id")} icon="hashtag" />}
+                      content={
+                        <Form>
+                          <Form.Input
+                            style={{ width: 230 }}
+                            placeholder={_(".action.set_display_id_new")}
+                            value={setDisplayIdInputValue}
+                            autoComplete="username"
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                              setSetDisplayIdInputValue(e.target.value)
+                            }
+                            onKeyPress={onEnterPress(() => onSetDisplayId())}
+                          />
+                          <Button loading={setDisplayIdPending} onClick={onSetDisplayId}>
+                            {_(".action.set_display_id_submit")}
+                          </Button>
+                        </Form>
+                      }
+                      on="click"
+                      position="top left"
+                    />
+                  )}
+                  {props.problem.permissionOfCurrentUser.includes("ManagePublicness") && (
+                    <Popup
+                      trigger={
+                        <Menu.Item
+                          name={props.problem.meta.isPublic ? _(".action.set_non_public") : _(".action.set_public")}
+                          icon={props.problem.meta.isPublic ? "eye slash" : "eye"}
+                        />
+                      }
+                      content={
+                        <Button
+                          loading={setPublicPending}
+                          color={props.problem.meta.isPublic ? null : "green"}
+                          content={
+                            props.problem.meta.isPublic
+                              ? _(".action.set_non_public_confirm")
+                              : _(".action.set_public_confirm")
+                          }
+                          onClick={() => onSetPublic(!props.problem.meta.isPublic)}
+                        />
+                      }
+                      on="click"
+                      position="top left"
+                    />
+                  )}
+                  {props.problem.permissionOfCurrentUser.includes("Delete") && (
+                    <Menu.Item
+                      className={style.menuItemDangerous}
+                      name={_(".action.delete")}
+                      icon="delete"
+                      onClick={deleteDialog.open}
+                    />
+                  )}
+                </Menu>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -847,5 +873,36 @@ export default {
         ProblemTypeView={await getProblemTypeView(problem.meta.type as ProblemType)}
       />
     );
+  }),
+  contest: defineRoute(async request => {
+    const cid = Number(request.params.id);
+    const pid = Number(request.params.pid);
+    const response = await fetchContestProblemData(cid, pid, appState.locale);
+
+    const ProblemTypeView = await getProblemTypeView(response.problem.meta.type as ProblemType);
+
+    return (
+      <ProblemViewPage
+        idType="id"
+        requestedLocale={appState.locale}
+        problem={response.problem}
+        ProblemTypeView={ProblemTypeView}
+        contest={response.contest}
+        contestPid={response.pid}
+      />
+    );
   })
 };
+
+async function fetchContestProblemData(cid: number, pid: number, locale: Locale) {
+  const { requestError, response } = await api.contest.getContestProblem({
+    contestId: cid,
+    pid,
+    locale
+  });
+
+  if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
+  if (response.error) throw new RouteError(makeToBeLocalizedText(`contest.error.${response.error}`));
+
+  return response;
+}

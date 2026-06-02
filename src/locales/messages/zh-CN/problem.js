@@ -22,6 +22,7 @@ return {
   },
   action: {
     submit: "提交",
+    back_to_contest: "返回比赛",
     login_to_submit: "请登录后提交",
     submission: "提交记录",
     statistics: "统计",

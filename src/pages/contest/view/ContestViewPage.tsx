@@ -10,7 +10,6 @@ import { defineRoute, RouteError } from "@/AppRouter";
 import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import formatDateTime from "@/utils/formatDateTime";
-import { getProblemUrl } from "@/pages/problem/utils";
 import { getContestStatus } from "../utils";
 
 async function fetchData(contestId: number): Promise<ApiTypes.GetContestResponseDto> {
@@ -123,11 +122,7 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
                   ) : null}
                 </Table.Cell>
                 <Table.Cell>
-                  <Link
-                    href={getProblemUrl(problem.meta.displayId || problem.meta.id, {
-                      use: problem.meta.displayId ? "displayId" : "id"
-                    })}
-                  >
+                  <Link href={`/c/${contest.id}/p/${index + 1}`}>
                     {String.fromCharCode(65 + index)}. {problem.title}
                   </Link>
                 </Table.Cell>

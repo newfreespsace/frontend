@@ -96,6 +96,22 @@ declare namespace ApiTypes {
     contestId: number;
     locale: "en_US" | "zh_CN" | "ja_JP";
   }
+  export interface GetContestProblemRequestDto {
+    contestId: number;
+    pid: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestProblemResponseDto {
+    error?: "NO_SUCH_CONTEST" | "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "CONTEST_NOT_STARTED";
+    problem?: ApiTypes.GetProblemResponseDto;
+    contest?: ApiTypes.ContestMetaDto;
+    pid?: number;
+    permissions?: {
+      manageContest: boolean;
+      running: boolean;
+      ended: boolean;
+    };
+  }
   export interface GetContestRanklistResponseDto {
     error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
     meta?: ApiTypes.ContestMetaDto;
