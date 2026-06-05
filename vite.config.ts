@@ -163,6 +163,7 @@ const externalPackagesForHtml = Object.entries(baseExternalPackages).map(
 
 export default defineConfig({
   server: {
+    host: "0.0.0.0",
     port: 3000,
     proxy: {
       // 匹配所有以 /api 开头的请求路径
