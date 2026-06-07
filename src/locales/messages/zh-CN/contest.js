@@ -9,6 +9,10 @@ return {
   rank: "排名",
   user: "用户",
   score: "得分",
+  accepted_count: "通过数量",
+  penalty: "罚时",
+  total_score: "总分",
+  empty_ranklist: "暂无选手提交",
   type: {
     acm: "ACM",
     ioi: "IOI",

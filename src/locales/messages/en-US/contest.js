@@ -9,6 +9,10 @@ return {
   rank: "Rank",
   user: "User",
   score: "Score",
+  accepted_count: "Solved",
+  penalty: "Penalty",
+  total_score: "Total Score",
+  empty_ranklist: "No submissions yet",
   type: {
     acm: "ACM",
     ioi: "IOI",

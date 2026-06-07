@@ -9,6 +9,10 @@ return {
   rank: "順位",
   user: "ユーザー",
   score: "スコア",
+  accepted_count: "AC 数",
+  penalty: "ペナルティ",
+  total_score: "総スコア",
+  empty_ranklist: "提出はまだありません",
   type: {
     acm: "ACM",
     ioi: "IOI",

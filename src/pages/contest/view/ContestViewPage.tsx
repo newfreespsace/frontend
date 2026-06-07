@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Button, Header, Icon, Label, Message, Segment, Table } from "semantic-ui-react";
+import React, { useEffect, useState } from "react";
+import { Button, ButtonGroup, Header, Icon, Label, Message, Progress, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "./ContestViewPage.module.less";
@@ -7,10 +7,11 @@ import style from "./ContestViewPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
+import ScoreText from "@/components/ScoreText";
+import StatusText from "@/components/StatusText";
 import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import formatDateTime from "@/utils/formatDateTime";
-import { getContestStatus } from "../utils";
 
 async function fetchData(contestId: number): Promise<ApiTypes.GetContestResponseDto> {
   const { requestError, response } = await api.contest.getContest({
@@ -34,17 +35,21 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
     appState.enterNewPage(`${contest.title} - ${_(".title")}`, "contests" as any);
   }, [appState.locale, contest.id]);
 
-  const status = getContestStatus(contest);
-  const progress =
-    status === "pending"
-      ? 0
-      : status === "ended"
-      ? 100
-      : Math.floor(
-          ((Date.now() - new Date(contest.startTime).getTime()) /
-            (new Date(contest.endTime).getTime() - new Date(contest.startTime).getTime())) *
-            100
-        );
+  const contestStartTime = new Date(contest.startTime).getTime();
+  const contestEndTime = new Date(contest.endTime).getTime();
+  const nowTime = new Date().getTime();
+  const [percent, setPercent] = useState(
+    Math.floor((100 * (nowTime - contestStartTime)) / (contestEndTime - contestStartTime))
+  );
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const nowTime = new Date().getTime();
+      const nowPercent = Math.floor((100 * (nowTime - contestStartTime)) / (contestEndTime - contestStartTime));
+      setPercent(Math.min(100, nowPercent));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <>
@@ -56,22 +61,24 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
           <div className={style.subtitle}>{contest.subtitle}</div>
         </div>
         <div className={style.actions}>
-          {props.contest.permissions.viewRanklist && (
-            <Button primary as={Link} href={`/c/${contest.id}/ranklist`}>
-              <Icon name="trophy" />
-              {_(".ranklist")}
+          <ButtonGroup>
+            {props.contest.permissions.viewRanklist && (
+              <Button primary as={Link} href={`/c/${contest.id}/ranklist`}>
+                <Icon name="trophy" />
+                {_(".ranklist")}
+              </Button>
+            )}
+            <Button as={Link} href={{ pathname: "/s", query: { contestId: contest.id.toString() } }}>
+              <Icon name="hourglass half" />
+              {_(".submissions")}
             </Button>
-          )}
-          <Button as={Link} href={{ pathname: "/s", query: { contestId: contest.id.toString() } }}>
-            <Icon name="hourglass half" />
-            {_(".submissions")}
-          </Button>
-          {props.contest.permissions.manage && (
-            <Button as={Link} href={`/c/${contest.id}/edit`}>
-              <Icon name="edit" />
-              {_(".edit")}
-            </Button>
-          )}
+            {props.contest.permissions.manage && (
+              <Button as={Link} href={`/c/${contest.id}/edit`}>
+                <Icon name="edit" />
+                {_(".edit")}
+              </Button>
+            )}
+          </ButtonGroup>
         </div>
       </div>
 
@@ -80,9 +87,7 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
         <Label pointing="below" style={{ float: "right" }}>
           {formatDateTime(contest.endTime)[1]}
         </Label>
-        <div className={style.progress}>
-          <div className={style.bar} style={{ width: `${progress}%` }} />
-        </div>
+        <Progress percent={percent} size="tiny" indicating />
       </div>
 
       {contest.information && (
@@ -113,13 +118,7 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
             {props.contest.problems.map((problem, index) => (
               <Table.Row key={problem.meta.id}>
                 <Table.Cell className={style.statusCell}>
-                  {contest.type === "acm" && problem.accepted ? (
-                    <Label color="green">+{problem.unacceptedCount || ""}</Label>
-                  ) : problem.submissionId ? (
-                    <Label color={problem.status === "Accepted" ? "green" : "orange"}>
-                      {problem.score != null ? problem.score : problem.status}
-                    </Label>
-                  ) : null}
+                  <ProblemStatusCell contest={contest} problem={problem} />
                 </Table.Cell>
                 <Table.Cell>
                   <Link href={`/c/${contest.id}/p/${index + 1}`}>
@@ -139,6 +138,38 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
         </Table>
       )}
     </>
+  );
+};
+
+interface ProblemStatusCellProps {
+  contest: ApiTypes.ContestMetaDto;
+  problem: ApiTypes.ContestProblemDto;
+}
+
+const ProblemStatusCell: React.FC<ProblemStatusCellProps> = props => {
+  const { contest, problem } = props;
+  if (!problem.submissionId) return null;
+
+  const content =
+    contest.type === "acm" ? (
+      problem.accepted ? (
+        <ScoreText score={100}>+{problem.unacceptedCount || ""}</ScoreText>
+      ) : problem.unacceptedCount ? (
+        <ScoreText score={0}>-{problem.unacceptedCount}</ScoreText>
+      ) : null
+    ) : contest.type === "noi" && problem.status ? (
+      <StatusText status={problem.status} />
+    ) : problem.score != null ? (
+      <ScoreText score={problem.score}>{problem.score}</ScoreText>
+    ) : problem.status ? (
+      <StatusText status={problem.status} />
+    ) : null;
+
+  if (!content) return null;
+  return (
+    <Link className={style.statusLink} href={`/c/${contest.id}/s/${problem.submissionId}`}>
+      {content}
+    </Link>
   );
 };
 

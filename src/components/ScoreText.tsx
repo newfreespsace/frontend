@@ -4,10 +4,12 @@ import style from "./ScoreText.module.less";
 
 interface ScoreTextProps {
   score: number;
+  children?: React.ReactNode;
 }
 
 const ScoreText: React.FC<ScoreTextProps> = props => {
-  return <span className={style["score_" + Math.floor(props.score / 10)]}>{props.score}</span>;
+  const scoreClass = Math.max(0, Math.min(10, Math.floor(props.score / 10)));
+  return <span className={style["score_" + scoreClass]}>{props.children ?? props.score}</span>;
 };
 
 export default ScoreText;
