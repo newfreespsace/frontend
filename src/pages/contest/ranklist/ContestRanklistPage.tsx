@@ -29,6 +29,7 @@ interface ContestRanklistPageProps {
 interface ContestRanklistScoreDetail {
   score?: number;
   submissionId?: number;
+  status?: string;
   submissions?: Record<
     string,
     {
@@ -37,6 +38,7 @@ interface ContestRanklistScoreDetail {
       accepted?: boolean;
       compiled?: boolean;
       time: string;
+      status?: string;
     }
   >;
   accepted?: boolean;

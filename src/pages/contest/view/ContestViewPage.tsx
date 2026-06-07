@@ -150,6 +150,8 @@ const ProblemStatusCell: React.FC<ProblemStatusCellProps> = props => {
   const { contest, problem } = props;
   if (!problem.submissionId) return null;
 
+  // console.log(contest, problem);
+
   const content =
     contest.type === "acm" ? (
       problem.accepted ? (
@@ -158,8 +160,11 @@ const ProblemStatusCell: React.FC<ProblemStatusCellProps> = props => {
         <ScoreText score={0}>-{problem.unacceptedCount}</ScoreText>
       ) : null
     ) : contest.type === "noi" && problem.status ? (
-      <StatusText status={problem.status} />
-    ) : problem.score != null ? (
+      <>
+        <StatusText status={problem.status} statusText={`${problem.score} / 100`} />
+      </>
+    ) : // <StatusText status={"Wrong"} />
+    problem.score != null ? (
       <ScoreText score={problem.score}>{problem.score}</ScoreText>
     ) : problem.status ? (
       <StatusText status={problem.status} />
