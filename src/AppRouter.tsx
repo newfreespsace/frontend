@@ -124,6 +124,7 @@ const AppRouter: React.FC = () => {
           "/groups": getRoute(() => import("./pages/user"), "groups"),
           "/d": getRoute(() => import("./pages/discussion"), "d"),
           "/judge-machine": lazy(() => import("./pages/judge-machine")),
+          "/t": getRoute(() => import("./pages/training"), "t"),
           ...legacyRoutes({
             "/problem": getRoute(() => import("./pages/problem"), "problem"),
             "/problems": getRoute(() => import("./pages/problem"), "problems"),

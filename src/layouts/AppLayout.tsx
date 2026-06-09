@@ -25,7 +25,7 @@ import api from "@/api";
 import formatDateTime from "@/utils/formatDateTime";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 
-export type NavButtonName = "home" | "problem_set" | "contests" | "submissions" | "members" | "discussion";
+export type NavButtonName = "home" | "problem_set" | "contests" | "submissions" | "members" | "discussion" | "training";
 
 let AppLayout: React.FC = props => {
   const navigation = useNavigationChecked();
@@ -92,6 +92,11 @@ let AppLayout: React.FC = props => {
       icon: "comments",
       text: ".navbar.discussion",
       url: "/d"
+    },
+    training: {
+      icon: "comments",
+      text: "训练",
+      url: "/t"
     }
   };
 
