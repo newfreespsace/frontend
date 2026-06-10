@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Icon, Form, Header, Input, Checkbox, TextArea, Button, List, Radio, Ref } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { isURL } from "class-validator";
-import md5 from "blueimp-md5";
 
 import style from "./UserEdit.module.less";
 
@@ -15,6 +14,23 @@ import { RouteError } from "@/AppRouter";
 import { onEnterPress } from "@/utils/onEnterPress";
 import { makeToBeLocalizedText } from "@/locales";
 import { isValidEmail, isValidUsername } from "@/utils/validators";
+
+type Md5Function = (value: string, key?: string | null, raw?: boolean) => string;
+
+async function importMd5(): Promise<Md5Function> {
+  const global = globalThis as typeof globalThis & { define?: unknown };
+  const originalDefine = global.define;
+
+  try {
+    global.define = undefined;
+    const md5Module = await import("blueimp-md5");
+    return md5Module.default;
+  } finally {
+    global.define = originalDefine;
+  }
+}
+
+const md5 = await importMd5();
 
 export async function fetchData(username: string) {
   const { requestError, response } = await api.user.getUserProfile({ username });
