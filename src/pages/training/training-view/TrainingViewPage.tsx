@@ -9,6 +9,7 @@ import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Link } from "@/utils/hooks";
 import CreateChapterModal from "../common/CreateChapterModal";
+import TrainingProgressBar from "../common/TrainingProgressBar";
 
 interface TrainingViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -40,7 +41,13 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
   return (
     <>
       <div className={style.header}>
-        <Header as="h1">{props.training.title}</Header>
+        <div className={style.headerTitle}>
+          <Header as="h1">{props.training.title}</Header>
+          <TrainingProgressBar
+            acceptedProblemCount={props.training.acceptedProblemCount}
+            problemCount={props.training.problemCount}
+          />
+        </div>
         <div className={style.headerActions}>
           <CreateChapterModal trainingId={props.training.id} nextSortOrder={props.chapters.length + 1} />
         </div>
@@ -62,7 +69,13 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
               <Table.Row key={chapter.id}>
                 <Table.Cell>{chapter.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
-                  <Link href={`/t/${props.training.id}/${chapter.id}`}>{chapter.title}</Link>
+                  <div className={style.titleWithProgress}>
+                    <Link href={`/t/${props.training.id}/${chapter.id}`}>{chapter.title}</Link>
+                    <TrainingProgressBar
+                      acceptedProblemCount={chapter.acceptedProblemCount}
+                      problemCount={chapter.problemCount}
+                    />
+                  </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
                   {chapter.description || <span className={style.muted}>-</span>}

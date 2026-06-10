@@ -8,6 +8,12 @@
   }
 }
 
+.headerTitle {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .headerActions {
   margin-left: auto;
   display: flex;
@@ -29,6 +35,35 @@
 
 .tableTitle {
   text-align: left !important;
+}
+
+.titleWithProgress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trainingProgress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.trainingProgressBar {
+  width: 92px;
+  margin: 0 !important;
+
+  :global(.bar) {
+    transition: width 0.35s ease !important;
+  }
+}
+
+.trainingProgressText {
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0.72;
 }
 
 .tableDescription {
@@ -78,7 +113,19 @@
     gap: 12px;
   }
 
+  .headerTitle {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .headerActions {
     flex-shrink: 0;
+  }
+
+  .titleWithProgress {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
   }
 }

@@ -13,6 +13,7 @@ import { StatusIcon } from "@/components/StatusText";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
 import { sortTags } from "@/pages/problem/problemTag";
 import AddProblemModal from "../common/AddProblemModal";
+import TrainingProgressBar from "../common/TrainingProgressBar";
 
 interface SectionViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -66,7 +67,13 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
   return (
     <>
       <div className={style.header}>
-        <Header as="h1">{section.title}</Header>
+        <div className={style.headerTitle}>
+          <Header as="h1">{section.title}</Header>
+          <TrainingProgressBar
+            acceptedProblemCount={section.acceptedProblemCount}
+            problemCount={section.problemCount}
+          />
+        </div>
         <div className={style.headerActions}>
           <AddProblemModal section={section} onAdded={onProblemAdded} />
         </div>

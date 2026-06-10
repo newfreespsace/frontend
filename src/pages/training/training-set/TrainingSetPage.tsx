@@ -9,6 +9,7 @@ import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Link } from "@/utils/hooks";
 import CreateTrainingModal from "../common/CreateTrainingModal";
+import TrainingProgressBar from "../common/TrainingProgressBar";
 
 async function fetchData(): Promise<ApiTypes.QueryTrainingSetResponseDto> {
   const { requestError, response } = await api.training.queryTrainingSet(undefined);
@@ -28,7 +29,9 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
   return (
     <>
       <div className={style.header}>
-        <Header as="h1">训练</Header>
+        <div className={style.headerTitle}>
+          <Header as="h1">训练</Header>
+        </div>
         <div className={style.headerActions}>
           <CreateTrainingModal nextSortOrder={props.response.count + 1} />
         </div>
@@ -48,7 +51,13 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
               <Table.Row key={training.id}>
                 <Table.Cell>{training.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
-                  <Link href={`/t/${training.id}`}>{training.title}</Link>
+                  <div className={style.titleWithProgress}>
+                    <Link href={`/t/${training.id}`}>{training.title}</Link>
+                    <TrainingProgressBar
+                      acceptedProblemCount={training.acceptedProblemCount}
+                      problemCount={training.problemCount}
+                    />
+                  </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
                   {training.description || <span className={style.muted}>-</span>}

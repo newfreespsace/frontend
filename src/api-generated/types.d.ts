@@ -51,6 +51,8 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    problemCount: number;
+    acceptedProblemCount: number;
     sections?: ApiTypes.SectionMetaDto[];
   }
   export interface CheckAvailabilityResponseDto {
@@ -487,6 +489,8 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    problemCount: number;
+    acceptedProblemCount: number;
     problems: ApiTypes.QueryProblemSetResponseItemDto[];
   }
   export interface GetSessionInfoResponseDto {
@@ -996,6 +1000,8 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    problemCount: number;
+    acceptedProblemCount: number;
   }
   export interface QueryUserMigrationInfoRequestDto {
     email?: string;
@@ -1125,6 +1131,8 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    problemCount: number;
+    acceptedProblemCount: number;
   }
   export interface SendEmailVerificationCodeRequestDto {
     email: string;
@@ -1346,6 +1354,8 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    problemCount: number;
+    acceptedProblemCount: number;
     chapters?: ApiTypes.ChapterMetaDto[];
   }
   export interface UpdateChapterDto {
