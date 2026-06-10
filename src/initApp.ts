@@ -1,5 +1,6 @@
 import { appState, initAppStateStore } from "@/appState";
 import { loadGoogleAnalytics, loadPlausible } from "@/misc/analytics";
+import { runInAction } from "mobx";
 
 interface SessionSwrInfo {
   version: number;
@@ -13,12 +14,14 @@ const SESSION_SWR_INFO_VERSION = 1;
 const SESSION_SWR_INFO_VALID_FOR = 7 * 24 * 60 * 60 * 1000;
 
 function applySessionInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {
-  appState.currentUser = sessionInfo.userMeta;
-  appState.currentUserJoinedGroupsCount = sessionInfo.joinedGroupsCount;
-  appState.currentUserPrivileges = sessionInfo.userPrivileges || [];
-  appState.userPreference = sessionInfo.userPreference || {};
-  appState.serverPreference = sessionInfo.serverPreference;
-  appState.serverVersion = sessionInfo.serverVersion;
+  runInAction(() => {
+    appState.currentUser = sessionInfo.userMeta;
+    appState.currentUserJoinedGroupsCount = sessionInfo.joinedGroupsCount;
+    appState.currentUserPrivileges = sessionInfo.userPrivileges || [];
+    appState.userPreference = sessionInfo.userPreference || {};
+    appState.serverPreference = sessionInfo.serverPreference;
+    appState.serverVersion = sessionInfo.serverVersion;
+  });
 }
 
 function saveSessionSwrInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {

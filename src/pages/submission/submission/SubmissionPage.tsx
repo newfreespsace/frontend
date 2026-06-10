@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Ref, Menu } from "semantic-ui-react";
+import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { v4 as uuid } from "uuid";
 import { patch } from "jsondiffpatch";
@@ -805,67 +805,66 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
       statusNode
     ) : (
       <>
-        <Ref innerRef={e => e && e.tagName === "TD" && setStatusNodeRef(e)}>
-          <Popup
-            className={style.operationsPopup}
-            trigger={statusNode}
-            open={operationsPopupOpen}
-            onOpen={() => !cancelPopupOpen && !rejudgePopupOpen && setOperationsPopupOpen(true)}
-            onClose={() => setOperationsPopupOpen(false)}
-            disabled={operationPending}
-            hoverable
-            content={
-              <Menu vertical className={style.operations}>
-                {showCancel && (
-                  <Menu.Item
-                    content={
-                      <>
-                        <Icon name="ban" />
-                        {_(".cancel")}
-                      </>
-                    }
-                    onClick={() => (setOperationsPopupOpen(false), setCancelPopupOpen(true))}
-                  />
-                )}
-                {showRejudge && (
-                  <Menu.Item
-                    content={
-                      <>
-                        <Icon name="refresh" />
-                        {_(".rejudge")}
-                      </>
-                    }
-                    onClick={() => (setOperationsPopupOpen(false), setRejudgePopupOpen(true))}
-                  />
-                )}
-                {showTogglePublic && (
-                  <Menu.Item
-                    content={
-                      <>
-                        <Icon name={meta.isPublic ? "eye slash" : "eye"} />
-                        {_(meta.isPublic ? ".set_non_public" : ".set_public")}
-                      </>
-                    }
-                    onClick={() => (setOperationsPopupOpen(false), setTogglePublicPopupOpen(true))}
-                  />
-                )}
-                {showDelete && (
-                  <Menu.Item
-                    content={
-                      <>
-                        <Icon name="delete" />
-                        {_(".delete")}
-                      </>
-                    }
-                    onClick={() => (setOperationsPopupOpen(false), setDeletePopupOpen(true))}
-                  />
-                )}
-              </Menu>
-            }
-            position="bottom left"
-            on="hover"
-          />
-        </Ref>
+        <Popup
+          className={style.operationsPopup}
+          trigger={statusNode}
+          triggerRef={e => e && e.tagName === "TD" && setStatusNodeRef(e)}
+          open={operationsPopupOpen}
+          onOpen={() => !cancelPopupOpen && !rejudgePopupOpen && setOperationsPopupOpen(true)}
+          onClose={() => setOperationsPopupOpen(false)}
+          disabled={operationPending}
+          hoverable
+          content={
+            <Menu vertical className={style.operations}>
+              {showCancel && (
+                <Menu.Item
+                  content={
+                    <>
+                      <Icon name="ban" />
+                      {_(".cancel")}
+                    </>
+                  }
+                  onClick={() => (setOperationsPopupOpen(false), setCancelPopupOpen(true))}
+                />
+              )}
+              {showRejudge && (
+                <Menu.Item
+                  content={
+                    <>
+                      <Icon name="refresh" />
+                      {_(".rejudge")}
+                    </>
+                  }
+                  onClick={() => (setOperationsPopupOpen(false), setRejudgePopupOpen(true))}
+                />
+              )}
+              {showTogglePublic && (
+                <Menu.Item
+                  content={
+                    <>
+                      <Icon name={meta.isPublic ? "eye slash" : "eye"} />
+                      {_(meta.isPublic ? ".set_non_public" : ".set_public")}
+                    </>
+                  }
+                  onClick={() => (setOperationsPopupOpen(false), setTogglePublicPopupOpen(true))}
+                />
+              )}
+              {showDelete && (
+                <Menu.Item
+                  content={
+                    <>
+                      <Icon name="delete" />
+                      {_(".delete")}
+                    </>
+                  }
+                  onClick={() => (setOperationsPopupOpen(false), setDeletePopupOpen(true))}
+                />
+              )}
+            </Menu>
+          }
+          position="bottom left"
+          on="hover"
+        />
         {showCancel && (
           <Popup
             open={cancelPopupOpen}

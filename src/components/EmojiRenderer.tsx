@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { Ref } from "semantic-ui-react";
 import twemoji from "twemoji";
 
 import style from "./EmojiRenderer.module.less";
@@ -7,6 +6,9 @@ import style from "./EmojiRenderer.module.less";
 interface EmojiRendererProps {
   children: React.ReactElement;
 }
+
+let nextEmojiRendererId = 0;
+const emojiRendererDataAttribute = "data-emoji-renderer-id";
 
 export const getTwemojiOptions = (inline: boolean) =>
   ({
@@ -32,10 +34,15 @@ export const getTwemojiOptions = (inline: boolean) =>
   } as Partial<TwemojiOptions>);
 
 export const EmojiRenderer: React.FC<EmojiRendererProps> = props => {
-  const refElement = useRef<HTMLElement>();
+  const rendererIdRef = useRef<string>();
+  if (!rendererIdRef.current) rendererIdRef.current = `emoji-renderer-${++nextEmojiRendererId}`;
+
   useEffect(() => {
-    if (refElement.current) twemoji.parse(refElement.current, getTwemojiOptions(true));
+    const element = document.querySelector<HTMLElement>(`[${emojiRendererDataAttribute}="${rendererIdRef.current}"]`);
+    if (element) twemoji.parse(element, getTwemojiOptions(true));
   });
 
-  return <Ref innerRef={refElement}>{props.children}</Ref>;
+  return React.cloneElement(props.children, {
+    [emojiRendererDataAttribute]: rendererIdRef.current
+  } as React.HTMLAttributes<HTMLElement>);
 };

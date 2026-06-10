@@ -1,4 +1,4 @@
-import { observable, computed, makeObservable } from "mobx";
+import { action, observable, computed, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 import { create, persist } from "mobx-persist";
 
@@ -37,6 +37,7 @@ export class AppState {
   @observable
   activeNavButton: NavButtonName;
 
+  @action
   enterNewPage(title: string, activeNavButton: NavButtonName = null, responsiveLayout: boolean = true) {
     this.title = title;
     this.responsiveLayout = responsiveLayout;
@@ -55,7 +56,7 @@ export class AppState {
   @computed
   get locale(): Locale {
     if (this.localLocale && this.localLocale === (this.userPreference.locale?.system || browserDefaultLocale)) {
-      setTimeout(() => (this.localLocale = null), 0);
+      setTimeout(() => runInAction(() => (this.localLocale = null)), 0);
     }
     return this.localLocale || (this.userPreference.locale?.system as Locale) || browserDefaultLocale;
   }
@@ -69,11 +70,12 @@ export class AppState {
 
   /* Begin theme info */
 
+  @action
   initializationThemeDetection() {
     const mediaQueryList = window.matchMedia("only screen and (prefers-color-scheme: dark)");
 
     const onChange = (e: { matches: boolean }) =>
-      (this.browserPreferredTheme = e.matches ? defaultDarkTheme : defaultLightTheme);
+      runInAction(() => (this.browserPreferredTheme = e.matches ? defaultDarkTheme : defaultLightTheme));
     onChange(mediaQueryList);
 
     if (mediaQueryList.addEventListener) mediaQueryList.addEventListener("change", onChange);

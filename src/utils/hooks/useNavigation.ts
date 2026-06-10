@@ -64,7 +64,12 @@ export function useConfirmNavigation(): [boolean, (confirm: boolean) => void] {
   const refConfirm = useRef<boolean>(false);
   const [stateConfirm, setStateConfirm] = useState(false);
 
-  useEffect(() => () => refConfirm.current && confirmNavigationState.count--, []);
+  useEffect(
+    () => () => {
+      if (refConfirm.current) confirmNavigationState.count--;
+    },
+    []
+  );
 
   return [
     stateConfirm,
@@ -79,14 +84,15 @@ export function useConfirmNavigation(): [boolean, (confirm: boolean) => void] {
   ];
 }
 
-export const Link: React.FC<LinkProps> = props => {
+export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => {
   const confirmNavigation = useNavigationConfirm();
 
   return React.createElement(NaviLink, {
     ...props,
+    ref,
     onClick: e => {
       if (!confirmNavigation()) e.preventDefault();
       if (props.onClick) return props.onClick(e);
     }
   });
-};
+});

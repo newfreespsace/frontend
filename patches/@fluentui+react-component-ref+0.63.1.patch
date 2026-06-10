@@ -1,0 +1,54 @@
+diff --git a/node_modules/@fluentui/react-component-ref/dist/commonjs/Ref.js b/node_modules/@fluentui/react-component-ref/dist/commonjs/Ref.js
+index b4de097..5b285d8 100644
+--- a/node_modules/@fluentui/react-component-ref/dist/commonjs/Ref.js
++++ b/node_modules/@fluentui/react-component-ref/dist/commonjs/Ref.js
+@@ -15,6 +15,8 @@ var _RefFindNode = require("./RefFindNode");
+ 
+ var _RefForward = require("./RefForward");
+ 
++var _utils = require("./utils");
++
+ var _excluded = ["children", "innerRef"];
+ 
+ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+@@ -26,8 +28,13 @@ var Ref = function Ref(props) {
+       innerRef = props.innerRef,
+       rest = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
+   var child = React.Children.only(children);
+-  var ElementType = ReactIs.isForwardRef(child) ? _RefForward.RefForward : _RefFindNode.RefFindNode;
++  var childCanReceiveRef = typeof child.type === 'string' || ReactIs.isForwardRef(child) || child.type && child.type.prototype && child.type.prototype.isReactComponent;
+   var childWithProps = child && rest && Object.keys(rest).length > 0 ? /*#__PURE__*/React.cloneElement(child, rest) : child;
++  if (!childCanReceiveRef) {
++    (0, _utils.handleRef)(innerRef, null);
++    return childWithProps;
++  }
++  var ElementType = _RefForward.RefForward;
+   return /*#__PURE__*/React.createElement(ElementType, {
+     innerRef: innerRef
+   }, childWithProps);
+diff --git a/node_modules/@fluentui/react-component-ref/dist/es/Ref.js b/node_modules/@fluentui/react-component-ref/dist/es/Ref.js
+index eb33101..8d8ef0b 100644
+--- a/node_modules/@fluentui/react-component-ref/dist/es/Ref.js
++++ b/node_modules/@fluentui/react-component-ref/dist/es/Ref.js
+@@ -4,14 +4,20 @@ import * as React from 'react';
+ import * as ReactIs from 'react-is';
+ import { RefFindNode } from './RefFindNode';
+ import { RefForward } from './RefForward';
++import { handleRef } from './utils';
+ export var Ref = function Ref(props) {
+   var children = props.children,
+       innerRef = props.innerRef,
+       rest = _objectWithoutPropertiesLoose(props, _excluded);
+ 
+   var child = React.Children.only(children);
+-  var ElementType = ReactIs.isForwardRef(child) ? RefForward : RefFindNode;
++  var childCanReceiveRef = typeof child.type === 'string' || ReactIs.isForwardRef(child) || child.type && child.type.prototype && child.type.prototype.isReactComponent;
+   var childWithProps = child && rest && Object.keys(rest).length > 0 ? /*#__PURE__*/React.cloneElement(child, rest) : child;
++  if (!childCanReceiveRef) {
++    handleRef(innerRef, null);
++    return childWithProps;
++  }
++  var ElementType = RefForward;
+   return /*#__PURE__*/React.createElement(ElementType, {
+     innerRef: innerRef
+   }, childWithProps);

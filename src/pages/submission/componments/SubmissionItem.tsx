@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, Icon, Popup, Ref } from "semantic-ui-react";
+import { Table, Icon, Popup } from "semantic-ui-react";
 
 import style from "./SubmissionItem.module.less";
 
@@ -97,11 +97,11 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
   return (
     <Table.Row className={style[props.page + "Page"]}>
       {(props.statusPopup || (x => x))(
-        <Table.Cell className={style.columnStatus} textAlign="left">
+        <td className={`${style.columnStatus} left aligned`}>
           <Link href={props.page !== "submission" ? submissionLink : null}>
             <StatusText status={submission.status} statusText={props.statusText} />
           </Link>
-        </Table.Cell>
+        </td>
       )}
       <Table.Cell className={style.columnScore}>
         <Link href={props.page !== "submission" ? submissionLink : null}>
@@ -135,11 +135,7 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
           hoverable
           trigger={
             <span>
-              {props.answerInfo && (
-                <Ref innerRef={setRefAnswerInfoIcon}>
-                  <Icon name="info circle" />
-                </Ref>
-              )}
+              {props.answerInfo && <i className="info circle icon" ref={setRefAnswerInfoIcon} />}
               {Object.values(CodeLanguage).includes(submission.codeLanguage as any) && (
                 <>
                   {props.page !== "submission" ? (

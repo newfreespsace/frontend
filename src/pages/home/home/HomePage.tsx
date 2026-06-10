@@ -247,8 +247,8 @@ let HomePage: React.FC<HomePageProps> = props => {
         />
         <Segment className={style.segment} attached="bottom">
           {Object.entries(props.countdown.items).map(([event, time], i) => (
-            <div key={i} className={style.countdown}>
-              <EmojiRenderer>
+            <EmojiRenderer key={i}>
+              <div className={style.countdown}>
                 <Countdown
                   date={new Date(time as string)}
                   renderer={p => {
@@ -292,8 +292,8 @@ let HomePage: React.FC<HomePageProps> = props => {
                     }
                   }}
                 />
-              </EmojiRenderer>
-            </div>
+              </div>
+            </EmojiRenderer>
           ))}
         </Segment>
       </>

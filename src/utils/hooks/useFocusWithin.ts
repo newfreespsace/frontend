@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 
-export function useFocusWithin(): [boolean, (element: HTMLElement) => void] {
-  const [element, setElement] = useState<HTMLElement>();
+function isEventTarget(element: unknown): element is HTMLElement {
+  return (
+    !!element &&
+    typeof (element as HTMLElement).addEventListener === "function" &&
+    typeof (element as HTMLElement).removeEventListener === "function"
+  );
+}
+
+export function useFocusWithin(): [boolean, (element: unknown) => void] {
+  const [element, setElement] = useState<unknown>();
   const [focuseWithin, setFocuseWithin] = useState(false);
   useEffect(() => {
-    if (element) {
-      const onFocus = () => setFocuseWithin(true);
-      const onBlur = () => setFocuseWithin(false);
-      element.addEventListener("focus", onFocus);
-      element.addEventListener("blur", onBlur);
+    if (!isEventTarget(element)) return;
 
-      return () => {
-        element.removeEventListener("focus", onFocus);
-        element.removeEventListener("blur", onBlur);
-      };
-    }
+    const onFocus = () => setFocuseWithin(true);
+    const onBlur = () => setFocuseWithin(false);
+    element.addEventListener("focus", onFocus);
+    element.addEventListener("blur", onBlur);
+
+    return () => {
+      element.removeEventListener("focus", onFocus);
+      element.removeEventListener("blur", onBlur);
+    };
   }, [element]);
 
   return [focuseWithin, setElement];

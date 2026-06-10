@@ -10,23 +10,31 @@ interface PatchedUIPaginationProps extends UIPaginationProps {
   pageUrl: (newPage: number) => Partial<URLDescriptor>;
 }
 
-class PatchedUIPagination extends UIPagination {
-  constructor(props: PatchedUIPaginationProps) {
-    super(props);
+const PatchedUIPagination: React.FC<PatchedUIPaginationProps> = ({ pageUrl, ...uiProps }) => {
+  const PaginationWithLinks = React.useMemo(
+    () =>
+      class PaginationWithLinks extends UIPagination {
+        constructor(props: UIPaginationProps) {
+          super(props);
 
-    const originalHandleItemOverrides: Function = this["handleItemOverrides"];
-    this["handleItemOverrides"] = (active: boolean, type: string, value: number) => {
-      const originalOverrider = originalHandleItemOverrides(active, type, value);
-      const isEllipsisItem = type === "ellipsisItem";
-      return (predefinedProps: unknown) => ({
-        ...originalOverrider(predefinedProps),
-        as: isEllipsisItem ? "span" : Link,
-        href: isEllipsisItem ? undefined : this.props.pageUrl(value),
-        onClick: undefined
-      });
-    };
-  }
-}
+          const originalHandleItemOverrides: Function = this["handleItemOverrides"];
+          this["handleItemOverrides"] = (active: boolean, type: string, value: number) => {
+            const originalOverrider = originalHandleItemOverrides(active, type, value);
+            const isEllipsisItem = type === "ellipsisItem";
+            return (predefinedProps: unknown) => ({
+              ...originalOverrider(predefinedProps),
+              as: isEllipsisItem ? "span" : Link,
+              href: isEllipsisItem ? undefined : pageUrl(value),
+              onClick: undefined
+            });
+          };
+        }
+      },
+    [pageUrl]
+  );
+
+  return <PaginationWithLinks {...uiProps} />;
+};
 
 interface PaginationProps {
   totalCount: number;

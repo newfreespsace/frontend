@@ -1,0 +1,1199 @@
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/Portal.js b/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/Portal.js
+index 26be197..89199d8 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/Portal.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/Portal.js
+@@ -236,6 +236,7 @@ var Portal = /*#__PURE__*/function (_Component) {
+     };
+ 
+     _this.handleTriggerRef = function (c) {
++      (0, _reactComponentRef.handleRef)(_this.props.trigger.ref, c);
+       _this.triggerRef.current = c;
+       (0, _reactComponentRef.handleRef)(_this.props.triggerRef, c);
+     };
+@@ -267,6 +268,15 @@ var Portal = /*#__PURE__*/function (_Component) {
+       (0, _validateTrigger.default)(trigger);
+     }
+ 
++    var triggerWithHandlers = trigger && /*#__PURE__*/_react.default.cloneElement(trigger, {
++      ref: this.handleTriggerRef,
++      onBlur: this.handleTriggerBlur,
++      onClick: this.handleTriggerClick,
++      onFocus: this.handleTriggerFocus,
++      onMouseLeave: this.handleTriggerMouseLeave,
++      onMouseEnter: this.handleTriggerMouseEnter
++    });
++
+     return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, open && /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement(_PortalInner.default, {
+       innerRef: this.contentRef,
+       mountNode: mountNode,
+@@ -294,15 +304,7 @@ var Portal = /*#__PURE__*/function (_Component) {
+       name: "keydown",
+       on: this.handleEscape,
+       pool: eventPool
+-    })), trigger && /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.handleTriggerRef
+-    }, /*#__PURE__*/_react.default.cloneElement(trigger, {
+-      onBlur: this.handleTriggerBlur,
+-      onClick: this.handleTriggerClick,
+-      onFocus: this.handleTriggerFocus,
+-      onMouseLeave: this.handleTriggerMouseLeave,
+-      onMouseEnter: this.handleTriggerMouseEnter
+-    })));
++    })), triggerWithHandlers);
+   };
+ 
+   return Portal;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/PortalInner.js b/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/PortalInner.js
+index f389bf7..fadcdda 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/PortalInner.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/addons/Portal/PortalInner.js
+@@ -17,6 +17,8 @@ var _propTypes = _interopRequireDefault(require("prop-types"));
+ 
+ var _react = _interopRequireWildcard(require("react"));
+ 
++var ReactIs = _interopRequireWildcard(require("react-is"));
++
+ var _reactDom = require("react-dom");
+ 
+ var _lib = require("../../lib");
+@@ -59,9 +61,24 @@ var PortalInner = /*#__PURE__*/function (_Component) {
+         children = _this$props.children,
+         _this$props$mountNode = _this$props.mountNode,
+         mountNode = _this$props$mountNode === void 0 ? document.body : _this$props$mountNode;
+-    return /*#__PURE__*/(0, _reactDom.createPortal)( /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.handleRef
+-    }, children), mountNode);
++    var child = _react.default.Children.only(children);
++
++    var childCanReceiveRef = typeof child.type === 'string' || ReactIs.isForwardRef(child) || child.type.prototype && child.type.prototype.isReactComponent;
++
++    var handleChildRef = function handleChildRef(c) {
++      (0, _reactComponentRef.handleRef)(child.ref, c);
++
++      _this.handleRef(c);
++    };
++
++    if (!childCanReceiveRef) {
++      this.handleRef(null);
++      return /*#__PURE__*/(0, _reactDom.createPortal)(child, mountNode);
++    }
++
++    return /*#__PURE__*/(0, _reactDom.createPortal)( /*#__PURE__*/_react.default.cloneElement(child, {
++      ref: handleChildRef
++    }), mountNode);
+   };
+ 
+   return PortalInner;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormInput.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormInput.js
+index 19e6f31..30f2fc2 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormInput.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormInput.js
+@@ -23,6 +23,10 @@ var _FormField = _interopRequireDefault(require("./FormField"));
+  * @see Input
+  */
+ function FormInput(props) {
++  props = (0, _extends2.default)({
++    as: _FormField.default,
++    control: _Input.default
++  }, props);
+   var control = props.control;
+   var rest = (0, _lib.getUnhandledProps)(FormInput, props);
+   var ElementType = (0, _lib.getElementType)(FormInput, props);
+@@ -39,9 +43,5 @@ FormInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** A FormField control prop. */
+   control: _FormField.default.propTypes.control
+ } : {};
+-FormInput.defaultProps = {
+-  as: _FormField.default,
+-  control: _Input.default
+-};
+ var _default = FormInput;
+ exports.default = _default;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormSelect.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormSelect.js
+index 0348cd7..f73a18f 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormSelect.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Form/FormSelect.js
+@@ -25,6 +25,10 @@ var _FormField = _interopRequireDefault(require("./FormField"));
+  * @see Select
+  */
+ function FormSelect(props) {
++  props = (0, _extends2.default)({
++    as: _FormField.default,
++    control: _Select.default
++  }, props);
+   var control = props.control,
+       options = props.options;
+   var rest = (0, _lib.getUnhandledProps)(FormSelect, props);
+@@ -46,9 +50,5 @@ FormSelect.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** Array of Dropdown.Item props e.g. `{ text: '', value: '' }` */
+   options: _propTypes.default.arrayOf(_propTypes.default.shape(_Dropdown.default.Item.propTypes)).isRequired
+ } : {};
+-FormSelect.defaultProps = {
+-  as: _FormField.default,
+-  control: _Select.default
+-};
+ var _default = FormSelect;
+ exports.default = _default;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/Table.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/Table.js
+index 456782d..49dc06c 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/Table.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/Table.js
+@@ -35,6 +35,9 @@ var _TableRow = _interopRequireDefault(require("./TableRow"));
+  * A table displays a collections of data grouped into rows.
+  */
+ function Table(props) {
++  props = (0, _extends2.default)({
++    as: 'table'
++  }, props);
+   var attached = props.attached,
+       basic = props.basic,
+       celled = props.celled,
+@@ -92,9 +95,6 @@ function Table(props) {
+ }
+ 
+ Table.handledProps = ["as", "attached", "basic", "celled", "children", "className", "collapsing", "color", "columns", "compact", "definition", "fixed", "footerRow", "headerRow", "headerRows", "inverted", "padded", "renderBodyRow", "selectable", "singleLine", "size", "sortable", "stackable", "striped", "structured", "tableData", "textAlign", "unstackable", "verticalAlign"];
+-Table.defaultProps = {
+-  as: 'table'
+-};
+ Table.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableBody.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableBody.js
+index ba302fb..41727ab 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableBody.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableBody.js
+@@ -16,6 +16,9 @@ var _react = _interopRequireDefault(require("react"));
+ var _lib = require("../../lib");
+ 
+ function TableBody(props) {
++  props = (0, _extends2.default)({
++    as: 'tbody'
++  }, props);
+   var children = props.children,
+       className = props.className;
+   var classes = (0, _clsx.default)(className);
+@@ -27,9 +30,6 @@ function TableBody(props) {
+ }
+ 
+ TableBody.handledProps = ["as", "children", "className"];
+-TableBody.defaultProps = {
+-  as: 'tbody'
+-};
+ TableBody.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableCell.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableCell.js
+index 55dd07b..6ef884d 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableCell.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableCell.js
+@@ -23,6 +23,9 @@ var _Icon = _interopRequireDefault(require("../../elements/Icon"));
+  * A table row can have cells.
+  */
+ function TableCell(props) {
++  props = (0, _extends2.default)({
++    as: 'td'
++  }, props);
+   var active = props.active,
+       children = props.children,
+       className = props.className,
+@@ -55,9 +58,6 @@ function TableCell(props) {
+ }
+ 
+ TableCell.handledProps = ["active", "as", "children", "className", "collapsing", "content", "disabled", "error", "icon", "negative", "positive", "selectable", "singleLine", "textAlign", "verticalAlign", "warning", "width"];
+-TableCell.defaultProps = {
+-  as: 'td'
+-};
+ TableCell.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableFooter.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableFooter.js
+index 0e94abe..6928fc9 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableFooter.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableFooter.js
+@@ -19,6 +19,9 @@ var _TableHeader = _interopRequireDefault(require("./TableHeader"));
+  * A table can have a footer.
+  */
+ function TableFooter(props) {
++  props = (0, _extends2.default)({
++    as: 'tfoot'
++  }, props);
+   var as = props.as;
+   var rest = (0, _lib.getUnhandledProps)(TableFooter, props);
+   return /*#__PURE__*/_react.default.createElement(_TableHeader.default, (0, _extends2.default)({}, rest, {
+@@ -31,8 +34,5 @@ TableFooter.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType
+ } : {};
+-TableFooter.defaultProps = {
+-  as: 'tfoot'
+-};
+ var _default = TableFooter;
+ exports.default = _default;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeader.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeader.js
+index 94da7d5..73d8821 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeader.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeader.js
+@@ -19,6 +19,9 @@ var _lib = require("../../lib");
+  * A table can have a header.
+  */
+ function TableHeader(props) {
++  props = (0, _extends2.default)({
++    as: 'thead'
++  }, props);
+   var children = props.children,
+       className = props.className,
+       content = props.content,
+@@ -32,9 +35,6 @@ function TableHeader(props) {
+ }
+ 
+ TableHeader.handledProps = ["as", "children", "className", "content", "fullWidth"];
+-TableHeader.defaultProps = {
+-  as: 'thead'
+-};
+ TableHeader.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeaderCell.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeaderCell.js
+index d0dbbd4..3142f1d 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeaderCell.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableHeaderCell.js
+@@ -21,6 +21,9 @@ var _TableCell = _interopRequireDefault(require("./TableCell"));
+  * A table can have a header cell.
+  */
+ function TableHeaderCell(props) {
++  props = (0, _extends2.default)({
++    as: 'th'
++  }, props);
+   var as = props.as,
+       className = props.className,
+       sorted = props.sorted;
+@@ -43,8 +46,5 @@ TableHeaderCell.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** A header cell can be sorted in ascending or descending order. */
+   sorted: _propTypes.default.oneOf(['ascending', 'descending'])
+ } : {};
+-TableHeaderCell.defaultProps = {
+-  as: 'th'
+-};
+ var _default = TableHeaderCell;
+ exports.default = _default;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableRow.js b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableRow.js
+index f625506..a94a9e5 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableRow.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/collections/Table/TableRow.js
+@@ -25,6 +25,10 @@ var _TableCell = _interopRequireDefault(require("./TableCell"));
+  * A table can have rows.
+  */
+ function TableRow(props) {
++  props = (0, _extends2.default)({
++    as: 'tr',
++    cellAs: 'td'
++  }, props);
+   var active = props.active,
+       cellAs = props.cellAs,
+       cells = props.cells,
+@@ -59,10 +63,6 @@ function TableRow(props) {
+ }
+ 
+ TableRow.handledProps = ["active", "as", "cellAs", "cells", "children", "className", "disabled", "error", "negative", "positive", "textAlign", "verticalAlign", "warning"];
+-TableRow.defaultProps = {
+-  as: 'tr',
+-  cellAs: 'td'
+-};
+ TableRow.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/elements/Button/Button.js b/node_modules/semantic-ui-react/dist/commonjs/elements/Button/Button.js
+index e8cf851..97a8c8a 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/elements/Button/Button.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/elements/Button/Button.js
+@@ -15,8 +15,6 @@ var _invoke2 = _interopRequireDefault(require("lodash/invoke"));
+ 
+ var _isNil2 = _interopRequireDefault(require("lodash/isNil"));
+ 
+-var _reactComponentRef = require("@fluentui/react-component-ref");
+-
+ var _clsx = _interopRequireDefault(require("clsx"));
+ 
+ var _propTypes = _interopRequireDefault(require("prop-types"));
+@@ -107,7 +105,10 @@ var Button = /*#__PURE__*/function (_Component) {
+   };
+ 
+   _proto.render = function render() {
+-    var _this$props4 = this.props,
++    var props = (0, _extends2.default)({
++      as: 'button'
++    }, this.props);
++    var _this$props4 = props,
+         active = _this$props4.active,
+         animated = _this$props4.animated,
+         attached = _this$props4.attached,
+@@ -136,8 +137,8 @@ var Button = /*#__PURE__*/function (_Component) {
+     var baseClasses = (0, _clsx.default)(color, size, (0, _lib.useKeyOnly)(active, 'active'), (0, _lib.useKeyOnly)(basic, 'basic'), (0, _lib.useKeyOnly)(circular, 'circular'), (0, _lib.useKeyOnly)(compact, 'compact'), (0, _lib.useKeyOnly)(fluid, 'fluid'), (0, _lib.useKeyOnly)(this.hasIconClass(), 'icon'), (0, _lib.useKeyOnly)(inverted, 'inverted'), (0, _lib.useKeyOnly)(loading, 'loading'), (0, _lib.useKeyOnly)(negative, 'negative'), (0, _lib.useKeyOnly)(positive, 'positive'), (0, _lib.useKeyOnly)(primary, 'primary'), (0, _lib.useKeyOnly)(secondary, 'secondary'), (0, _lib.useKeyOnly)(toggle, 'toggle'), (0, _lib.useKeyOrValueAndKey)(animated, 'animated'), (0, _lib.useKeyOrValueAndKey)(attached, 'attached'));
+     var labeledClasses = (0, _clsx.default)((0, _lib.useKeyOrValueAndKey)(labelPosition || !!label, 'labeled'));
+     var wrapperClasses = (0, _clsx.default)((0, _lib.useKeyOnly)(disabled, 'disabled'), (0, _lib.useValueAndKey)(floated, 'floated'));
+-    var rest = (0, _lib.getUnhandledProps)(Button, this.props);
+-    var ElementType = (0, _lib.getElementType)(Button, this.props, this.computeElementType);
++    var rest = (0, _lib.getUnhandledProps)(Button, props);
++    var ElementType = (0, _lib.getElementType)(Button, props, this.computeElementType);
+     var tabIndex = this.computeTabIndex(ElementType);
+ 
+     if (!(0, _isNil2.default)(label)) {
+@@ -155,9 +156,8 @@ var Button = /*#__PURE__*/function (_Component) {
+       return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
+         className: containerClasses,
+         onClick: this.handleClick
+-      }), labelPosition === 'left' && labelElement, /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-        innerRef: this.ref
+-      }, /*#__PURE__*/_react.default.createElement("button", {
++      }), labelPosition === 'left' && labelElement, /*#__PURE__*/_react.default.createElement("button", {
++        ref: this.ref,
+         className: buttonClasses,
+         "aria-pressed": toggle ? !!active : undefined,
+         disabled: disabled,
+@@ -165,15 +165,14 @@ var Button = /*#__PURE__*/function (_Component) {
+         tabIndex: tabIndex
+       }, _Icon.default.create(icon, {
+         autoGenerateKey: false
+-      }), " ", content)), (labelPosition === 'right' || !labelPosition) && labelElement);
++      }), " ", content), (labelPosition === 'right' || !labelPosition) && labelElement);
+     }
+ 
+     var classes = (0, _clsx.default)('ui', baseClasses, wrapperClasses, labeledClasses, 'button', className);
+     var hasChildren = !_lib.childrenUtils.isNil(children);
+     var role = this.computeButtonAriaRole(ElementType);
+-    return /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.ref
+-    }, /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
++    return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
++      ref: this.ref,
+       className: classes,
+       "aria-pressed": toggle ? !!active : undefined,
+       disabled: disabled && ElementType === 'button' || undefined,
+@@ -183,7 +182,7 @@ var Button = /*#__PURE__*/function (_Component) {
+       tabIndex: tabIndex
+     }), hasChildren && children, !hasChildren && _Icon.default.create(icon, {
+       autoGenerateKey: false
+-    }), !hasChildren && content));
++    }), !hasChildren && content);
+   };
+ 
+   return Button;
+@@ -284,9 +283,6 @@ Button.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** The type of the HTML element. */
+   type: _propTypes.default.oneOf(['button', 'submit', 'reset'])
+ } : {};
+-Button.defaultProps = {
+-  as: 'button'
+-};
+ Button.Content = _ButtonContent.default;
+ Button.Group = _ButtonGroup.default;
+ Button.Or = _ButtonOr.default;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/elements/Header/Header.js b/node_modules/semantic-ui-react/dist/commonjs/elements/Header/Header.js
+index e6b87ea..320e9d3 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/elements/Header/Header.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/elements/Header/Header.js
+@@ -28,7 +28,7 @@ var _HeaderContent = _interopRequireDefault(require("./HeaderContent"));
+ /**
+  * A header provides a short summary of content
+  */
+-function Header(props) {
++var Header = /*#__PURE__*/_react.default.forwardRef(function HeaderInner(props, ref) {
+   var attached = props.attached,
+       block = props.block,
+       children = props.children,
+@@ -51,7 +51,8 @@ function Header(props) {
+ 
+   if (!_lib.childrenUtils.isNil(children)) {
+     return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
+-      className: classes
++      className: classes,
++      ref: ref
+     }), children);
+   }
+ 
+@@ -69,14 +70,16 @@ function Header(props) {
+ 
+   if (iconElement || imageElement) {
+     return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
+-      className: classes
++      className: classes,
++      ref: ref
+     }), iconElement || imageElement, (content || subheaderElement) && /*#__PURE__*/_react.default.createElement(_HeaderContent.default, null, content, subheaderElement));
+   }
+ 
+   return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
+-    className: classes
++    className: classes,
++    ref: ref
+   }), content, subheaderElement);
+-}
++});
+ 
+ Header.handledProps = ["as", "attached", "block", "children", "className", "color", "content", "disabled", "dividing", "floated", "icon", "image", "inverted", "size", "sub", "subheader", "textAlign"];
+ Header.propTypes = process.env.NODE_ENV !== "production" ? {
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/elements/Image/Image.js b/node_modules/semantic-ui-react/dist/commonjs/elements/Image/Image.js
+index ab6ffe7..79ec308 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/elements/Image/Image.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/elements/Image/Image.js
+@@ -28,6 +28,10 @@ var _ImageGroup = _interopRequireDefault(require("./ImageGroup"));
+  * @see Icon
+  */
+ function Image(props) {
++  props = (0, _extends2.default)({
++    as: 'img',
++    ui: true
++  }, props);
+   var avatar = props.avatar,
+       bordered = props.bordered,
+       centered = props.centered,
+@@ -161,10 +165,6 @@ Image.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An image can render wrapped in a `div.ui.image` as alternative HTML markup. */
+   wrapped: _propTypes.default.bool
+ } : {};
+-Image.defaultProps = {
+-  as: 'img',
+-  ui: true
+-};
+ Image.create = (0, _lib.createShorthandFactory)(Image, function (value) {
+   return {
+     src: value
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox.js b/node_modules/semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox.js
+index b165a9f..6fe8237 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/modules/Checkbox/Checkbox.js
+@@ -19,8 +19,6 @@ var _get2 = _interopRequireDefault(require("lodash/get"));
+ 
+ var _isNil2 = _interopRequireDefault(require("lodash/isNil"));
+ 
+-var _reactComponentRef = require("@fluentui/react-component-ref");
+-
+ var _clsx = _interopRequireDefault(require("clsx"));
+ 
+ var _propTypes = _interopRequireDefault(require("prop-types"));
+@@ -202,6 +200,9 @@ var Checkbox = /*#__PURE__*/function (_Component) {
+     }) || /*#__PURE__*/_react.default.createElement("label", {
+       htmlFor: id
+     });
++    var labelElementWithRef = typeof labelElement.type === 'string' ? /*#__PURE__*/_react.default.cloneElement(labelElement, {
++      ref: this.labelRef
++    }) : labelElement;
+ 
+     return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, {
+       className: classes,
+@@ -209,9 +210,8 @@ var Checkbox = /*#__PURE__*/function (_Component) {
+       onChange: this.handleChange,
+       onMouseDown: this.handleMouseDown,
+       onMouseUp: this.handleMouseUp
+-    }), /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.inputRef
+-    }, /*#__PURE__*/_react.default.createElement("input", (0, _extends2.default)({}, htmlInputProps, {
++    }), /*#__PURE__*/_react.default.createElement("input", (0, _extends2.default)({}, htmlInputProps, {
++      ref: this.inputRef,
+       checked: checked,
+       className: "hidden",
+       disabled: disabled,
+@@ -221,9 +221,7 @@ var Checkbox = /*#__PURE__*/function (_Component) {
+       tabIndex: this.computeTabIndex(),
+       type: type,
+       value: value
+-    }))), /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.labelRef
+-    }, labelElement));
++    })), labelElementWithRef);
+   };
+ 
+   return Checkbox;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown.js b/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown.js
+index ca94eaf..71b3035 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/Dropdown.js
+@@ -53,8 +53,6 @@ var _isNil2 = _interopRequireDefault(require("lodash/isNil"));
+ 
+ var _eventStack = _interopRequireDefault(require("@semantic-ui-react/event-stack"));
+ 
+-var _reactComponentRef = require("@fluentui/react-component-ref");
+-
+ var _clsx = _interopRequireDefault(require("clsx"));
+ 
+ var _keyboardKey = _interopRequireDefault(require("keyboard-key"));
+@@ -863,10 +861,9 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+           search = _this$props12.search,
+           searchInput = _this$props12.searchInput;
+       var searchQuery = _this.state.searchQuery;
+-      return search && /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-        innerRef: _this.searchRef
+-      }, _DropdownSearchInput.default.create(searchInput, {
++      return search && _DropdownSearchInput.default.create(searchInput, {
+         defaultProps: {
++          innerRef: _this.searchRef,
+           style: {
+             width: _this.computeSearchInputWidth()
+           },
+@@ -874,7 +871,7 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+           value: searchQuery
+         },
+         overrideProps: _this.handleSearchInputOverrides
+-      }));
++      });
+     };
+ 
+     _this.renderSearchSizer = function () {
+@@ -1161,9 +1158,8 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+     var rest = (0, _lib.getUnhandledProps)(Dropdown, this.props);
+     var ElementType = (0, _lib.getElementType)(Dropdown, this.props);
+     var ariaOptions = this.getDropdownAriaOptions(ElementType, this.props);
+-    return /*#__PURE__*/_react.default.createElement(_reactComponentRef.Ref, {
+-      innerRef: this.ref
+-    }, /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, ariaOptions, {
++    return /*#__PURE__*/_react.default.createElement(ElementType, (0, _extends2.default)({}, rest, ariaOptions, {
++      ref: this.ref,
+       className: classes,
+       onBlur: this.handleBlur,
+       onClick: this.handleClick,
+@@ -1184,7 +1180,7 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+     }), focus && /*#__PURE__*/_react.default.createElement(_eventStack.default, {
+       name: "keydown",
+       on: this.removeItemOnBackspace
+-    })));
++    }));
+   };
+ 
+   return Dropdown;
+diff --git a/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/DropdownSearchInput.js b/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/DropdownSearchInput.js
+index 9213650..4f87190 100644
+--- a/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/DropdownSearchInput.js
++++ b/node_modules/semantic-ui-react/dist/commonjs/modules/Dropdown/DropdownSearchInput.js
+@@ -54,6 +54,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+     var _this$props = this.props,
+         autoComplete = _this$props.autoComplete,
+         className = _this$props.className,
++        innerRef = _this$props.innerRef,
+         tabIndex = _this$props.tabIndex,
+         type = _this$props.type,
+         value = _this$props.value;
+@@ -63,6 +64,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+       "aria-autocomplete": "list",
+       autoComplete: autoComplete,
+       className: classes,
++      ref: innerRef,
+       onChange: this.handleChange,
+       tabIndex: tabIndex,
+       type: type,
+@@ -73,7 +75,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+   return DropdownSearchInput;
+ }(_react.Component);
+ 
+-DropdownSearchInput.handledProps = ["as", "autoComplete", "className", "tabIndex", "type", "value"];
++DropdownSearchInput.handledProps = ["as", "autoComplete", "className", "innerRef", "tabIndex", "type", "value"];
+ DropdownSearchInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: _propTypes.default.elementType,
+@@ -84,6 +86,9 @@ DropdownSearchInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** Additional classes. */
+   className: _propTypes.default.string,
+ 
++  /** An input can receive a ref. */
++  innerRef: _propTypes.default.oneOfType([_propTypes.default.func, _propTypes.default.object]),
++
+   /** An input can receive focus. */
+   tabIndex: _propTypes.default.oneOfType([_propTypes.default.number, _propTypes.default.string]),
+ 
+diff --git a/node_modules/semantic-ui-react/dist/es/addons/Portal/Portal.js b/node_modules/semantic-ui-react/dist/es/addons/Portal/Portal.js
+index 3e0036f..945a141 100644
+--- a/node_modules/semantic-ui-react/dist/es/addons/Portal/Portal.js
++++ b/node_modules/semantic-ui-react/dist/es/addons/Portal/Portal.js
+@@ -2,7 +2,7 @@ import _extends from "@babel/runtime/helpers/esm/extends";
+ import _inheritsLoose from "@babel/runtime/helpers/esm/inheritsLoose";
+ import _invoke from "lodash-es/invoke";
+ import EventStack from '@semantic-ui-react/event-stack';
+-import { handleRef, Ref } from '@fluentui/react-component-ref';
++import { handleRef } from '@fluentui/react-component-ref';
+ import keyboardKey from 'keyboard-key';
+ import PropTypes from 'prop-types';
+ import React from 'react';
+@@ -222,6 +222,7 @@ var Portal = /*#__PURE__*/function (_Component) {
+     };
+ 
+     _this.handleTriggerRef = function (c) {
++      handleRef(_this.props.trigger.ref, c);
+       _this.triggerRef.current = c;
+       handleRef(_this.props.triggerRef, c);
+     };
+@@ -253,6 +254,14 @@ var Portal = /*#__PURE__*/function (_Component) {
+       validateTrigger(trigger);
+     }
+ 
++    var triggerWithHandlers = trigger && /*#__PURE__*/React.cloneElement(trigger, {
++      ref: this.handleTriggerRef,
++      onBlur: this.handleTriggerBlur,
++      onClick: this.handleTriggerClick,
++      onFocus: this.handleTriggerFocus,
++      onMouseLeave: this.handleTriggerMouseLeave,
++      onMouseEnter: this.handleTriggerMouseEnter
++    });
+     return /*#__PURE__*/React.createElement(React.Fragment, null, open && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(PortalInner, {
+       innerRef: this.contentRef,
+       mountNode: mountNode,
+@@ -280,15 +289,7 @@ var Portal = /*#__PURE__*/function (_Component) {
+       name: "keydown",
+       on: this.handleEscape,
+       pool: eventPool
+-    })), trigger && /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.handleTriggerRef
+-    }, /*#__PURE__*/React.cloneElement(trigger, {
+-      onBlur: this.handleTriggerBlur,
+-      onClick: this.handleTriggerClick,
+-      onFocus: this.handleTriggerFocus,
+-      onMouseLeave: this.handleTriggerMouseLeave,
+-      onMouseEnter: this.handleTriggerMouseEnter
+-    })));
++    })), triggerWithHandlers);
+   };
+ 
+   return Portal;
+diff --git a/node_modules/semantic-ui-react/dist/es/addons/Portal/PortalInner.js b/node_modules/semantic-ui-react/dist/es/addons/Portal/PortalInner.js
+index b8a381c..53fec47 100644
+--- a/node_modules/semantic-ui-react/dist/es/addons/Portal/PortalInner.js
++++ b/node_modules/semantic-ui-react/dist/es/addons/Portal/PortalInner.js
+@@ -1,10 +1,11 @@
+ import _inheritsLoose from "@babel/runtime/helpers/esm/inheritsLoose";
+ import _invoke from "lodash-es/invoke";
+-import { handleRef, Ref } from '@fluentui/react-component-ref';
++import { handleRef } from '@fluentui/react-component-ref';
+ import PropTypes from 'prop-types';
+ import React, { Component } from 'react';
+ import { createPortal } from 'react-dom';
+ import { customPropTypes, isBrowser } from '../../lib';
++import ReactIs from 'react-is';
+ 
+ /**
+  * An inner component that allows you to render children outside their parent.
+@@ -44,9 +45,19 @@ var PortalInner = /*#__PURE__*/function (_Component) {
+         children = _this$props.children,
+         _this$props$mountNode = _this$props.mountNode,
+         mountNode = _this$props$mountNode === void 0 ? document.body : _this$props$mountNode;
+-    return /*#__PURE__*/createPortal( /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.handleRef
+-    }, children), mountNode);
++    var child = React.Children.only(children);
++    var childCanReceiveRef = typeof child.type === 'string' || ReactIs.isForwardRef(child) || child.type.prototype && child.type.prototype.isReactComponent;
++    var handleChildRef = function handleChildRef(c) {
++      handleRef(child.ref, c);
++      _this.handleRef(c);
++    };
++    if (!childCanReceiveRef) {
++      this.handleRef(null);
++      return /*#__PURE__*/createPortal(child, mountNode);
++    }
++    return /*#__PURE__*/createPortal( /*#__PURE__*/React.cloneElement(child, {
++      ref: handleChildRef
++    }), mountNode);
+   };
+ 
+   return PortalInner;
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Form/FormInput.js b/node_modules/semantic-ui-react/dist/es/collections/Form/FormInput.js
+index 243eae1..eee5e70 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Form/FormInput.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Form/FormInput.js
+@@ -11,6 +11,10 @@ import FormField from './FormField';
+  */
+ 
+ function FormInput(props) {
++  props = _extends({
++    as: FormField,
++    control: Input
++  }, props);
+   var control = props.control;
+   var rest = getUnhandledProps(FormInput, props);
+   var ElementType = getElementType(FormInput, props);
+@@ -27,8 +31,4 @@ FormInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** A FormField control prop. */
+   control: FormField.propTypes.control
+ } : {};
+-FormInput.defaultProps = {
+-  as: FormField,
+-  control: Input
+-};
+ export default FormInput;
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Form/FormSelect.js b/node_modules/semantic-ui-react/dist/es/collections/Form/FormSelect.js
+index 6d6f0ec..d4ba760 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Form/FormSelect.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Form/FormSelect.js
+@@ -12,6 +12,10 @@ import FormField from './FormField';
+  */
+ 
+ function FormSelect(props) {
++  props = _extends({
++    as: FormField,
++    control: Select
++  }, props);
+   var control = props.control,
+       options = props.options;
+   var rest = getUnhandledProps(FormSelect, props);
+@@ -33,8 +37,4 @@ FormSelect.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** Array of Dropdown.Item props e.g. `{ text: '', value: '' }` */
+   options: PropTypes.arrayOf(PropTypes.shape(Dropdown.Item.propTypes)).isRequired
+ } : {};
+-FormSelect.defaultProps = {
+-  as: FormField,
+-  control: Select
+-};
+ export default FormSelect;
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/Table.js b/node_modules/semantic-ui-react/dist/es/collections/Table/Table.js
+index 3f0f82b..d6b6c31 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/Table.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/Table.js
+@@ -16,6 +16,9 @@ import TableRow from './TableRow';
+  */
+ 
+ function Table(props) {
++  props = _extends({
++    as: 'table'
++  }, props);
+   var attached = props.attached,
+       basic = props.basic,
+       celled = props.celled,
+@@ -71,9 +74,6 @@ function Table(props) {
+ }
+ 
+ Table.handledProps = ["as", "attached", "basic", "celled", "children", "className", "collapsing", "color", "columns", "compact", "definition", "fixed", "footerRow", "headerRow", "headerRows", "inverted", "padded", "renderBodyRow", "selectable", "singleLine", "size", "sortable", "stackable", "striped", "structured", "tableData", "textAlign", "unstackable", "verticalAlign"];
+-Table.defaultProps = {
+-  as: 'table'
+-};
+ Table.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableBody.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableBody.js
+index b1805fb..94a5c2d 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableBody.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableBody.js
+@@ -5,6 +5,9 @@ import React from 'react';
+ import { getElementType, getUnhandledProps } from '../../lib';
+ 
+ function TableBody(props) {
++  props = _extends({
++    as: 'tbody'
++  }, props);
+   var children = props.children,
+       className = props.className;
+   var classes = cx(className);
+@@ -16,9 +19,6 @@ function TableBody(props) {
+ }
+ 
+ TableBody.handledProps = ["as", "children", "className"];
+-TableBody.defaultProps = {
+-  as: 'tbody'
+-};
+ TableBody.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableCell.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableCell.js
+index 682f34d..2da5256 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableCell.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableCell.js
+@@ -10,6 +10,9 @@ import Icon from '../../elements/Icon';
+  */
+ 
+ function TableCell(props) {
++  props = _extends({
++    as: 'td'
++  }, props);
+   var active = props.active,
+       children = props.children,
+       className = props.className,
+@@ -42,9 +45,6 @@ function TableCell(props) {
+ }
+ 
+ TableCell.handledProps = ["active", "as", "children", "className", "collapsing", "content", "disabled", "error", "icon", "negative", "positive", "selectable", "singleLine", "textAlign", "verticalAlign", "warning", "width"];
+-TableCell.defaultProps = {
+-  as: 'td'
+-};
+ TableCell.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableFooter.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableFooter.js
+index a147d2f..6c657fa 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableFooter.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableFooter.js
+@@ -8,6 +8,9 @@ import TableHeader from './TableHeader';
+  */
+ 
+ function TableFooter(props) {
++  props = _extends({
++    as: 'tfoot'
++  }, props);
+   var as = props.as;
+   var rest = getUnhandledProps(TableFooter, props);
+   return /*#__PURE__*/React.createElement(TableHeader, _extends({}, rest, {
+@@ -20,7 +23,4 @@ TableFooter.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType
+ } : {};
+-TableFooter.defaultProps = {
+-  as: 'tfoot'
+-};
+ export default TableFooter;
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeader.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeader.js
+index f02eb01..e5d4c55 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeader.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeader.js
+@@ -8,6 +8,9 @@ import { childrenUtils, customPropTypes, getElementType, getUnhandledProps, useK
+  */
+ 
+ function TableHeader(props) {
++  props = _extends({
++    as: 'thead'
++  }, props);
+   var children = props.children,
+       className = props.className,
+       content = props.content,
+@@ -21,9 +24,6 @@ function TableHeader(props) {
+ }
+ 
+ TableHeader.handledProps = ["as", "children", "className", "content", "fullWidth"];
+-TableHeader.defaultProps = {
+-  as: 'thead'
+-};
+ TableHeader.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeaderCell.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeaderCell.js
+index c7dd670..462c7e1 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeaderCell.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableHeaderCell.js
+@@ -9,6 +9,9 @@ import TableCell from './TableCell';
+  */
+ 
+ function TableHeaderCell(props) {
++  props = _extends({
++    as: 'th'
++  }, props);
+   var as = props.as,
+       className = props.className,
+       sorted = props.sorted;
+@@ -31,7 +34,4 @@ TableHeaderCell.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** A header cell can be sorted in ascending or descending order. */
+   sorted: PropTypes.oneOf(['ascending', 'descending'])
+ } : {};
+-TableHeaderCell.defaultProps = {
+-  as: 'th'
+-};
+ export default TableHeaderCell;
+diff --git a/node_modules/semantic-ui-react/dist/es/collections/Table/TableRow.js b/node_modules/semantic-ui-react/dist/es/collections/Table/TableRow.js
+index 6764a26..f71eb51 100644
+--- a/node_modules/semantic-ui-react/dist/es/collections/Table/TableRow.js
++++ b/node_modules/semantic-ui-react/dist/es/collections/Table/TableRow.js
+@@ -11,6 +11,10 @@ import TableCell from './TableCell';
+  */
+ 
+ function TableRow(props) {
++  props = _extends({
++    as: 'tr',
++    cellAs: 'td'
++  }, props);
+   var active = props.active,
+       cellAs = props.cellAs,
+       cells = props.cells,
+@@ -45,10 +49,6 @@ function TableRow(props) {
+ }
+ 
+ TableRow.handledProps = ["active", "as", "cellAs", "cells", "children", "className", "disabled", "error", "negative", "positive", "textAlign", "verticalAlign", "warning"];
+-TableRow.defaultProps = {
+-  as: 'tr',
+-  cellAs: 'td'
+-};
+ TableRow.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+diff --git a/node_modules/semantic-ui-react/dist/es/elements/Button/Button.js b/node_modules/semantic-ui-react/dist/es/elements/Button/Button.js
+index fa3347e..ea1f55d 100644
+--- a/node_modules/semantic-ui-react/dist/es/elements/Button/Button.js
++++ b/node_modules/semantic-ui-react/dist/es/elements/Button/Button.js
+@@ -2,7 +2,6 @@ import _extends from "@babel/runtime/helpers/esm/extends";
+ import _inheritsLoose from "@babel/runtime/helpers/esm/inheritsLoose";
+ import _invoke from "lodash-es/invoke";
+ import _isNil from "lodash-es/isNil";
+-import { Ref } from '@fluentui/react-component-ref';
+ import cx from 'clsx';
+ import PropTypes from 'prop-types';
+ import React, { Component, createRef } from 'react';
+@@ -85,7 +84,10 @@ var Button = /*#__PURE__*/function (_Component) {
+   };
+ 
+   _proto.render = function render() {
+-    var _this$props4 = this.props,
++    var props = _extends({
++      as: 'button'
++    }, this.props);
++    var _this$props4 = props,
+         active = _this$props4.active,
+         animated = _this$props4.animated,
+         attached = _this$props4.attached,
+@@ -114,8 +116,8 @@ var Button = /*#__PURE__*/function (_Component) {
+     var baseClasses = cx(color, size, useKeyOnly(active, 'active'), useKeyOnly(basic, 'basic'), useKeyOnly(circular, 'circular'), useKeyOnly(compact, 'compact'), useKeyOnly(fluid, 'fluid'), useKeyOnly(this.hasIconClass(), 'icon'), useKeyOnly(inverted, 'inverted'), useKeyOnly(loading, 'loading'), useKeyOnly(negative, 'negative'), useKeyOnly(positive, 'positive'), useKeyOnly(primary, 'primary'), useKeyOnly(secondary, 'secondary'), useKeyOnly(toggle, 'toggle'), useKeyOrValueAndKey(animated, 'animated'), useKeyOrValueAndKey(attached, 'attached'));
+     var labeledClasses = cx(useKeyOrValueAndKey(labelPosition || !!label, 'labeled'));
+     var wrapperClasses = cx(useKeyOnly(disabled, 'disabled'), useValueAndKey(floated, 'floated'));
+-    var rest = getUnhandledProps(Button, this.props);
+-    var ElementType = getElementType(Button, this.props, this.computeElementType);
++    var rest = getUnhandledProps(Button, props);
++    var ElementType = getElementType(Button, props, this.computeElementType);
+     var tabIndex = this.computeTabIndex(ElementType);
+ 
+     if (!_isNil(label)) {
+@@ -131,9 +133,8 @@ var Button = /*#__PURE__*/function (_Component) {
+       return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
+         className: containerClasses,
+         onClick: this.handleClick
+-      }), labelPosition === 'left' && labelElement, /*#__PURE__*/React.createElement(Ref, {
+-        innerRef: this.ref
+-      }, /*#__PURE__*/React.createElement("button", {
++      }), labelPosition === 'left' && labelElement, /*#__PURE__*/React.createElement("button", {
++        ref: this.ref,
+         className: buttonClasses,
+         "aria-pressed": toggle ? !!active : undefined,
+         disabled: disabled,
+@@ -141,15 +142,14 @@ var Button = /*#__PURE__*/function (_Component) {
+         tabIndex: tabIndex
+       }, Icon.create(icon, {
+         autoGenerateKey: false
+-      }), " ", content)), (labelPosition === 'right' || !labelPosition) && labelElement);
++      }), " ", content), (labelPosition === 'right' || !labelPosition) && labelElement);
+     }
+ 
+     var classes = cx('ui', baseClasses, wrapperClasses, labeledClasses, 'button', className);
+     var hasChildren = !childrenUtils.isNil(children);
+     var role = this.computeButtonAriaRole(ElementType);
+-    return /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.ref
+-    }, /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
++    return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
++      ref: this.ref,
+       className: classes,
+       "aria-pressed": toggle ? !!active : undefined,
+       disabled: disabled && ElementType === 'button' || undefined,
+@@ -159,7 +159,7 @@ var Button = /*#__PURE__*/function (_Component) {
+       tabIndex: tabIndex
+     }), hasChildren && children, !hasChildren && Icon.create(icon, {
+       autoGenerateKey: false
+-    }), !hasChildren && content));
++    }), !hasChildren && content);
+   };
+ 
+   return Button;
+@@ -260,9 +260,6 @@ Button.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** The type of the HTML element. */
+   type: PropTypes.oneOf(['button', 'submit', 'reset'])
+ } : {};
+-Button.defaultProps = {
+-  as: 'button'
+-};
+ Button.Content = ButtonContent;
+ Button.Group = ButtonGroup;
+ Button.Or = ButtonOr;
+diff --git a/node_modules/semantic-ui-react/dist/es/elements/Header/Header.js b/node_modules/semantic-ui-react/dist/es/elements/Header/Header.js
+index 80affa8..c49e743 100644
+--- a/node_modules/semantic-ui-react/dist/es/elements/Header/Header.js
++++ b/node_modules/semantic-ui-react/dist/es/elements/Header/Header.js
+@@ -12,7 +12,7 @@ import HeaderContent from './HeaderContent';
+  * A header provides a short summary of content
+  */
+ 
+-function Header(props) {
++var Header = /*#__PURE__*/React.forwardRef(function HeaderInner(props, ref) {
+   var attached = props.attached,
+       block = props.block,
+       children = props.children,
+@@ -35,7 +35,8 @@ function Header(props) {
+ 
+   if (!childrenUtils.isNil(children)) {
+     return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
+-      className: classes
++      className: classes,
++      ref: ref
+     }), children);
+   }
+ 
+@@ -51,14 +52,16 @@ function Header(props) {
+ 
+   if (iconElement || imageElement) {
+     return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
+-      className: classes
++      className: classes,
++      ref: ref
+     }), iconElement || imageElement, (content || subheaderElement) && /*#__PURE__*/React.createElement(HeaderContent, null, content, subheaderElement));
+   }
+ 
+   return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
+-    className: classes
++    className: classes,
++    ref: ref
+   }), content, subheaderElement);
+-}
++});
+ 
+ Header.handledProps = ["as", "attached", "block", "children", "className", "color", "content", "disabled", "dividing", "floated", "icon", "image", "inverted", "size", "sub", "subheader", "textAlign"];
+ Header.propTypes = process.env.NODE_ENV !== "production" ? {
+diff --git a/node_modules/semantic-ui-react/dist/es/elements/Image/Image.js b/node_modules/semantic-ui-react/dist/es/elements/Image/Image.js
+index 40b0b2e..10f66f7 100644
+--- a/node_modules/semantic-ui-react/dist/es/elements/Image/Image.js
++++ b/node_modules/semantic-ui-react/dist/es/elements/Image/Image.js
+@@ -13,6 +13,10 @@ import ImageGroup from './ImageGroup';
+  */
+ 
+ function Image(props) {
++  props = _extends({
++    as: 'img',
++    ui: true
++  }, props);
+   var avatar = props.avatar,
+       bordered = props.bordered,
+       centered = props.centered,
+@@ -146,10 +150,6 @@ Image.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An image can render wrapped in a `div.ui.image` as alternative HTML markup. */
+   wrapped: PropTypes.bool
+ } : {};
+-Image.defaultProps = {
+-  as: 'img',
+-  ui: true
+-};
+ Image.create = createShorthandFactory(Image, function (value) {
+   return {
+     src: value
+diff --git a/node_modules/semantic-ui-react/dist/es/modules/Checkbox/Checkbox.js b/node_modules/semantic-ui-react/dist/es/modules/Checkbox/Checkbox.js
+index 9648d3e..daa8564 100644
+--- a/node_modules/semantic-ui-react/dist/es/modules/Checkbox/Checkbox.js
++++ b/node_modules/semantic-ui-react/dist/es/modules/Checkbox/Checkbox.js
+@@ -4,7 +4,6 @@ import _set from "lodash-es/set";
+ import _invoke from "lodash-es/invoke";
+ import _get from "lodash-es/get";
+ import _isNil from "lodash-es/isNil";
+-import { Ref } from '@fluentui/react-component-ref';
+ import cx from 'clsx';
+ import PropTypes from 'prop-types';
+ import React, { createRef } from 'react';
+@@ -190,15 +189,17 @@ var Checkbox = /*#__PURE__*/function (_Component) {
+     }) || /*#__PURE__*/React.createElement("label", {
+       htmlFor: id
+     });
++    var labelElementWithRef = typeof labelElement.type === 'string' ? /*#__PURE__*/React.cloneElement(labelElement, {
++      ref: this.labelRef
++    }) : labelElement;
+     return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, {
+       className: classes,
+       onClick: this.handleClick,
+       onChange: this.handleChange,
+       onMouseDown: this.handleMouseDown,
+       onMouseUp: this.handleMouseUp
+-    }), /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.inputRef
+-    }, /*#__PURE__*/React.createElement("input", _extends({}, htmlInputProps, {
++    }), /*#__PURE__*/React.createElement("input", _extends({}, htmlInputProps, {
++      ref: this.inputRef,
+       checked: checked,
+       className: "hidden",
+       disabled: disabled,
+@@ -208,9 +209,7 @@ var Checkbox = /*#__PURE__*/function (_Component) {
+       tabIndex: this.computeTabIndex(),
+       type: type,
+       value: value
+-    }))), /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.labelRef
+-    }, labelElement));
++    })), labelElementWithRef);
+   };
+ 
+   return Checkbox;
+diff --git a/node_modules/semantic-ui-react/dist/es/modules/Dropdown/Dropdown.js b/node_modules/semantic-ui-react/dist/es/modules/Dropdown/Dropdown.js
+index 1cc1bab..1cdab62 100644
+--- a/node_modules/semantic-ui-react/dist/es/modules/Dropdown/Dropdown.js
++++ b/node_modules/semantic-ui-react/dist/es/modules/Dropdown/Dropdown.js
+@@ -21,7 +21,6 @@ import _isFunction from "lodash-es/isFunction";
+ import _pick from "lodash-es/pick";
+ import _isNil from "lodash-es/isNil";
+ import EventStack from '@semantic-ui-react/event-stack';
+-import { Ref } from '@fluentui/react-component-ref';
+ import cx from 'clsx';
+ import keyboardKey from 'keyboard-key';
+ import PropTypes from 'prop-types';
+@@ -826,10 +825,9 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+           search = _this$props12.search,
+           searchInput = _this$props12.searchInput;
+       var searchQuery = _this.state.searchQuery;
+-      return search && /*#__PURE__*/React.createElement(Ref, {
+-        innerRef: _this.searchRef
+-      }, DropdownSearchInput.create(searchInput, {
++      return search && DropdownSearchInput.create(searchInput, {
+         defaultProps: {
++          innerRef: _this.searchRef,
+           style: {
+             width: _this.computeSearchInputWidth()
+           },
+@@ -837,7 +835,7 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+           value: searchQuery
+         },
+         overrideProps: _this.handleSearchInputOverrides
+-      }));
++      });
+     };
+ 
+     _this.renderSearchSizer = function () {
+@@ -1125,9 +1123,8 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+     var rest = getUnhandledProps(Dropdown, this.props);
+     var ElementType = getElementType(Dropdown, this.props);
+     var ariaOptions = this.getDropdownAriaOptions(ElementType, this.props);
+-    return /*#__PURE__*/React.createElement(Ref, {
+-      innerRef: this.ref
+-    }, /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, ariaOptions, {
++    return /*#__PURE__*/React.createElement(ElementType, _extends({}, rest, ariaOptions, {
++      ref: this.ref,
+       className: classes,
+       onBlur: this.handleBlur,
+       onClick: this.handleClick,
+@@ -1148,7 +1145,7 @@ var Dropdown = /*#__PURE__*/function (_Component) {
+     }), focus && /*#__PURE__*/React.createElement(EventStack, {
+       name: "keydown",
+       on: this.removeItemOnBackspace
+-    })));
++    }));
+   };
+ 
+   return Dropdown;
+diff --git a/node_modules/semantic-ui-react/dist/es/modules/Dropdown/DropdownSearchInput.js b/node_modules/semantic-ui-react/dist/es/modules/Dropdown/DropdownSearchInput.js
+index a0f04e1..3693ebf 100644
+--- a/node_modules/semantic-ui-react/dist/es/modules/Dropdown/DropdownSearchInput.js
++++ b/node_modules/semantic-ui-react/dist/es/modules/Dropdown/DropdownSearchInput.js
+@@ -39,6 +39,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+     var _this$props = this.props,
+         autoComplete = _this$props.autoComplete,
+         className = _this$props.className,
++        innerRef = _this$props.innerRef,
+         tabIndex = _this$props.tabIndex,
+         type = _this$props.type,
+         value = _this$props.value;
+@@ -48,6 +49,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+       "aria-autocomplete": "list",
+       autoComplete: autoComplete,
+       className: classes,
++      ref: innerRef,
+       onChange: this.handleChange,
+       tabIndex: tabIndex,
+       type: type,
+@@ -58,7 +60,7 @@ var DropdownSearchInput = /*#__PURE__*/function (_Component) {
+   return DropdownSearchInput;
+ }(Component);
+ 
+-DropdownSearchInput.handledProps = ["as", "autoComplete", "className", "tabIndex", "type", "value"];
++DropdownSearchInput.handledProps = ["as", "autoComplete", "className", "innerRef", "tabIndex", "type", "value"];
+ DropdownSearchInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** An element type to render as (string or function). */
+   as: PropTypes.elementType,
+@@ -69,6 +71,9 @@ DropdownSearchInput.propTypes = process.env.NODE_ENV !== "production" ? {
+   /** Additional classes. */
+   className: PropTypes.string,
+ 
++  /** An input can receive a ref. */
++  innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
++
+   /** An input can receive focus. */
+   tabIndex: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+ 

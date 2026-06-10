@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ImageProps, Image } from "semantic-ui-react";
+import { ImageProps } from "semantic-ui-react";
 import isEqual from "lodash/isEqual";
 
 import defaultAvatar from "@/assets/default-avatar.svg";
@@ -36,9 +36,37 @@ function getAvatarUrl(avatar: ApiTypes.UserAvatarDto, size: number) {
 
 const UserAvatar: React.FC<UserAvatarProps> = props => {
   const [error, setError] = useState(false);
+  const {
+    userAvatar,
+    placeholder,
+    imageSize: _imageSize,
+    onError,
+    as: _as,
+    avatar,
+    bordered,
+    centered,
+    circular,
+    className,
+    content: _content,
+    dimmer: _dimmer,
+    disabled,
+    floated,
+    fluid,
+    hidden,
+    href: _href,
+    inline,
+    label: _label,
+    rounded,
+    size,
+    spaced,
+    ui = true,
+    verticalAlign,
+    wrapped: _wrapped,
+    ...imgProps
+  } = props;
 
   const imageSize =
-    props.imageSize ||
+    _imageSize ||
     {
       mini: 35,
       tiny: 80,
@@ -48,10 +76,10 @@ const UserAvatar: React.FC<UserAvatarProps> = props => {
       big: 600,
       huge: 800,
       massive: 960
-    }[props.size] ||
+    }[size] ||
     80;
 
-  const url = getAvatarUrl(props.userAvatar, Math.ceil(window.devicePixelRatio * imageSize));
+  const url = getAvatarUrl(userAvatar, Math.ceil(window.devicePixelRatio * imageSize));
 
   const previousUrl = useRef<string>();
   useEffect(() => {
@@ -59,19 +87,39 @@ const UserAvatar: React.FC<UserAvatarProps> = props => {
   });
   if (previousUrl.current !== url && error) setError(false);
 
-  const imageProps = Object.fromEntries(
-    Object.entries(props).filter(([key]) => !["userAvatar", "placeholder", "imageSize", "errorRef"].includes(key))
-  );
-
   function onImageError() {
     setError(true);
-    if (props.onError) props.onError();
+    if (onError) onError();
   }
 
-  return error || props.placeholder ? (
-    <Image src={defaultAvatar} {...imageProps} />
-  ) : (
-    <Image src={url} {...imageProps} onError={onImageError} />
+  const classes = [
+    ui && "ui",
+    size,
+    avatar && "avatar",
+    bordered && "bordered",
+    circular && "circular",
+    centered && "centered",
+    disabled && "disabled",
+    fluid && "fluid",
+    hidden && "hidden",
+    inline && "inline",
+    rounded && "rounded",
+    spaced === true ? "spaced" : spaced && `${spaced} spaced`,
+    floated && `${floated} floated`,
+    verticalAlign && `${verticalAlign} aligned`,
+    "image",
+    className
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <img
+      {...imgProps}
+      className={classes}
+      src={error || placeholder ? defaultAvatar : url}
+      onError={error || placeholder ? undefined : onImageError}
+    />
   );
 };
 
