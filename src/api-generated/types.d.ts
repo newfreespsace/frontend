@@ -1,123 +1,6 @@
 // This file is generated automatically, do NOT modify it.
 
 declare namespace ApiTypes {
-  export interface ContestMetaDto {
-    id: number;
-    title: string;
-    subtitle: string;
-    information: string;
-    startTime: string; // date-time
-    endTime: string; // date-time
-    type: "noi" | "ioi" | "acm";
-    isPublic: boolean;
-    hideStatistics: boolean;
-    holderId: number;
-    problemIds: number[];
-    adminIds: number[];
-    rankingParams: {};
-  }
-  export interface ContestProblemDto {
-    meta: ApiTypes.ProblemMetaDto;
-    title: string;
-    status?: string;
-    score?: number;
-    submissionId?: number;
-    accepted?: boolean;
-    unacceptedCount?: number;
-    statistics?: {
-      attempt: number;
-      accepted: number;
-      partially?: number;
-    };
-  }
-  export interface ContestRanklistRowDto {
-    rank: number;
-    user: ApiTypes.UserMetaDto;
-    score: number;
-    timeSpent: number;
-    scoreDetails: {};
-  }
-  export interface QueryContestsRequestDto {
-    skipCount: number;
-    takeCount: number;
-    nonpublic?: boolean;
-  }
-  export interface QueryContestsResponseDto {
-    error?: "PERMISSION_DENIED";
-    count?: number;
-    result?: ApiTypes.ContestMetaDto[];
-    permissions?: {
-      createContest: boolean;
-      filterNonpublic: boolean;
-    };
-  }
-  export interface GetContestRequestDto {
-    contestId: number;
-    locale: "en_US" | "zh_CN" | "ja_JP";
-  }
-  export interface GetContestResponseDto {
-    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
-    meta?: ApiTypes.ContestMetaDto;
-    holder?: ApiTypes.UserMetaDto;
-    admins?: ApiTypes.UserMetaDto[];
-    problems?: ApiTypes.ContestProblemDto[];
-    permissions?: {
-      manage: boolean;
-      viewRanklist: boolean;
-      viewStatistics: boolean;
-      unveiled: boolean;
-    };
-  }
-  export interface SaveContestRequestDto {
-    contestId?: number;
-    title: string;
-    subtitle: string;
-    information: string;
-    startTime: string;
-    endTime: string;
-    type: "noi" | "ioi" | "acm";
-    isPublic: boolean;
-    hideStatistics: boolean;
-    problemIds: number[];
-    adminIds: number[];
-    rankingParams: {};
-  }
-  export interface SaveContestResponseDto {
-    error?:
-      | "PERMISSION_DENIED"
-      | "NO_SUCH_CONTEST"
-      | "EMPTY_TITLE"
-      | "INVALID_TIME_RANGE"
-      | "NO_SUCH_PROBLEM"
-      | "NO_SUCH_USER";
-    contestId?: number;
-  }
-  export interface GetContestRanklistRequestDto {
-    contestId: number;
-    locale: "en_US" | "zh_CN" | "ja_JP";
-  }
-  export interface GetContestProblemRequestDto {
-    contestId: number;
-    pid: number;
-    locale: "en_US" | "zh_CN" | "ja_JP";
-  }
-  export interface GetContestProblemResponseDto {
-    error?: "NO_SUCH_CONTEST" | "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "CONTEST_NOT_STARTED";
-    problem?: ApiTypes.GetProblemResponseDto;
-    contest?: ApiTypes.ContestMetaDto;
-    pid?: number;
-    permissions?: {
-      manageContest: boolean;
-      running: boolean;
-      ended: boolean;
-    };
-  }
-  export interface GetContestRanklistResponseDto {
-    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
-    meta?: ApiTypes.ContestMetaDto;
-    problems?: ApiTypes.ContestProblemDto[];
-    rows?: ApiTypes.ContestRanklistRowDto[];
-  }
   export interface AddJudgeClientRequestDto {
     name: string;
     allowedHosts: string[];
@@ -162,9 +45,59 @@ declare namespace ApiTypes {
   export interface ChangeProblemTypeResponseDto {
     error?: "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "PROBLEM_HAS_SUBMISSION";
   }
+  export interface ChapterMetaDto {
+    id: number;
+    trainingId: number;
+    title: string;
+    description?: string;
+    sortOrder: number;
+    sections?: ApiTypes.SectionMetaDto[];
+  }
   export interface CheckAvailabilityResponseDto {
     usernameAvailable?: boolean;
     emailAvailable?: boolean;
+  }
+  export interface ContestMetaDto {
+    id: number;
+    title: string;
+    subtitle: string;
+    information: string;
+    startTime: string; // date-time
+    endTime: string; // date-time
+    type: "noi" | "ioi" | "acm";
+    isPublic: boolean;
+    hideStatistics: boolean;
+    holderId: number;
+    problemIds: number[];
+    adminIds: number[];
+    rankingParams: {};
+  }
+  export interface ContestProblemDto {
+    meta: ApiTypes.ProblemMetaDto;
+    title: string;
+    status?: string;
+    score?: number;
+    submissionId?: number;
+    accepted?: boolean;
+    unacceptedCount?: number;
+    statistics: {
+      attempt?: number;
+      accepted?: number;
+      partially?: number;
+    };
+  }
+  export interface ContestRanklistRowDto {
+    rank: number;
+    user: ApiTypes.UserMetaDto;
+    score: number;
+    timeSpent: number;
+    scoreDetails: {};
+  }
+  export interface CreateChapterDto {
+    title: string;
+    description?: string;
+    trainingId: number;
+    sortOrder: number;
   }
   export interface CreateDiscussionReplyRequestDto {
     discussionId: number;
@@ -207,6 +140,20 @@ declare namespace ApiTypes {
   export interface CreateProblemTagResponseDto {
     error?: "PERMISSION_DENIED";
     id?: number;
+  }
+  export interface CreateSectionDto {
+    title: string;
+    description?: string;
+    chapterId: number;
+    sortOrder: number;
+  }
+  export interface CreateTrainingDto {
+    title: string;
+    description?: string;
+    sortOrder: number;
+  }
+  export interface DeleteChapterByIdRequestDto {
+    id: number;
   }
   export interface DeleteDiscussionReplyRequestDto {
     discussionReplyId: number;
@@ -328,6 +275,52 @@ declare namespace ApiTypes {
   }
   export interface GetAllProblemTagsResponseDto {
     tags: ApiTypes.LocalizedProblemTagDto[];
+  }
+  export interface GetChapterByIdDto {
+    id: number;
+  }
+  export interface GetContestProblemRequestDto {
+    contestId: number;
+    pid: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestProblemResponseDto {
+    error?: "NO_SUCH_CONTEST" | "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "CONTEST_NOT_STARTED";
+    contest?: ApiTypes.ContestMetaDto;
+    pid?: number;
+    problem?: ApiTypes.GetProblemResponseDto;
+    permissions: {
+      manageContest?: boolean;
+      running?: boolean;
+      ended?: boolean;
+    };
+  }
+  export interface GetContestRanklistRequestDto {
+    contestId: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestRanklistResponseDto {
+    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
+    meta?: ApiTypes.ContestMetaDto;
+    problems?: ApiTypes.ContestProblemDto[];
+    rows?: ApiTypes.ContestRanklistRowDto[];
+  }
+  export interface GetContestRequestDto {
+    contestId: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+  }
+  export interface GetContestResponseDto {
+    error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
+    meta?: ApiTypes.ContestMetaDto;
+    holder?: ApiTypes.UserMetaDto;
+    admins?: ApiTypes.UserMetaDto[];
+    problems?: ApiTypes.ContestProblemDto[];
+    permissions: {
+      manage?: boolean;
+      viewRanklist?: boolean;
+      viewStatistics?: boolean;
+      unveiled?: boolean;
+    };
   }
   export interface GetDiscussionAndRepliesRequestDto {
     locale: "en_US" | "zh_CN" | "ja_JP";
@@ -483,6 +476,19 @@ declare namespace ApiTypes {
     color?: string;
     localizedNames?: ApiTypes.ProblemTagLocalizedNameDto[];
   }
+  export interface GetSectionByIdDto {
+    id: number;
+    locale: "en_US" | "zh_CN" | "ja_JP";
+    titleOnly?: boolean;
+  }
+  export interface GetSectionByIdResponseDto {
+    id: number;
+    chapterId: number;
+    title: string;
+    description?: string;
+    sortOrder: number;
+    problems: ApiTypes.QueryProblemSetResponseItemDto[];
+  }
   export interface GetSessionInfoResponseDto {
     userMeta?: ApiTypes.UserMetaDto;
     joinedGroupsCount?: number;
@@ -513,6 +519,9 @@ declare namespace ApiTypes {
     permissionCancel?: boolean;
     permissionSetPublic?: boolean;
     permissionDelete?: boolean;
+  }
+  export interface GetTrainingRequestDto {
+    id: number;
   }
   export interface GetUserDetailRequestDto {
     userId?: number;
@@ -831,6 +840,23 @@ declare namespace ApiTypes {
     secondObject?: {};
     details?: {};
   }
+  export interface QueryChapterByTrainingIdDto {
+    trainingId: number;
+  }
+  export interface QueryContestsRequestDto {
+    skipCount: number;
+    takeCount: number;
+    nonpublic?: boolean;
+  }
+  export interface QueryContestsResponseDto {
+    error?: "PERMISSION_DENIED";
+    count?: number;
+    result?: ApiTypes.ContestMetaDto[];
+    permissions: {
+      createContest?: boolean;
+      filterNonpublic?: boolean;
+    };
+  }
   export interface QueryDiscussionsRequestDto {
     locale: "en_US" | "zh_CN" | "ja_JP";
     keyword?: string;
@@ -910,6 +936,9 @@ declare namespace ApiTypes {
     filterByOwner?: boolean;
     filterNonpublic?: boolean;
   }
+  export interface QuerySectionByChapterIdDto {
+    chapterId: number;
+  }
   export interface QuerySubmissionRequestDto {
     locale: "en_US" | "zh_CN" | "ja_JP";
     problemId: number;
@@ -938,7 +967,7 @@ declare namespace ApiTypes {
     takeCount: number;
   }
   export interface QuerySubmissionResponseDto {
-    error?: "NO_SUCH_PROBLEM" | "NO_SUCH_USER";
+    error?: "NO_SUCH_PROBLEM" | "NO_SUCH_USER" | "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
     submissions?: ApiTypes.SubmissionMetaDto[];
     hasSmallerId?: boolean;
     hasLargerId?: boolean;
@@ -957,6 +986,16 @@ declare namespace ApiTypes {
     submissions?: ApiTypes.SubmissionMetaDto[];
     count?: number;
     scores?: number[];
+  }
+  export interface QueryTrainingSetResponseDto {
+    result: ApiTypes.QueryTrainingSetResponseItemDto[];
+    count: number;
+  }
+  export interface QueryTrainingSetResponseItemDto {
+    id: number;
+    title: string;
+    description?: string;
+    sortOrder: number;
   }
   export interface QueryUserMigrationInfoRequestDto {
     email?: string;
@@ -1019,7 +1058,7 @@ declare namespace ApiTypes {
   export interface RenameProblemFileResponseDto {
     error?: "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "NO_SUCH_FILE";
   }
-  export type RequestBody = ApiTypes.UpdateHomepageSettingsRequestDto;
+  export type RequestBody = ApiTypes.SetSectionProblemsDto;
   export interface ResetJudgeClientKeyRequestDto {
     id: number;
   }
@@ -1038,7 +1077,7 @@ declare namespace ApiTypes {
   }
   namespace Responses {
     export type $200 = ApiTypes.GetHomepageSettingsResponseDto;
-    export type $201 = ApiTypes.UpdateHomepageSettingsResponseDto;
+    export type $201 = ApiTypes.SetSectionProblemsResponseDto;
   }
   export interface RevokeUserSessionRequestDto {
     userId: number;
@@ -1050,11 +1089,42 @@ declare namespace ApiTypes {
   export interface RevokeUserSessionResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_USER";
   }
+  export interface SaveContestRequestDto {
+    contestId?: number;
+    title: string;
+    subtitle: string;
+    information: string;
+    startTime: string;
+    endTime: string;
+    type: "noi" | "ioi" | "acm";
+    isPublic: boolean;
+    hideStatistics: boolean;
+    problemIds: number[];
+    adminIds: number[];
+    rankingParams: {};
+  }
+  export interface SaveContestResponseDto {
+    error?:
+      | "PERMISSION_DENIED"
+      | "NO_SUCH_CONTEST"
+      | "EMPTY_TITLE"
+      | "INVALID_TIME_RANGE"
+      | "NO_SUCH_PROBLEM"
+      | "NO_SUCH_USER";
+    contestId?: number;
+  }
   export interface SearchGroupResponseDto {
     groupMetas: ApiTypes.GroupMetaDto[];
   }
   export interface SearchUserResponseDto {
     userMetas: ApiTypes.UserMetaDto[];
+  }
+  export interface SectionMetaDto {
+    id: number;
+    chapterId: number;
+    title: string;
+    description?: string;
+    sortOrder: number;
   }
   export interface SendEmailVerificationCodeRequestDto {
     email: string;
@@ -1144,6 +1214,17 @@ declare namespace ApiTypes {
   }
   export interface SetProblemPublicResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_PROBLEM" | "NO_DISPLAY_ID";
+  }
+  export interface SetSectionProblemItemDto {
+    problemId: number;
+    sortOrder: number;
+  }
+  export interface SetSectionProblemsDto {
+    sectionId: number;
+    problems: ApiTypes.SetSectionProblemItemDto[];
+  }
+  export interface SetSectionProblemsResponseDto {
+    success: boolean;
   }
   export interface SetSubmissionPublicRequestDto {
     submissionId: number;
@@ -1260,6 +1341,20 @@ declare namespace ApiTypes {
   export interface ToggleReactionResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_DISCUSSION" | "NO_SUCH_DISCUSSION_REPLY" | "INVALID_EMOJI";
   }
+  export interface TrainingMetaDto {
+    id: number;
+    title: string;
+    description?: string;
+    sortOrder: number;
+    chapters?: ApiTypes.ChapterMetaDto[];
+  }
+  export interface UpdateChapterDto {
+    id: number;
+    title?: string;
+    description?: string;
+    sortOrder?: number;
+    trainingId?: number;
+  }
   export interface UpdateDiscussionReplyRequestDto {
     discussionReplyId: number;
     content: string;
@@ -1313,6 +1408,19 @@ declare namespace ApiTypes {
   }
   export interface UpdateProblemTagResponseDto {
     error?: "NO_SUCH_PROBLEM_TAG" | "PERMISSION_DENIED";
+  }
+  export interface UpdateSectionDto {
+    id: number;
+    title?: string;
+    description?: string;
+    sortOrder?: number;
+    chapterId?: number;
+  }
+  export interface UpdateTrainingDto {
+    id: number;
+    title?: string;
+    description?: string;
+    sortOrder?: number;
   }
   export interface UpdateUserPasswordRequestDto {
     userId: number;

@@ -2,7 +2,7 @@
 
 /// <reference path="../types.d.ts" />
 
-import { createPostApi } from "@/api";
+import { createGetApi, createPostApi } from "@/api";
 
 export const queryContests = createPostApi<ApiTypes.QueryContestsRequestDto, ApiTypes.QueryContestsResponseDto>(
   "contest/queryContests",
@@ -16,11 +16,11 @@ export const saveContest = createPostApi<ApiTypes.SaveContestRequestDto, ApiType
   "contest/saveContest",
   false
 );
-export const getContestProblem = createPostApi<
-  ApiTypes.GetContestProblemRequestDto,
-  ApiTypes.GetContestProblemResponseDto
->("contest/getContestProblem", false);
 export const getContestRanklist = createPostApi<
   ApiTypes.GetContestRanklistRequestDto,
   ApiTypes.GetContestRanklistResponseDto
 >("contest/getContestRanklist", false);
+export const getContestProblem = createPostApi<
+  ApiTypes.GetContestProblemRequestDto,
+  ApiTypes.GetContestProblemResponseDto
+>("contest/getContestProblem", false);
