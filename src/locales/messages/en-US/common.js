@@ -5,7 +5,8 @@ return {
     contests: "Contests",
     submissions: "Submissions",
     members: "Members",
-    discussion: "Discussion"
+    discussion: "Discussion",
+    training: "Training"
   },
   header: {
     user: {

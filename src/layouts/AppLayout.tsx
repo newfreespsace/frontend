@@ -95,7 +95,7 @@ let AppLayout: React.FC = props => {
     },
     training: {
       icon: "comments",
-      text: "训练",
+      text: ".navbar.training",
       url: "/t"
     }
   };

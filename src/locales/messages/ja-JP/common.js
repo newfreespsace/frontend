@@ -5,7 +5,8 @@ return {
     contests: "コンテスト",
     submissions: "提出一覧",
     members: "ユーザ",
-    discussion: "ディスカッション"
+    discussion: "ディスカッション",
+    training: "[TBT] Training"
   },
   header: {
     user: {
