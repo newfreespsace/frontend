@@ -49,10 +49,6 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
       <div className={style.header}>
         <div className={style.headerTitle}>
           <Header as="h1">{props.chapter.title}</Header>
-          <TrainingProgressBar
-            acceptedProblemCount={props.chapter.acceptedProblemCount}
-            problemCount={props.chapter.problemCount}
-          />
         </div>
         <div className={style.headerActions}>
           <CreateSectionModal
@@ -71,7 +67,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
               <Table.HeaderCell className={style.tableTitle}>小节</Table.HeaderCell>
-              <Table.HeaderCell>描述</Table.HeaderCell>
+              <Table.HeaderCell>进度</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -81,14 +77,13 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
                     <Link href={`/t/${props.training.id}/${props.chapter.id}/${section.id}`}>{section.title}</Link>
-                    <TrainingProgressBar
-                      acceptedProblemCount={section.acceptedProblemCount}
-                      problemCount={section.problemCount}
-                    />
                   </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
-                  {section.description || <span className={style.muted}>-</span>}
+                  <TrainingProgressBar
+                    acceptedProblemCount={section.acceptedProblemCount}
+                    problemCount={section.problemCount}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))}

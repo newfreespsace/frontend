@@ -43,7 +43,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
               <Table.HeaderCell className={style.tableTitle}>训练</Table.HeaderCell>
-              <Table.HeaderCell>描述</Table.HeaderCell>
+              <Table.HeaderCell>进度</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -53,14 +53,13 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
                     <Link href={`/t/${training.id}`}>{training.title}</Link>
-                    <TrainingProgressBar
-                      acceptedProblemCount={training.acceptedProblemCount}
-                      problemCount={training.problemCount}
-                    />
                   </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
-                  {training.description || <span className={style.muted}>-</span>}
+                  <TrainingProgressBar
+                    acceptedProblemCount={training.acceptedProblemCount}
+                    problemCount={training.problemCount}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))}

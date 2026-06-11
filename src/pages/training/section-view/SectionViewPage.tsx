@@ -69,10 +69,6 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
       <div className={style.header}>
         <div className={style.headerTitle}>
           <Header as="h1">{section.title}</Header>
-          <TrainingProgressBar
-            acceptedProblemCount={section.acceptedProblemCount}
-            problemCount={section.problemCount}
-          />
         </div>
         <div className={style.headerActions}>
           <AddProblemModal section={section} onAdded={onProblemAdded} />

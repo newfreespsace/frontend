@@ -43,10 +43,6 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
       <div className={style.header}>
         <div className={style.headerTitle}>
           <Header as="h1">{props.training.title}</Header>
-          <TrainingProgressBar
-            acceptedProblemCount={props.training.acceptedProblemCount}
-            problemCount={props.training.problemCount}
-          />
         </div>
         <div className={style.headerActions}>
           <CreateChapterModal trainingId={props.training.id} nextSortOrder={props.chapters.length + 1} />
@@ -60,8 +56,10 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>章节</Table.HeaderCell>
-              <Table.HeaderCell>描述</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle} width={4}>
+                章节
+              </Table.HeaderCell>
+              <Table.HeaderCell>进度</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -71,14 +69,13 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
                     <Link href={`/t/${props.training.id}/${chapter.id}`}>{chapter.title}</Link>
-                    <TrainingProgressBar
-                      acceptedProblemCount={chapter.acceptedProblemCount}
-                      problemCount={chapter.problemCount}
-                    />
                   </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
-                  {chapter.description || <span className={style.muted}>-</span>}
+                  <TrainingProgressBar
+                    acceptedProblemCount={chapter.acceptedProblemCount}
+                    problemCount={chapter.problemCount}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))}

@@ -13,7 +13,7 @@ const TrainingProgressBar: React.FC<TrainingProgressBarProps> = props => {
 
   return (
     <div className={style.trainingProgress}>
-      <Progress percent={percent} size="tiny" indicating className={style.trainingProgressBar} />
+      <Progress percent={percent} indicating autoSuccess className={style.trainingProgressBar} />
       <span className={style.trainingProgressText}>
         {props.acceptedProblemCount} / {props.problemCount}
       </span>
