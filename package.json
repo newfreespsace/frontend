@@ -83,7 +83,7 @@
     "markdown-it-mentions": "^1.0.0",
     "markdown-it-merge-cells": "^2.0.0",
     "mathjax-full": "^3.2.2",
-    "mobx": "6.15.4",
+    "mobx": "6.15.0",
     "mobx-persist": "^0.4.1",
     "mobx-react-lite": "3.4.3",
     "mobx-utils": "6.1.1",
