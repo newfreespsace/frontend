@@ -117,7 +117,9 @@ function safeStringify(object) {
       try {
         cdnjs = __cdnjs__;
       } catch (e) {
-        cdnjs = "https://cdnjs.cloudflare.com/ajax/libs";
+        // 改为本地加载
+        // cdnjs = "https://cdnjs.cloudflare.com/ajax/libs";
+        cdnjs = "/static/cdnjs";
       }
       window.cdnjs = cdnjs;
 
