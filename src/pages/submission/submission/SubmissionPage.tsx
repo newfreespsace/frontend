@@ -787,8 +787,6 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
     setOperationPending(false);
   }
 
-  const [statusNodeRef, setStatusNodeRef] = useState<HTMLElement>();
-
   const [operationsPopupOpen, setOperationsPopupOpen] = useState(false);
   const [cancelPopupOpen, setCancelPopupOpen] = useState(false);
   const [rejudgePopupOpen, setRejudgePopupOpen] = useState(false);
@@ -800,17 +798,22 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   const showTogglePublic = props.permissionSetPublic;
   const showDelete = props.permissionDelete;
 
-  const statusPopup = (statusNode: JSX.Element) =>
-    !showRejudge && !showCancel ? (
+  const statusPopup = (statusNode: JSX.Element, statusNodeRef?: HTMLElement) =>
+    !showRejudge && !showCancel && !showTogglePublic && !showDelete ? (
       statusNode
     ) : (
       <>
         <Popup
           className={style.operationsPopup}
           trigger={statusNode}
-          triggerRef={e => e && e.tagName === "TD" && setStatusNodeRef(e)}
           open={operationsPopupOpen}
-          onOpen={() => !cancelPopupOpen && !rejudgePopupOpen && setOperationsPopupOpen(true)}
+          onOpen={() =>
+            !cancelPopupOpen &&
+            !rejudgePopupOpen &&
+            !togglePublicPopupOpen &&
+            !deletePopupOpen &&
+            setOperationsPopupOpen(true)
+          }
           onClose={() => setOperationsPopupOpen(false)}
           disabled={operationPending}
           hoverable
