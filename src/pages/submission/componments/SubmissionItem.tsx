@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Table, Icon, Popup } from "semantic-ui-react";
 
 import style from "./SubmissionItem.module.less";
@@ -79,7 +79,7 @@ interface SubmissionItemProps {
   onDownloadAnswer?: () => void;
 
   // Mouse hover on "status" to display
-  statusPopup?: (statusNode: React.ReactElement) => React.ReactNode;
+  statusPopup?: (statusNode: React.ReactElement, statusNodeRef?: HTMLElement) => React.ReactNode;
 
   config?: SubmissionItemConfig;
 }
@@ -93,15 +93,21 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
   );
 
   const [refAnswerInfoIcon, setRefAnswerInfoIcon] = useState<HTMLElement>();
+  const [refStatusNode, setRefStatusNode] = useState<HTMLElement>();
+  const handleStatusNodeRef = useCallback((element: HTMLElement | null) => {
+    setRefStatusNode(element || undefined);
+  }, []);
+  const renderStatusPopup = props.statusPopup || ((statusNode: React.ReactElement) => statusNode);
 
   return (
     <Table.Row className={style[props.page + "Page"]}>
-      {(props.statusPopup || (x => x))(
-        <td className={`${style.columnStatus} left aligned`}>
+      {renderStatusPopup(
+        <td ref={handleStatusNodeRef} className={`${style.columnStatus} left aligned`}>
           <Link href={props.page !== "submission" ? submissionLink : null}>
             <StatusText status={submission.status} statusText={props.statusText} />
           </Link>
-        </td>
+        </td>,
+        refStatusNode
       )}
       <Table.Cell className={style.columnScore}>
         <Link href={props.page !== "submission" ? submissionLink : null}>
@@ -286,7 +292,7 @@ interface SubmissionItemExtraRowsProps {
   onDownloadAnswer?: () => void;
 
   // Mouse hover on "status" to display
-  statusPopup?: (statusNode: React.ReactElement) => React.ReactNode;
+  statusPopup?: (statusNode: React.ReactElement, statusNodeRef?: HTMLElement) => React.ReactNode;
 
   config?: SubmissionItemConfig;
 }
@@ -295,11 +301,17 @@ export const SubmissionItemExtraRows: React.FC<SubmissionItemExtraRowsProps> = p
   const _ = useLocalizer("submission_item");
 
   const { submission, timeString, problemDisplayName, problemUrl } = parseSubmissionMeta(props.submission, _);
+  const [refStatusNode, setRefStatusNode] = useState<HTMLElement>();
+  const handleStatusNodeRef = useCallback((element: HTMLElement | null) => {
+    setRefStatusNode(element || undefined);
+  }, []);
+  const renderStatusPopup = props.statusPopup || ((statusNode: React.ReactElement) => statusNode);
 
-  const columnStatus = (props.statusPopup || (x => x))(
-    <div className={style.extraRowsColumnStatus}>
+  const columnStatus = renderStatusPopup(
+    <div ref={handleStatusNodeRef} className={style.extraRowsColumnStatus}>
       <StatusText status={submission.status} />
-    </div>
+    </div>,
+    refStatusNode
   );
 
   const columnScore = (
