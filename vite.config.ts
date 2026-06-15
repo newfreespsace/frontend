@@ -143,7 +143,7 @@ const externalPackageVersions = Object.fromEntries(
   ])
 );
 
-const devBundledPackages = ["react", "react-dom", "mobx", "axios", "noty", "semantic-ui-react"];
+const devBundledPackages = [];
 
 const externalPackagesForVite = Object.entries(baseExternalPackages)
   .filter(([packageName, { globalVariableName }]) => {
