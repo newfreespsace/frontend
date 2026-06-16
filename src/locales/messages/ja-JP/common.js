@@ -6,7 +6,7 @@ return {
     submissions: "提出一覧",
     members: "ユーザ",
     discussion: "ディスカッション",
-    training: "[TBT] Training"
+    training: "トレーニング"
   },
   header: {
     user: {

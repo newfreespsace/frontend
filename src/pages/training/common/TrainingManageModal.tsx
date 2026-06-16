@@ -3,6 +3,8 @@ import { Button, Icon, Modal } from "semantic-ui-react";
 
 import style from "./TrainingPage.module.less";
 
+import { useLocalizer } from "@/utils/hooks";
+
 interface TrainingManageModalProps {
   title: string;
   actions?: ReactNode;
@@ -10,6 +12,7 @@ interface TrainingManageModalProps {
 }
 
 const TrainingManageModal: React.FC<TrainingManageModalProps> = props => {
+  const _ = useLocalizer("training");
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +23,7 @@ const TrainingManageModal: React.FC<TrainingManageModalProps> = props => {
       trigger={
         <Button primary className="labeled icon" onClick={() => setOpen(true)}>
           <Icon name="setting" />
-          管理
+          {_(".manage")}
         </Button>
       }
     >
@@ -30,7 +33,7 @@ const TrainingManageModal: React.FC<TrainingManageModalProps> = props => {
         {props.children}
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={() => setOpen(false)}>关闭</Button>
+        <Button onClick={() => setOpen(false)}>{_(".close")}</Button>
       </Modal.Actions>
     </Modal>
   );

@@ -7,7 +7,7 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useAsyncCallbackPending } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import CreateSectionModal from "../common/CreateSectionModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
@@ -45,6 +45,7 @@ async function fetchData(trainingId: number, chapterId: number): Promise<Chapter
 interface ChapterViewPageProps extends ChapterViewData {}
 
 let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
+  const _ = useLocalizer("training");
   const [chapter, setChapter] = useState(props.chapter);
   const [sections, setSections] = useState(props.sections);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -95,12 +96,12 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
-      title="管理小节"
+      title={_(".manage_section")}
       actions={
         <>
           <RenameTitleModal
-            title="修改章节名称"
-            label="章节"
+            title={_(".rename_chapter")}
+            label={_(".chapter")}
             initialTitle={chapter.title}
             pending={renamePending}
             onSubmit={onRenameChapter}
@@ -119,9 +120,9 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>小节</Table.HeaderCell>
-              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
-              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".section")}</Table.HeaderCell>
+              <Table.HeaderCell width={2}>{_(".order")}</Table.HeaderCell>
+              <Table.HeaderCell width={1}>{_(".action")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -140,8 +141,8 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell>
                   <DeleteConfirmModal
-                    title="删除小节"
-                    content={`确定删除小节「${section.title}」吗？该小节内的题目关联也会一并删除。`}
+                    title={_(".delete_section")}
+                    content={_(".confirm_delete_section", { title: section.title })}
                     pending={deletePending}
                     onConfirm={() => onDelete(section.id)}
                   />
@@ -151,7 +152,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
           </Table.Body>
         </Table>
       ) : (
-        <div className={style.manageEmpty}>暂无小节</div>
+        <div className={style.manageEmpty}>{_(".empty_section")}</div>
       )}
     </TrainingManageModal>
   );
@@ -172,8 +173,8 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>小节</Table.HeaderCell>
-              <Table.HeaderCell className={style.progressColumn}>进度</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".section")}</Table.HeaderCell>
+              <Table.HeaderCell className={style.progressColumn}>{_(".progress")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -199,7 +200,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
         <Segment placeholder textAlign="center">
           <Header icon>
             <Icon name="list alternate" />
-            暂无小节
+            {_(".empty_section")}
           </Header>
         </Segment>
       )}

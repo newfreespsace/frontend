@@ -9,14 +9,16 @@ import PreviewSearch from "./PreviewSearch";
 interface GroupSearchProps {
   className?: string;
   placeholder?: string;
+  noResultsMessage?: string;
+  memberCountText?: (memberCount: number) => string;
   onResultSelect: (group: ApiTypes.GroupMetaDto) => void;
 }
 
 const GroupSearch: React.FC<GroupSearchProps> = props => (
   <PreviewSearch
     className={props.className}
-    placeholder={props.placeholder || "搜索用户组"}
-    noResultsMessage="没有找到用户组"
+    placeholder={props.placeholder || "Search groups"}
+    noResultsMessage={props.noResultsMessage || "No groups found"}
     onGetResultKey={result => result.id}
     onSearch={async input => {
       const wildcardStart = input.startsWith("*");
@@ -36,7 +38,9 @@ const GroupSearch: React.FC<GroupSearchProps> = props => (
     onRenderResult={result => (
       <div className={style.result}>
         <div className={style.name}>{result.name}</div>
-        <div className={style.memberCount}>{result.memberCount} 人</div>
+        <div className={style.memberCount}>
+          {props.memberCountText ? props.memberCountText(result.memberCount) : String(result.memberCount)}
+        </div>
       </div>
     )}
     onResultSelect={props.onResultSelect}

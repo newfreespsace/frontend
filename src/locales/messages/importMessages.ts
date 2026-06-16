@@ -61,6 +61,7 @@ export default async (fromUrl: string) => {
 
   const result = {};
   const localeDirectory = path.resolve(currentDirectory);
+  watchFiles.push(localeDirectory);
   for await (const absolutePath of readDirectoryRecursively(localeDirectory)) {
     if (!absolutePath.endsWith(".js")) continue;
 

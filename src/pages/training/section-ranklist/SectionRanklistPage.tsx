@@ -10,7 +10,7 @@ import { defineRoute, RouteError } from "@/AppRouter";
 import GroupSearch from "@/components/GroupSearch";
 import ScoreText from "@/components/ScoreText";
 import { getProblemUrl } from "@/pages/problem/utils";
-import { Link, useAsyncCallbackPending } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import toast from "@/utils/toast";
 
 interface SectionRanklistPageProps {
@@ -32,6 +32,7 @@ async function fetchSection(sectionId: number): Promise<ApiTypes.GetSectionByIdR
 }
 
 let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
+  const _ = useLocalizer("training");
   const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(null);
   const [ranklist, setRanklist] = useState<ApiTypes.QuerySectionGroupRanklistResponseDto>(null);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -52,13 +53,13 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
   });
 
   useEffect(() => {
-    appState.enterNewPage(`${props.section.title} - 通过排名`, "training");
+    appState.enterNewPage(_(".ranklist_page_title", { title: props.section.title }), "training");
 
     if (canManageTraining) {
       const lastViewedGroup = getLastViewedGroup();
       if (lastViewedGroup) queryRanklist(lastViewedGroup);
     } else queryRanklist();
-  }, [props.section.id, props.section.title]);
+  }, [appState.locale, props.section.id, props.section.title]);
 
   function getLastViewedGroup(): ApiTypes.GroupMetaDto {
     try {
@@ -102,25 +103,35 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
     <>
       <div className={style.header}>
         <div className={style.title}>
-          <Header as="h1">通过情况</Header>
+          <Header as="h1">{_(".ranklist_title")}</Header>
           <div className={style.sectionTitle}>{props.section.title}</div>
         </div>
         <Button className={style.back} as={Link} href={`/t/${props.trainingId}/${props.chapterId}/${props.section.id}`}>
           <Icon name="arrow left" />
-          返回小节
+          {_(".back_to_section")}
         </Button>
       </div>
 
       <div className={style.toolbar}>
         {canManageTraining && (
-          <GroupSearch className={style.groupSearch} placeholder="搜索用户组" onResultSelect={queryRanklist} />
+          <GroupSearch
+            className={style.groupSearch}
+            placeholder={_(".search_group")}
+            noResultsMessage={_(".no_group_result")}
+            memberCountText={memberCount => _(".group_member_count", { count: String(memberCount) })}
+            onResultSelect={queryRanklist}
+          />
         )}
         {(group || ranklist) && (
           <div className={style.groupMeta}>
             {(ranklist?.groups || [group]).map(group => (
               <Label key={group.id} basic content={group.name} />
             ))}
-            <Label basic size="small" content={`${ranklist?.memberCount ?? group.memberCount} 人`} />
+            <Label
+              basic
+              size="small"
+              content={_(".group_member_count", { count: String(ranklist?.memberCount ?? group.memberCount) })}
+            />
           </div>
         )}
         {canManageTraining && group && (
@@ -145,8 +156,8 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
                 <Table.Header>
                   <Table.Row>
                     <Table.HeaderCell className={style.rank}>#</Table.HeaderCell>
-                    <Table.HeaderCell className={style.user}>用户名</Table.HeaderCell>
-                    <Table.HeaderCell className={style.acceptedCount}>通过数量</Table.HeaderCell>
+                    <Table.HeaderCell className={style.user}>{_(".user")}</Table.HeaderCell>
+                    <Table.HeaderCell className={style.acceptedCount}>{_(".accepted_count")}</Table.HeaderCell>
                     {props.section.problems.map((problem, index) => (
                       <Table.HeaderCell key={problem.meta.id} title={problem.title}>
                         <Link href={getProblemUrl(problem.meta)}>{String.fromCharCode(65 + index)}</Link>
@@ -191,7 +202,7 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
           ) : (
             <div className={style.empty}>
               <Icon name="file outline" />
-              <div>{pending ? "正在加载..." : "暂无通过情况"}</div>
+              <div>{pending ? _(".loading") : _(".empty_ranklist")}</div>
             </div>
           )}
         </>

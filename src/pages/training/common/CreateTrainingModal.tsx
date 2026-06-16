@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, Icon, Modal } from "semantic-ui-react";
 
 import api from "@/api";
-import { useAsyncCallbackPending, useNavigationChecked } from "@/utils/hooks";
+import { useAsyncCallbackPending, useLocalizer, useNavigationChecked } from "@/utils/hooks";
 import toast from "@/utils/toast";
 
 interface CreateTrainingModalProps {
@@ -11,6 +11,7 @@ interface CreateTrainingModalProps {
 }
 
 const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
+  const _ = useLocalizer("training");
   const navigation = useNavigationChecked();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -19,7 +20,7 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
   const [pending, onSubmit] = useAsyncCallbackPending(async () => {
     const normalizedTitle = title.trim();
     if (!normalizedTitle) {
-      toast.error("请输入训练标题");
+      toast.error(_(".input_training_title"));
       return;
     }
 
@@ -46,21 +47,25 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
       trigger={
         <Button primary className="labeled icon" onClick={() => setOpen(true)}>
           <Icon name="plus" />
-          添加训练
+          {_(".add_training")}
         </Button>
       }
     >
-      <Modal.Header>添加训练</Modal.Header>
+      <Modal.Header>{_(".add_training")}</Modal.Header>
       <Modal.Content>
         <Form onSubmit={onSubmit}>
-          <Form.Input label="标题" value={title} onChange={e => setTitle(e.currentTarget.value)} />
-          <Form.TextArea label="描述" value={description} onChange={(e, { value }) => setDescription(String(value))} />
+          <Form.Input label={_(".title_field")} value={title} onChange={e => setTitle(e.currentTarget.value)} />
+          <Form.TextArea
+            label={_(".description")}
+            value={description}
+            onChange={(e, { value }) => setDescription(String(value))}
+          />
         </Form>
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={() => setOpen(false)}>取消</Button>
+        <Button onClick={() => setOpen(false)}>{_(".cancel")}</Button>
         <Button primary loading={pending} onClick={onSubmit}>
-          创建
+          {_(".create")}
         </Button>
       </Modal.Actions>
     </Modal>

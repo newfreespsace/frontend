@@ -7,7 +7,7 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useAsyncCallbackPending } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import CreateTrainingModal from "../common/CreateTrainingModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
@@ -26,6 +26,7 @@ interface TrainingSetPageProps {
 }
 
 let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
+  const _ = useLocalizer("training");
   const [trainings, setTrainings] = useState(props.response.result);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
   const [deletePending, onDelete] = useAsyncCallbackPending(async (id: number) => {
@@ -46,8 +47,8 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
   });
 
   useEffect(() => {
-    appState.enterNewPage("训练", "training");
-  }, []);
+    appState.enterNewPage(_(".title"), "training");
+  }, [appState.locale]);
 
   function normalizeSortOrder(items: ApiTypes.TrainingMetaDto[]): ApiTypes.TrainingMetaDto[] {
     return items.map((item, index) => ({ ...item, sortOrder: index + 1 }));
@@ -69,7 +70,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
-      title="管理训练"
+      title={_(".manage_training")}
       actions={<CreateTrainingModal nextSortOrder={trainings.length + 1} onCreated={onTrainingCreated} />}
     >
       {trainings.length ? (
@@ -77,9 +78,9 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>训练</Table.HeaderCell>
-              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
-              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".training")}</Table.HeaderCell>
+              <Table.HeaderCell width={2}>{_(".order")}</Table.HeaderCell>
+              <Table.HeaderCell width={1}>{_(".action")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -98,8 +99,8 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell>
                   <DeleteConfirmModal
-                    title="删除训练"
-                    content={`确定删除训练「${training.title}」吗？该训练下的章节、小节和题目关联也会一并删除。`}
+                    title={_(".delete_training")}
+                    content={_(".confirm_delete_training", { title: training.title })}
                     pending={deletePending}
                     onConfirm={() => onDelete(training.id)}
                   />
@@ -109,7 +110,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
           </Table.Body>
         </Table>
       ) : (
-        <div className={style.manageEmpty}>暂无训练</div>
+        <div className={style.manageEmpty}>{_(".empty_training")}</div>
       )}
     </TrainingManageModal>
   );
@@ -118,7 +119,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
-          <Header as="h1">训练</Header>
+          <Header as="h1">{_(".title")}</Header>
         </div>
         {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
@@ -128,8 +129,8 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>训练</Table.HeaderCell>
-              <Table.HeaderCell className={style.progressColumn}>进度</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".training")}</Table.HeaderCell>
+              <Table.HeaderCell className={style.progressColumn}>{_(".progress")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -155,7 +156,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
         <Segment placeholder textAlign="center">
           <Header icon>
             <Icon name="book" />
-            暂无训练
+            {_(".empty_training")}
           </Header>
         </Segment>
       )}

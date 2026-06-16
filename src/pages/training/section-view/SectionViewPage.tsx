@@ -56,7 +56,8 @@ async function fetchData(trainingId: number, chapterId: number, sectionId: numbe
 interface SectionViewPageProps extends SectionViewData {}
 
 let SectionViewPage: React.FC<SectionViewPageProps> = props => {
-  const _ = useLocalizer("problem_set");
+  const _p = useLocalizer("problem_set");
+  const _ = useLocalizer("training");
   const [section, setSection] = useState(props.section);
   const isVeryNarrowScreen = useScreenWidthWithin(0, 640);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -69,7 +70,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
       problems
     });
     if (requestError) toast.error(requestError((key: string) => key));
-    else if (!response.success) toast.error("删除失败");
+    else if (!response.success) toast.error(_(".delete_failed"));
     else setSection(await fetchSection(section.id));
   });
   const [reorderPending, onMoveProblem] = useAsyncCallbackPending(async (index: number, direction: -1 | 1) => {
@@ -86,7 +87,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
     });
     if (requestError) toast.error(requestError((key: string) => key));
     else if (!response.success) {
-      toast.error("保存失败");
+      toast.error(_(".save_failed"));
       setSection(section);
     }
   });
@@ -119,12 +120,12 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
-      title="管理题目"
+      title={_(".manage_problem")}
       actions={
         <>
           <RenameTitleModal
-            title="修改小节名称"
-            label="小节"
+            title={_(".rename_section")}
+            label={_(".section")}
             initialTitle={section.title}
             pending={renamePending}
             onSubmit={onRenameSection}
@@ -138,9 +139,9 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>题目</Table.HeaderCell>
-              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
-              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".problem")}</Table.HeaderCell>
+              <Table.HeaderCell width={2}>{_(".order")}</Table.HeaderCell>
+              <Table.HeaderCell width={1}>{_(".action")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -151,7 +152,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                   <span className={style.problemId}>
                     {getProblemIdString(problem.meta, { hideHashTagOnDisplayId: true })}
                   </span>
-                  {" " + getProblemDisplayName(null, problem.title, _)}
+                  {" " + getProblemDisplayName(null, problem.title, _p)}
                 </Table.Cell>
                 <Table.Cell>
                   <OrderButtons
@@ -164,12 +165,10 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell>
                   <DeleteConfirmModal
-                    title="移除题目"
-                    content={`确定从当前小节移除「${getProblemDisplayName(
-                      null,
-                      problem.title,
-                      _
-                    )}」吗？题目本身不会被删除。`}
+                    title={_(".remove_problem")}
+                    content={_(".confirm_remove_problem", {
+                      title: getProblemDisplayName(null, problem.title, _p)
+                    })}
                     pending={deletePending}
                     onConfirm={() => onDeleteProblem(problem.meta.id)}
                   />
@@ -179,7 +178,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
           </Table.Body>
         </Table>
       ) : (
-        <div className={style.manageEmpty}>暂无题目</div>
+        <div className={style.manageEmpty}>{_(".empty_problem")}</div>
       )}
     </TrainingManageModal>
   );
@@ -200,7 +199,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                 labelPosition="left"
               >
                 <Icon name="ordered list" />
-                通过情况
+                {_(".ranklist")}
               </Button>
             )}
             {manageModal}
@@ -214,11 +213,11 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         <Table basic="very" textAlign="center" unstackable>
           <Table.Header>
             <Table.Row>
-              {appState.currentUser && <Table.HeaderCell width={1}>{_(".column_status")}</Table.HeaderCell>}
+              {appState.currentUser && <Table.HeaderCell width={1}>{_p(".column_status")}</Table.HeaderCell>}
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>题目</Table.HeaderCell>
-              <Table.HeaderCell width={1}>{_(".column_submission_count")}</Table.HeaderCell>
-              {!isVeryNarrowScreen && <Table.HeaderCell width={1}>{_(".column_accepted_rate")}</Table.HeaderCell>}
+              <Table.HeaderCell className={style.tableTitle}>{_(".problem")}</Table.HeaderCell>
+              <Table.HeaderCell width={1}>{_p(".column_submission_count")}</Table.HeaderCell>
+              {!isVeryNarrowScreen && <Table.HeaderCell width={1}>{_p(".column_accepted_rate")}</Table.HeaderCell>}
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -240,7 +239,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell textAlign="left" className={style.problemTitleCell}>
                   <EmojiRenderer>
-                    <Link href={getProblemUrl(problem.meta)}>{getProblemDisplayName(null, problem.title, _)}</Link>
+                    <Link href={getProblemUrl(problem.meta)}>{getProblemDisplayName(null, problem.title, _p)}</Link>
                   </EmojiRenderer>
                   {!problem.meta.isPublic && (
                     <Label
@@ -249,7 +248,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                       size="small"
                       color="red"
                       basic
-                      content={_(".non_public")}
+                      content={_p(".non_public")}
                     />
                   )}
                   <div className={style.tags}>
@@ -274,7 +273,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         <Segment placeholder textAlign="center">
           <Header icon>
             <Icon name="file alternate" />
-            暂无题目
+            {_(".empty_problem")}
           </Header>
         </Segment>
       )}

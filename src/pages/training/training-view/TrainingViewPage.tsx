@@ -7,7 +7,7 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useAsyncCallbackPending } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import CreateChapterModal from "../common/CreateChapterModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
@@ -39,6 +39,7 @@ async function fetchData(trainingId: number): Promise<TrainingViewData> {
 interface TrainingViewPageProps extends TrainingViewData {}
 
 let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
+  const _ = useLocalizer("training");
   const [training, setTraining] = useState(props.training);
   const [chapters, setChapters] = useState(props.chapters);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -89,12 +90,12 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
-      title="管理章节"
+      title={_(".manage_chapter")}
       actions={
         <>
           <RenameTitleModal
-            title="修改训练名称"
-            label="训练"
+            title={_(".rename_training")}
+            label={_(".training")}
             initialTitle={training.title}
             pending={renamePending}
             onSubmit={onRenameTraining}
@@ -112,9 +113,9 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>章节</Table.HeaderCell>
-              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
-              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".chapter")}</Table.HeaderCell>
+              <Table.HeaderCell width={2}>{_(".order")}</Table.HeaderCell>
+              <Table.HeaderCell width={1}>{_(".action")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -133,8 +134,8 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell>
                   <DeleteConfirmModal
-                    title="删除章节"
-                    content={`确定删除章节「${chapter.title}」吗？该章节下的小节和题目关联也会一并删除。`}
+                    title={_(".delete_chapter")}
+                    content={_(".confirm_delete_chapter", { title: chapter.title })}
                     pending={deletePending}
                     onConfirm={() => onDelete(chapter.id)}
                   />
@@ -144,7 +145,7 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
           </Table.Body>
         </Table>
       ) : (
-        <div className={style.manageEmpty}>暂无章节</div>
+        <div className={style.manageEmpty}>{_(".empty_chapter")}</div>
       )}
     </TrainingManageModal>
   );
@@ -165,8 +166,8 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
-              <Table.HeaderCell className={style.tableTitle}>章节</Table.HeaderCell>
-              <Table.HeaderCell className={style.progressColumn}>进度</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>{_(".chapter")}</Table.HeaderCell>
+              <Table.HeaderCell className={style.progressColumn}>{_(".progress")}</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -192,7 +193,7 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
         <Segment placeholder textAlign="center">
           <Header icon>
             <Icon name="list" />
-            暂无章节
+            {_(".empty_chapter")}
           </Header>
         </Segment>
       )}
