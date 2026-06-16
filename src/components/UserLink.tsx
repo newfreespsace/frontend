@@ -10,7 +10,8 @@ interface UserLinkProps {
 const UserLink: React.FC<UserLinkProps> = props => {
   // TODO: rating color
   const escapedUsername = encodeURIComponent(props.user.username);
-  return <Link href={`/u/${escapedUsername}`}>{props.children || props.user.username}</Link>;
+  // return <Link href={`/u/${escapedUsername}`}>{props.children || props.user.username}</Link>;
+  return <Link href={`/u/${escapedUsername}`}>{props.children || props.user.nickname || props.user.username}</Link>;
 };
 
 export default UserLink;
