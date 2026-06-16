@@ -190,17 +190,19 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         <div className={style.headerTitle}>
           <Header as="h1">{section.title}</Header>
         </div>
-        {canManageTraining && (
+        {(appState.currentUser || canManageTraining) && (
           <div className={style.headerActions}>
-            <Button
-              as={Link}
-              href={`/t/${props.training.id}/${props.chapter.id}/${section.id}/ranklist`}
-              icon
-              labelPosition="left"
-            >
-              <Icon name="ordered list" />
-              通过排名
-            </Button>
+            {appState.currentUser && (
+              <Button
+                as={Link}
+                href={`/t/${props.training.id}/${props.chapter.id}/${section.id}/ranklist`}
+                icon
+                labelPosition="left"
+              >
+                <Icon name="ordered list" />
+                通过情况
+              </Button>
+            )}
             {manageModal}
           </div>
         )}

@@ -34,27 +34,30 @@ async function fetchSection(sectionId: number): Promise<ApiTypes.GetSectionByIdR
 let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
   const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(null);
   const [ranklist, setRanklist] = useState<ApiTypes.QuerySectionGroupRanklistResponseDto>(null);
+  const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
   const storageKey = `training.section.${props.section.id}.ranklist.group`;
 
-  const [pending, queryRanklist] = useAsyncCallbackPending(async (selectedGroup: ApiTypes.GroupMetaDto) => {
+  const [pending, queryRanklist] = useAsyncCallbackPending(async (selectedGroup?: ApiTypes.GroupMetaDto) => {
     setGroup(selectedGroup);
     setRanklist(null);
     const { requestError, response } = await api.training.querySectionGroupRanklist({
       sectionId: props.section.id,
-      groupId: selectedGroup.id
+      groupId: selectedGroup?.id
     });
     if (requestError) toast.error(requestError((key: string) => key));
     else {
       setRanklist(response);
-      saveLastViewedGroup(selectedGroup);
+      if (selectedGroup) saveLastViewedGroup(selectedGroup);
     }
   });
 
   useEffect(() => {
     appState.enterNewPage(`${props.section.title} - 通过排名`, "training");
 
-    const lastViewedGroup = getLastViewedGroup();
-    if (lastViewedGroup) queryRanklist(lastViewedGroup);
+    if (canManageTraining) {
+      const lastViewedGroup = getLastViewedGroup();
+      if (lastViewedGroup) queryRanklist(lastViewedGroup);
+    } else queryRanklist();
   }, [props.section.id, props.section.title]);
 
   function getLastViewedGroup(): ApiTypes.GroupMetaDto {
@@ -109,14 +112,18 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
       </div>
 
       <div className={style.toolbar}>
-        <GroupSearch className={style.groupSearch} placeholder="搜索用户组" onResultSelect={queryRanklist} />
-        {group && (
+        {canManageTraining && (
+          <GroupSearch className={style.groupSearch} placeholder="搜索用户组" onResultSelect={queryRanklist} />
+        )}
+        {(group || ranklist) && (
           <div className={style.groupMeta}>
-            <Label basic content={group.name} />
-            <Label basic size="small" content={`${group.memberCount} 人`} />
+            {(ranklist?.groups || [group]).map(group => (
+              <Label key={group.id} basic content={group.name} />
+            ))}
+            <Label basic size="small" content={`${ranklist?.memberCount ?? group.memberCount} 人`} />
           </div>
         )}
-        {group && (
+        {canManageTraining && group && (
           <Button
             className={style.refresh}
             size="mini"
@@ -130,7 +137,7 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
         )}
       </div>
 
-      {group && (
+      {(group || ranklist || pending) && (
         <>
           {ranklist ? (
             <div className={style.tableWrap}>
@@ -202,7 +209,6 @@ export default defineRoute(async request => {
   if (!Number.isSafeInteger(trainingId) || !Number.isSafeInteger(chapterId) || !Number.isSafeInteger(sectionId)) {
     throw new RouteError("Invalid section id" as any);
   }
-  if (!appState.currentUserHasPrivilege("ManageProblem")) throw new RouteError("权限不足。" as any);
 
   return <SectionRanklistPage trainingId={trainingId} chapterId={chapterId} section={await fetchSection(sectionId)} />;
 });

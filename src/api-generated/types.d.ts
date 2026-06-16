@@ -945,7 +945,7 @@ declare namespace ApiTypes {
   }
   export interface QuerySectionGroupRanklistDto {
     sectionId: number;
-    groupId: number;
+    groupId?: number;
   }
   export interface SectionGroupRanklistItemDto {
     rank: number;
@@ -955,7 +955,9 @@ declare namespace ApiTypes {
   }
   export interface QuerySectionGroupRanklistResponseDto {
     sectionId: number;
-    groupId: number;
+    groupId?: number;
+    groups: ApiTypes.GroupMetaDto[];
+    memberCount: number;
     problemCount: number;
     result: ApiTypes.SectionGroupRanklistItemDto[];
   }
