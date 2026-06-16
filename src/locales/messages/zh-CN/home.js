@@ -18,6 +18,13 @@ return {
     error: "加载一言时发生错误。",
     refresh: "刷新"
   },
+  training: {
+    header: "当前训练",
+    title: "章节",
+    progress: "进度",
+    no_chapters: "当前训练暂无章节",
+    no_training: "暂无训练"
+  },
   countdown: {
     header: "倒计时",
     display_time_first: "0",

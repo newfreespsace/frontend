@@ -66,5 +66,11 @@ return {
     'Delete training plan "{title}"? Chapters, sections, and problem associations under it will also be removed.',
   confirm_delete_chapter: 'Delete chapter "{title}"? Sections and problem associations under it will also be removed.',
   confirm_delete_section: 'Delete section "{title}"? Problem associations in this section will also be removed.',
-  confirm_remove_problem: 'Remove "{title}" from the current section? The problem itself will not be deleted.'
+  confirm_remove_problem: 'Remove "{title}" from the current section? The problem itself will not be deleted.',
+  participation: "Participation",
+  current_training: "Current",
+  join_training: "Join",
+  leave_training: "Leave",
+  set_current_training_success: "Current training updated",
+  clear_current_training_success: "Current training cleared"
 };

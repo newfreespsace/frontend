@@ -947,12 +947,6 @@ declare namespace ApiTypes {
     sectionId: number;
     groupId?: number;
   }
-  export interface SectionGroupRanklistItemDto {
-    rank: number;
-    user: ApiTypes.UserMetaDto;
-    acceptedProblemCount: number;
-    acceptedProblemIds: number[];
-  }
   export interface QuerySectionGroupRanklistResponseDto {
     sectionId: number;
     groupId?: number;
@@ -1082,7 +1076,22 @@ declare namespace ApiTypes {
   export interface RenameProblemFileResponseDto {
     error?: "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "NO_SUCH_FILE";
   }
-  export type RequestBody = ApiTypes.SetSectionProblemsDto;
+  export interface ReorderChaptersDto {
+    trainingId: number;
+    items: ApiTypes.ReorderItemDto[];
+  }
+  export interface ReorderItemDto {
+    id: number;
+    sortOrder: number;
+  }
+  export interface ReorderSectionsDto {
+    chapterId: number;
+    items: ApiTypes.ReorderItemDto[];
+  }
+  export interface ReorderTrainingsDto {
+    items: ApiTypes.ReorderItemDto[];
+  }
+  export type RequestBody = ApiTypes.QuerySectionGroupRanklistDto;
   export interface ResetJudgeClientKeyRequestDto {
     id: number;
   }
@@ -1100,8 +1109,8 @@ declare namespace ApiTypes {
     token?: string;
   }
   namespace Responses {
-    export type $200 = ApiTypes.GetHomepageSettingsResponseDto;
-    export type $201 = ApiTypes.SetSectionProblemsResponseDto;
+    export type $200 = ApiTypes.SectionMetaDto[];
+    export type $201 = ApiTypes.QuerySectionGroupRanklistResponseDto;
   }
   export interface RevokeUserSessionRequestDto {
     userId: number;
@@ -1143,6 +1152,12 @@ declare namespace ApiTypes {
   export interface SearchUserResponseDto {
     userMetas: ApiTypes.UserMetaDto[];
   }
+  export interface SectionGroupRanklistItemDto {
+    rank: number;
+    user: ApiTypes.UserMetaDto;
+    acceptedProblemCount: number;
+    acceptedProblemIds: number[];
+  }
   export interface SectionMetaDto {
     id: number;
     chapterId: number;
@@ -1170,6 +1185,13 @@ declare namespace ApiTypes {
   export interface ServerVersionDto {
     hash: string;
     date: string;
+  }
+  export interface SetCurrentTrainingDto {
+    trainingId?: number | null;
+  }
+  export interface SetCurrentTrainingResponseDto {
+    success: boolean;
+    currentTrainingId?: number | null;
   }
   export interface SetDiscussionPermissionsRequestDto {
     discussionId: number;
@@ -1240,21 +1262,6 @@ declare namespace ApiTypes {
   }
   export interface SetProblemPublicResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_PROBLEM" | "NO_DISPLAY_ID";
-  }
-  export interface ReorderItemDto {
-    id: number;
-    sortOrder: number;
-  }
-  export interface ReorderTrainingsDto {
-    items: ApiTypes.ReorderItemDto[];
-  }
-  export interface ReorderChaptersDto {
-    trainingId: number;
-    items: ApiTypes.ReorderItemDto[];
-  }
-  export interface ReorderSectionsDto {
-    chapterId: number;
-    items: ApiTypes.ReorderItemDto[];
   }
   export interface SetSectionProblemItemDto {
     problemId: number;
@@ -1524,6 +1531,7 @@ declare namespace ApiTypes {
     submissionCount: number;
     rating: number;
     registrationTime: string; // date-time
+    currentTrainingId?: number | null;
   }
   export interface UserPreferenceCodeDto {
     defaultLanguage?: string;

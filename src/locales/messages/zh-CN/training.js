@@ -65,5 +65,11 @@ return {
   confirm_delete_training: "确定删除训练计划「{title}」吗？该训练计划下的章节、小节和题目关联也会一并删除。",
   confirm_delete_chapter: "确定删除章节「{title}」吗？该章节下的小节和题目关联也会一并删除。",
   confirm_delete_section: "确定删除小节「{title}」吗？该小节内的题目关联也会一并删除。",
-  confirm_remove_problem: "确定从当前小节移除「{title}」吗？题目本身不会被删除。"
+  confirm_remove_problem: "确定从当前小节移除「{title}」吗？题目本身不会被删除。",
+  participation: "参加状态",
+  current_training: "当前训练",
+  join_training: "参加训练",
+  leave_training: "取消参加",
+  set_current_training_success: "已设置当前训练",
+  clear_current_training_success: "已取消当前训练"
 };

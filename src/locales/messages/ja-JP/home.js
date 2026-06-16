@@ -18,6 +18,13 @@ return {
     error: "[TBT] Error loading Hitokoto.",
     refresh: "[TBT] Refresh"
   },
+  training: {
+    header: "現在のトレーニング",
+    title: "章",
+    progress: "進捗",
+    no_chapters: "現在のトレーニングに章がありません",
+    no_training: "トレーニングがありません"
+  },
   countdown: {
     header: "[TBT] Countdown",
     display_time_first: "[TBT] 1",

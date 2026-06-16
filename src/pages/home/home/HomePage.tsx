@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Header, Icon, List, Placeholder, Segment, Table } from "semantic-ui-react";
+import { Grid, Header, Icon, List, Placeholder, Progress, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import Countdown from "react-countdown";
 
@@ -13,20 +13,36 @@ import MarkdownContent from "@/markdown/MarkdownContent";
 import { getDiscussionDisplayTitle, getDiscussionUrl } from "@/pages/discussion/utils";
 import formatDateTime from "@/utils/formatDateTime";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
-import { getProblemDisplayName, getProblemUrl } from "@/pages/problem/utils";
-import TimeAgo from "@/components/TimeAgo";
-import ProblemSearch from "@/components/ProblemSearch";
-import UserLink from "@/components/UserLink";
-import { StatusIcon } from "@/components/StatusText";
+import TrainingProgressBar from "@/pages/training/common/TrainingProgressBar";
 
 async function fetchData() {
-  const { requestError, response } = await api.homepage.getHomepage({
+  const homepageResult = await api.homepage.getHomepage({
     locale: appState.locale
   });
 
-  if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
+  if (homepageResult.requestError) {
+    throw new RouteError(homepageResult.requestError, { showRefresh: true, showBack: true });
+  }
 
-  return response;
+  let currentTraining: ApiTypes.TrainingMetaDto = null;
+  const currentTrainingId = appState.currentUser?.currentTrainingId;
+
+  if (currentTrainingId) {
+    const trainingResult = await api.training.getTrainingById({
+      id: currentTrainingId
+    });
+
+    if (trainingResult.requestError) {
+      throw new RouteError(trainingResult.requestError, { showRefresh: true, showBack: true });
+    }
+
+    currentTraining = trainingResult.response;
+  }
+
+  return {
+    ...homepageResult.response,
+    currentTraining
+  };
 }
 
 interface Hitokoto {
@@ -45,7 +61,9 @@ async function fetchHitokoto(apiUrl: string) {
   }
 }
 
-type HomePageProps = ApiTypes.GetHomepageResponseDto;
+type HomePageProps = ApiTypes.GetHomepageResponseDto & {
+  currentTraining?: ApiTypes.TrainingMetaDto;
+};
 
 let HomePage: React.FC<HomePageProps> = props => {
   const _ = useLocalizer("home");
@@ -128,67 +146,49 @@ let HomePage: React.FC<HomePageProps> = props => {
     </>
   );
 
-  const getLatestProblems = (inMainView: boolean) => (
+  const trainPlan = () => (
     <>
-      <Header
-        className={style.header}
-        as="h4"
-        block
-        icon="book"
-        content={_(".latest_problems.header")}
-        attached="top"
-      />
-      <Segment
-        className={style.segment}
-        textAlign="center"
-        attached="bottom"
-        placeholder={props.latestUpdatedProblems.length === 0}
-      >
-        {props.latestUpdatedProblems.length > 0 ? (
-          <Table unstackable className={style.table} basic="very">
+      <Header className={style.header} as="h4" block icon="book" content={_(".training.header")} attached="top" />
+      <Segment className={style.segment} attached="bottom" placeholder={!props.currentTraining}>
+        {props.currentTraining?.chapters?.length ? (
+          <Table unstackable className={style.table + " " + style.trainingTable} basic="very">
             <Table.Header>
               <Table.Row>
-                {appState.currentUser && (
-                  <Table.HeaderCell width={1} textAlign="center" className={style.noWrap}>
-                    {_(".latest_problems.status")}
-                  </Table.HeaderCell>
-                )}
-                <Table.HeaderCell textAlign={inMainView ? "left" : "center"}>
-                  {_(".latest_problems.problem")}
-                </Table.HeaderCell>
-                <Table.HeaderCell width={1} textAlign="center" className={style.noWrap}>
-                  {_(".latest_problems.updated_time")}
-                </Table.HeaderCell>
+                <Table.HeaderCell className={style.trainingTitleCell}>{_(".training.title")}</Table.HeaderCell>
+                <Table.HeaderCell className={style.trainingProgressCell}>{_(".training.progress")}</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {props.latestUpdatedProblems.map(({ meta, title, submission }) => (
-                <Table.Row key={meta.id}>
-                  {appState.currentUser && (
-                    <Table.Cell textAlign="center">
-                      {submission && (
-                        <Link href={`/s/${submission.id}`}>
-                          <StatusIcon status={submission.status} noMarginRight />
-                        </Link>
-                      )}
+              {props.currentTraining.chapters.map(chapter => {
+                const percent = chapter.problemCount ? (chapter.acceptedProblemCount / chapter.problemCount) * 100 : 0;
+
+                return (
+                  <Table.Row key={chapter.id}>
+                    <Table.Cell className={style.trainingTitleCell}>
+                      <Link href={`/t/${props.currentTraining.id}/${chapter.id}`}>{chapter.title}</Link>
                     </Table.Cell>
-                  )}
-                  <Table.Cell textAlign={inMainView ? "left" : "center"}>
-                    <EmojiRenderer>
-                      <Link href={getProblemUrl(meta)}>{getProblemDisplayName(meta, title, _, "all")}</Link>
-                    </EmojiRenderer>
-                  </Table.Cell>
-                  <Table.Cell className={style.latestProblemsDate + " " + style.noWrap} textAlign="center">
-                    <TimeAgo time={new Date(meta.publicTime)} dateOnly />
-                  </Table.Cell>
-                </Table.Row>
-              ))}
+                    <Table.Cell className={style.trainingProgressCell}>
+                      <div className={style.trainingProgress}>
+                        <Progress percent={percent} indicating autoSuccess className={style.trainingProgressBar} />
+                        <span className={style.trainingProgressText}>
+                          {chapter.acceptedProblemCount} / {chapter.problemCount}
+                        </span>
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
             </Table.Body>
           </Table>
+        ) : props.currentTraining ? (
+          <Header icon>
+            <Icon name="book" />
+            {_(".training.no_chapters")}
+          </Header>
         ) : (
           <Header icon>
-            <Icon name="file" />
-            {_(".latest_problems.no_problems")}
+            <Icon name="book" />
+            {_(".training.no_training")}
           </Header>
         )}
       </Segment>
@@ -299,78 +299,6 @@ let HomePage: React.FC<HomePageProps> = props => {
       </>
     );
 
-  const getProblemSearch = () => (
-    <>
-      <Header className={style.header} as="h4" block icon="search" content={_(".search_problem")} attached="top" />
-      <Segment className={style.segment + " " + style.search} attached="bottom">
-        <ProblemSearch
-          className={style.search}
-          onResultSelect={({ meta }) => navigation.navigate(getProblemUrl(meta))}
-          onEnterPress={searchKeyword => navigation.navigate({ pathname: "/p", query: { keyword: searchKeyword } })}
-        />
-      </Segment>
-    </>
-  );
-
-  const getTopUsers = (inMainView: boolean) => (
-    <>
-      <Header className={style.header} as="h4" block icon="user" content={_(".top_users.header")} attached="top" />
-      <Segment className={style.segment} textAlign="center" attached="bottom" placeholder={props.topUsers.length === 0}>
-        {props.topUsers.length > 0 ? (
-          <Table unstackable className={style.table} basic="very" textAlign="center" compact={!inMainView}>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell width={1} className={style.noWrap}>
-                  #
-                </Table.HeaderCell>
-                <Table.HeaderCell>{_(".top_users.username")}</Table.HeaderCell>
-                {inMainView ? (
-                  <Table.HeaderCell>{_(".top_users.bio")}</Table.HeaderCell>
-                ) : (
-                  <Table.HeaderCell width={1} className={style.noWrap}>
-                    {appState.serverPreference.misc.sortUserByRating
-                      ? _(".top_users.rating")
-                      : _(".top_users.accepted_problem_count")}
-                  </Table.HeaderCell>
-                )}
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {props.topUsers.map((user, i) => (
-                <Table.Row key={user.id}>
-                  <Table.Cell>{i + 1}</Table.Cell>
-                  <Table.Cell>
-                    <UserLink user={user} />
-                  </Table.Cell>
-                  {inMainView ? (
-                    <Table.Cell className={style.columnBio}>
-                      {appState.serverPreference.misc.renderMarkdownInUserBio ? (
-                        <MarkdownContent content={user.bio} dontUseContentFont placeholderLines={1} />
-                      ) : (
-                        <EmojiRenderer>
-                          <div>{user.bio}</div>
-                        </EmojiRenderer>
-                      )}
-                    </Table.Cell>
-                  ) : (
-                    <Table.Cell>
-                      {appState.serverPreference.misc.sortUserByRating ? user.rating : user.acceptedProblemCount}
-                    </Table.Cell>
-                  )}
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        ) : (
-          <Header icon>
-            <Icon name="user" />
-            {_(".top_users.no_users")}
-          </Header>
-        )}
-      </Segment>
-    </>
-  );
-
   const getFriendLinks = () =>
     props.friendLinks &&
     Object.keys(props.friendLinks.links).length > 0 && (
@@ -399,26 +327,22 @@ let HomePage: React.FC<HomePageProps> = props => {
       {isNarrowScreen ? (
         <>
           {getNotice()}
+          {trainPlan()}
           {getAnnnouncements()}
           {getHitokoto()}
-          {getProblemSearch()}
-          {appState.serverPreference.misc.homepageUserListOnMainView ? getTopUsers(false) : getLatestProblems(true)}
           {getCountdown()}
-          {appState.serverPreference.misc.homepageUserListOnMainView ? getLatestProblems(true) : getTopUsers(false)}
           {getFriendLinks()}
         </>
       ) : (
         <Grid>
           <Grid.Column width={11}>
             {getNotice()}
+            {trainPlan()}
             {getAnnnouncements()}
-            {appState.serverPreference.misc.homepageUserListOnMainView ? getTopUsers(true) : getLatestProblems(true)}
           </Grid.Column>
           <Grid.Column width={5}>
             {getHitokoto()}
             {getCountdown()}
-            {getProblemSearch()}
-            {appState.serverPreference.misc.homepageUserListOnMainView ? getLatestProblems(false) : getTopUsers(false)}
             {getFriendLinks()}
           </Grid.Column>
         </Grid>

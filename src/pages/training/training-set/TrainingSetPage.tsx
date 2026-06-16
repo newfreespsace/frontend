@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, Icon, Segment, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Label, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "../common/TrainingPage.module.less";
@@ -28,6 +28,7 @@ interface TrainingSetPageProps {
 let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
   const _ = useLocalizer("training");
   const [trainings, setTrainings] = useState(props.response.result);
+  const [currentTrainingId, setCurrentTrainingId] = useState(appState.currentUser?.currentTrainingId ?? null);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
   const [deletePending, onDelete] = useAsyncCallbackPending(async (id: number) => {
     const { requestError } = await api.training.delTrainingById({ id });
@@ -67,6 +68,40 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
       normalizeSortOrder([...currentTrainings, training].sort((a, b) => a.sortOrder - b.sortOrder))
     );
   }
+
+  const [currentTrainingPending, onSetCurrentTraining] = useAsyncCallbackPending(async (trainingId: number) => {
+    const { requestError, response } = await api.training.setCurrentTraining({ trainingId });
+
+    if (requestError) {
+      toast.error(requestError((key: string) => key));
+      return;
+    }
+    if (!response.success) return;
+
+    if (appState.currentUser) {
+      appState.currentUser.currentTrainingId = response.currentTrainingId;
+    }
+    setCurrentTrainingId(response.currentTrainingId ?? null);
+
+    toast.success(_(".set_current_training_success"));
+  });
+
+  const [clearCurrentTrainingPending, onClearCurrentTraining] = useAsyncCallbackPending(async () => {
+    const { requestError, response } = await api.training.setCurrentTraining({ trainingId: null });
+
+    if (requestError) {
+      toast.error(requestError((key: string) => key));
+      return;
+    }
+    if (!response.success) return;
+
+    if (appState.currentUser) {
+      appState.currentUser.currentTrainingId = response.currentTrainingId;
+    }
+    setCurrentTrainingId(response.currentTrainingId ?? null);
+
+    toast.success(_(".clear_current_training_success"));
+  });
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
@@ -131,6 +166,7 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
               <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
               <Table.HeaderCell className={style.tableTitle}>{_(".training")}</Table.HeaderCell>
               <Table.HeaderCell className={style.progressColumn}>{_(".progress")}</Table.HeaderCell>
+              {appState.currentUser && <Table.HeaderCell>{_(".participation")}</Table.HeaderCell>}
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -148,6 +184,29 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
                     problemCount={training.problemCount}
                   />
                 </Table.Cell>
+                {appState.currentUser && (
+                  <Table.Cell>
+                    {currentTrainingId === training.id ? (
+                      <>
+                        <Button size="tiny" basic color="green" disabled>
+                          {_(".current_training")}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        size="tiny"
+                        primary
+                        color="red"
+                        basic
+                        loading={currentTrainingPending}
+                        disabled={currentTrainingPending || clearCurrentTrainingPending}
+                        onClick={() => onSetCurrentTraining(training.id)}
+                      >
+                        {_(".join_training")}
+                      </Button>
+                    )}
+                  </Table.Cell>
+                )}
               </Table.Row>
             ))}
           </Table.Body>

@@ -65,5 +65,11 @@ return {
   confirm_delete_training: "トレーニングプラン「{title}」を削除しますか？配下の章、節、問題の関連付けも削除されます。",
   confirm_delete_chapter: "章「{title}」を削除しますか？配下の節と問題の関連付けも削除されます。",
   confirm_delete_section: "節「{title}」を削除しますか？この節内の問題の関連付けも削除されます。",
-  confirm_remove_problem: "現在の節から「{title}」を外しますか？問題自体は削除されません。"
+  confirm_remove_problem: "現在の節から「{title}」を外しますか？問題自体は削除されません。",
+  participation: "参加状態",
+  current_training: "現在のトレーニング",
+  join_training: "参加",
+  leave_training: "参加を解除",
+  set_current_training_success: "現在のトレーニングを設定しました",
+  clear_current_training_success: "現在のトレーニングを解除しました"
 };

@@ -18,6 +18,13 @@ return {
     error: "Error loading Hitokoto.",
     refresh: "Refresh"
   },
+  training: {
+    header: "Current Training",
+    title: "Chapter",
+    progress: "Progress",
+    no_chapters: "No chapters in current training",
+    no_training: "No training"
+  },
   countdown: {
     header: "Countdown",
     display_time_first: "1",

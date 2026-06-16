@@ -80,3 +80,43 @@
     font-weight: bold;
   }
 }
+
+.trainingTitleCell {
+  width: 34%;
+  min-width: 160px;
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.trainingTable {
+  width: 100%;
+}
+
+.trainingProgressCell {
+  width: 66%;
+}
+
+.trainingProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.trainingProgressBar {
+  flex: 1;
+  min-width: 0;
+  margin: 0 !important;
+
+  :global(.bar) {
+    transition: width 0.35s ease !important;
+  }
+}
+
+.trainingProgressText {
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0.72;
+}

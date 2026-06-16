@@ -114,13 +114,7 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
 
       <div className={style.toolbar}>
         {canManageTraining && (
-          <GroupSearch
-            className={style.groupSearch}
-            placeholder={_(".search_group")}
-            noResultsMessage={_(".no_group_result")}
-            memberCountText={memberCount => _(".group_member_count", { count: String(memberCount) })}
-            onResultSelect={queryRanklist}
-          />
+          <GroupSearch className={style.groupSearch} placeholder={_(".search_group")} onResultSelect={queryRanklist} />
         )}
         {(group || ranklist) && (
           <div className={style.groupMeta}>
