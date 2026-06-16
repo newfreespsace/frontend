@@ -4,7 +4,10 @@ export default {
   t: mount({
     "/:trainingId": mount({
       "/:chapterId": mount({
-        "/:sectionId": lazy(() => import("./section-view/SectionViewPage")),
+        "/:sectionId": mount({
+          "/ranklist": lazy(() => import("./section-ranklist/SectionRanklistPage")),
+          "/": lazy(() => import("./section-view/SectionViewPage"))
+        }),
         "/": lazy(() => import("./chapter-view/ChapterViewPage"))
       }),
       "/": lazy(() => import("./training-view/TrainingViewPage"))

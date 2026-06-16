@@ -66,6 +66,10 @@ export const getSectionById = createPostApi<ApiTypes.GetSectionByIdDto, ApiTypes
   "training/chapter/section/getSectionById",
   false
 );
+export const querySectionGroupRanklist = createPostApi<
+  ApiTypes.QuerySectionGroupRanklistDto,
+  ApiTypes.QuerySectionGroupRanklistResponseDto
+>("training/chapter/section/querySectionGroupRanklist", false);
 export const setSectionProblems = createPostApi<ApiTypes.SetSectionProblemsDto, ApiTypes.SetSectionProblemsResponseDto>(
   "training/chapter/section/setSectionProblems",
   false

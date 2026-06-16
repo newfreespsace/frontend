@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, Icon, Label, Segment, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Label, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "../common/TrainingPage.module.less";
@@ -190,7 +190,20 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         <div className={style.headerTitle}>
           <Header as="h1">{section.title}</Header>
         </div>
-        {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
+        {canManageTraining && (
+          <div className={style.headerActions}>
+            <Button
+              as={Link}
+              href={`/t/${props.training.id}/${props.chapter.id}/${section.id}/ranklist`}
+              icon
+              labelPosition="left"
+            >
+              <Icon name="ordered list" />
+              通过排名
+            </Button>
+            {manageModal}
+          </div>
+        )}
       </div>
 
       {section.description && <Segment className={style.description}>{section.description}</Segment>}

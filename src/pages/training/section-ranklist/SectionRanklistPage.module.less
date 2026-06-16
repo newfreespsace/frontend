@@ -1,0 +1,147 @@
+.header {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.title {
+  text-align: center;
+
+  :global(.ui.header) {
+    margin-bottom: 8px !important;
+  }
+}
+
+.sectionTitle {
+  opacity: 0.68;
+}
+
+.back {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.groupSearch {
+  width: 360px;
+  max-width: 100%;
+
+  :global(.ui.input) {
+    width: 100%;
+  }
+}
+
+.groupMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.refresh {
+  margin-left: auto !important;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  :global(.ui.table) {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.ranklist {
+  min-width: 720px;
+}
+
+.rank {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.rankRibbon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 10px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rankFirst {
+  background: #fbbd08;
+}
+
+.rankSecond {
+  background: #767676;
+}
+
+.rankThird {
+  background: #c47222;
+}
+
+.user {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.acceptedCount {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.acceptedCell {
+  background: rgb(244, 255, 245);
+}
+
+.empty {
+  margin-top: 0;
+  padding: 42px 16px;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-foreground-transparent);
+  text-align: center;
+
+  i {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 2.4em;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .back {
+    position: static;
+    align-self: flex-start;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .groupSearch {
+    width: 100%;
+  }
+
+  .refresh {
+    margin-left: 0 !important;
+    align-self: flex-start;
+  }
+}

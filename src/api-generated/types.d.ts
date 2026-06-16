@@ -943,6 +943,22 @@ declare namespace ApiTypes {
   export interface QuerySectionByChapterIdDto {
     chapterId: number;
   }
+  export interface QuerySectionGroupRanklistDto {
+    sectionId: number;
+    groupId: number;
+  }
+  export interface SectionGroupRanklistItemDto {
+    rank: number;
+    user: ApiTypes.UserMetaDto;
+    acceptedProblemCount: number;
+    acceptedProblemIds: number[];
+  }
+  export interface QuerySectionGroupRanklistResponseDto {
+    sectionId: number;
+    groupId: number;
+    problemCount: number;
+    result: ApiTypes.SectionGroupRanklistItemDto[];
+  }
   export interface QuerySubmissionRequestDto {
     locale: "en_US" | "zh_CN" | "ja_JP";
     problemId: number;

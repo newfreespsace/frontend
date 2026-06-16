@@ -1,0 +1,208 @@
+import React, { useEffect, useState } from "react";
+import { Button, Header, Icon, Label, Table } from "semantic-ui-react";
+import { observer } from "mobx-react";
+
+import style from "./SectionRanklistPage.module.less";
+
+import api from "@/api";
+import { appState } from "@/appState";
+import { defineRoute, RouteError } from "@/AppRouter";
+import GroupSearch from "@/components/GroupSearch";
+import ScoreText from "@/components/ScoreText";
+import { getProblemUrl } from "@/pages/problem/utils";
+import { Link, useAsyncCallbackPending } from "@/utils/hooks";
+import toast from "@/utils/toast";
+
+interface SectionRanklistPageProps {
+  trainingId: number;
+  chapterId: number;
+  section: ApiTypes.GetSectionByIdResponseDto;
+}
+
+async function fetchSection(sectionId: number): Promise<ApiTypes.GetSectionByIdResponseDto> {
+  const sectionResult = await api.training.getSectionById({
+    id: sectionId,
+    locale: appState.locale,
+    titleOnly: false
+  });
+  if (sectionResult.requestError)
+    throw new RouteError(sectionResult.requestError, { showRefresh: true, showBack: true });
+
+  return sectionResult.response;
+}
+
+let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
+  const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(null);
+  const [ranklist, setRanklist] = useState<ApiTypes.QuerySectionGroupRanklistResponseDto>(null);
+  const storageKey = `training.section.${props.section.id}.ranklist.group`;
+
+  const [pending, queryRanklist] = useAsyncCallbackPending(async (selectedGroup: ApiTypes.GroupMetaDto) => {
+    setGroup(selectedGroup);
+    setRanklist(null);
+    const { requestError, response } = await api.training.querySectionGroupRanklist({
+      sectionId: props.section.id,
+      groupId: selectedGroup.id
+    });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else {
+      setRanklist(response);
+      saveLastViewedGroup(selectedGroup);
+    }
+  });
+
+  useEffect(() => {
+    appState.enterNewPage(`${props.section.title} - 通过排名`, "training");
+
+    const lastViewedGroup = getLastViewedGroup();
+    if (lastViewedGroup) queryRanklist(lastViewedGroup);
+  }, [props.section.id, props.section.title]);
+
+  function getLastViewedGroup(): ApiTypes.GroupMetaDto {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      const savedGroup = JSON.parse(raw);
+      if (
+        typeof savedGroup.id !== "number" ||
+        typeof savedGroup.name !== "string" ||
+        typeof savedGroup.memberCount !== "number"
+      ) {
+        localStorage.removeItem(storageKey);
+        return null;
+      }
+      return savedGroup;
+    } catch {
+      localStorage.removeItem(storageKey);
+      return null;
+    }
+  }
+
+  function saveLastViewedGroup(selectedGroup: ApiTypes.GroupMetaDto) {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        id: selectedGroup.id,
+        name: selectedGroup.name,
+        memberCount: selectedGroup.memberCount
+      })
+    );
+  }
+
+  function renderRank(rank: number): React.ReactNode {
+    if (rank === 1) return <span className={`${style.rankRibbon} ${style.rankFirst}`}>{rank}</span>;
+    if (rank === 2) return <span className={`${style.rankRibbon} ${style.rankSecond}`}>{rank}</span>;
+    if (rank === 3) return <span className={`${style.rankRibbon} ${style.rankThird}`}>{rank}</span>;
+    return rank;
+  }
+
+  return (
+    <>
+      <div className={style.header}>
+        <div className={style.title}>
+          <Header as="h1">通过情况</Header>
+          <div className={style.sectionTitle}>{props.section.title}</div>
+        </div>
+        <Button className={style.back} as={Link} href={`/t/${props.trainingId}/${props.chapterId}/${props.section.id}`}>
+          <Icon name="arrow left" />
+          返回小节
+        </Button>
+      </div>
+
+      <div className={style.toolbar}>
+        <GroupSearch className={style.groupSearch} placeholder="搜索用户组" onResultSelect={queryRanklist} />
+        {group && (
+          <div className={style.groupMeta}>
+            <Label basic content={group.name} />
+            <Label basic size="small" content={`${group.memberCount} 人`} />
+          </div>
+        )}
+        {group && (
+          <Button
+            className={style.refresh}
+            size="mini"
+            icon
+            loading={pending}
+            disabled={pending}
+            onClick={() => queryRanklist(group)}
+          >
+            <Icon name="refresh" />
+          </Button>
+        )}
+      </div>
+
+      {group && (
+        <>
+          {ranklist ? (
+            <div className={style.tableWrap}>
+              <Table basic="very" textAlign="center" className={style.ranklist}>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell className={style.rank}>#</Table.HeaderCell>
+                    <Table.HeaderCell className={style.user}>用户名</Table.HeaderCell>
+                    <Table.HeaderCell className={style.acceptedCount}>通过数量</Table.HeaderCell>
+                    {props.section.problems.map((problem, index) => (
+                      <Table.HeaderCell key={problem.meta.id} title={problem.title}>
+                        <Link href={getProblemUrl(problem.meta)}>{String.fromCharCode(65 + index)}</Link>
+                      </Table.HeaderCell>
+                    ))}
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {ranklist.result.map(item => {
+                    const acceptedProblemIds = new Set(item.acceptedProblemIds);
+                    return (
+                      <Table.Row key={item.user.id}>
+                        <Table.Cell className={style.rank}>{renderRank(item.rank)}</Table.Cell>
+                        <Table.Cell className={style.user}>
+                          <Link href={`/u/${item.user.username}`}>
+                            {item.user.nickname ? item.user.nickname : item.user.username}
+                          </Link>
+                        </Table.Cell>
+                        <Table.Cell className={style.acceptedCount}>
+                          <ScoreText
+                            score={
+                              ranklist.problemCount ? (item.acceptedProblemCount / ranklist.problemCount) * 100 : 0
+                            }
+                          >
+                            {item.acceptedProblemCount}
+                          </ScoreText>
+                        </Table.Cell>
+                        {props.section.problems.map(problem => {
+                          const accepted = acceptedProblemIds.has(problem.meta.id);
+                          return (
+                            <Table.Cell key={problem.meta.id} className={accepted ? style.acceptedCell : undefined}>
+                              {accepted && <ScoreText score={100}>+</ScoreText>}
+                            </Table.Cell>
+                          );
+                        })}
+                      </Table.Row>
+                    );
+                  })}
+                </Table.Body>
+              </Table>
+            </div>
+          ) : (
+            <div className={style.empty}>
+              <Icon name="file outline" />
+              <div>{pending ? "正在加载..." : "暂无通过情况"}</div>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+};
+
+SectionRanklistPage = observer(SectionRanklistPage);
+
+export default defineRoute(async request => {
+  const trainingId = Number(request.params.trainingId);
+  const chapterId = Number(request.params.chapterId);
+  const sectionId = Number(request.params.sectionId);
+  if (!Number.isSafeInteger(trainingId) || !Number.isSafeInteger(chapterId) || !Number.isSafeInteger(sectionId)) {
+    throw new RouteError("Invalid section id" as any);
+  }
+  if (!appState.currentUserHasPrivilege("ManageProblem")) throw new RouteError("权限不足。" as any);
+
+  return <SectionRanklistPage trainingId={trainingId} chapterId={chapterId} section={await fetchSection(sectionId)} />;
+});
