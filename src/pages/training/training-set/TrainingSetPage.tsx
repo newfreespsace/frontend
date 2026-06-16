@@ -124,24 +124,24 @@ let TrainingSetPage: React.FC<TrainingSetPageProps> = props => {
       </div>
 
       {trainings.length ? (
-        <Table basic="very" textAlign="center" unstackable>
+        <Table basic="very" textAlign="center" unstackable className={style.progressTable}>
           <Table.Header>
             <Table.Row>
-              <Table.HeaderCell width={1}>#</Table.HeaderCell>
+              <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
               <Table.HeaderCell className={style.tableTitle}>训练</Table.HeaderCell>
-              <Table.HeaderCell>进度</Table.HeaderCell>
+              <Table.HeaderCell className={style.progressColumn}>进度</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {trainings.map(training => (
               <Table.Row key={training.id}>
-                <Table.Cell>{training.sortOrder}</Table.Cell>
+                <Table.Cell className={style.indexColumn}>{training.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
                     <Link href={`/t/${training.id}`}>{training.title}</Link>
                   </div>
                 </Table.Cell>
-                <Table.Cell className={style.tableDescription}>
+                <Table.Cell className={style.progressColumn}>
                   <TrainingProgressBar
                     acceptedProblemCount={training.acceptedProblemCount}
                     problemCount={training.problemCount}

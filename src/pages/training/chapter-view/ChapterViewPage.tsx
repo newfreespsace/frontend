@@ -168,24 +168,24 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
       {chapter.description && <Segment className={style.description}>{chapter.description}</Segment>}
 
       {sections.length ? (
-        <Table basic="very" textAlign="center" unstackable>
+        <Table basic="very" textAlign="center" unstackable className={style.progressTable}>
           <Table.Header>
             <Table.Row>
-              <Table.HeaderCell width={1}>#</Table.HeaderCell>
+              <Table.HeaderCell className={style.indexColumn}>#</Table.HeaderCell>
               <Table.HeaderCell className={style.tableTitle}>小节</Table.HeaderCell>
-              <Table.HeaderCell>进度</Table.HeaderCell>
+              <Table.HeaderCell className={style.progressColumn}>进度</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {sections.map(section => (
               <Table.Row key={section.id}>
-                <Table.Cell>{section.sortOrder}</Table.Cell>
+                <Table.Cell className={style.indexColumn}>{section.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
                     <Link href={`/t/${props.training.id}/${chapter.id}/${section.id}`}>{section.title}</Link>
                   </div>
                 </Table.Cell>
-                <Table.Cell className={style.tableDescription}>
+                <Table.Cell className={style.progressColumn}>
                   <TrainingProgressBar
                     acceptedProblemCount={section.acceptedProblemCount}
                     problemCount={section.problemCount}

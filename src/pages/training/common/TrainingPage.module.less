@@ -38,6 +38,19 @@
   text-align: left !important;
 }
 
+.progressTable {
+  table-layout: fixed;
+}
+
+.indexColumn {
+  width: 64px;
+}
+
+.progressColumn {
+  width: 620px;
+  text-align: left !important;
+}
+
 .titleWithProgress {
   display: flex;
   align-items: center;
@@ -162,5 +175,14 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 7px;
+  }
+
+  .progressTable {
+    table-layout: auto;
+  }
+
+  .indexColumn,
+  .progressColumn {
+    width: auto;
   }
 }
