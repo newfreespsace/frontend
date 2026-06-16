@@ -154,7 +154,7 @@ declare namespace ApiTypes {
     description?: string;
     sortOrder: number;
   }
-  export interface DeleteChapterByIdRequestDto {
+  export interface DeleteByIdRequestDto {
     id: number;
   }
   export interface DeleteDiscussionReplyRequestDto {
@@ -1222,6 +1222,21 @@ declare namespace ApiTypes {
   }
   export interface SetProblemPublicResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_PROBLEM" | "NO_DISPLAY_ID";
+  }
+  export interface ReorderItemDto {
+    id: number;
+    sortOrder: number;
+  }
+  export interface ReorderTrainingsDto {
+    items: ApiTypes.ReorderItemDto[];
+  }
+  export interface ReorderChaptersDto {
+    trainingId: number;
+    items: ApiTypes.ReorderItemDto[];
+  }
+  export interface ReorderSectionsDto {
+    chapterId: number;
+    items: ApiTypes.ReorderItemDto[];
   }
   export interface SetSectionProblemItemDto {
     problemId: number;

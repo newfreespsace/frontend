@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Header, Icon, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
@@ -7,9 +7,14 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending } from "@/utils/hooks";
 import CreateChapterModal from "../common/CreateChapterModal";
+import DeleteConfirmModal from "../common/DeleteConfirmModal";
+import OrderButtons from "../common/OrderButtons";
+import RenameTitleModal from "../common/RenameTitleModal";
+import TrainingManageModal from "../common/TrainingManageModal";
 import TrainingProgressBar from "../common/TrainingProgressBar";
+import toast from "@/utils/toast";
 
 interface TrainingViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -34,24 +39,128 @@ async function fetchData(trainingId: number): Promise<TrainingViewData> {
 interface TrainingViewPageProps extends TrainingViewData {}
 
 let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
+  const [training, setTraining] = useState(props.training);
+  const [chapters, setChapters] = useState(props.chapters);
+  const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
+  const [deletePending, onDelete] = useAsyncCallbackPending(async (id: number) => {
+    const { requestError } = await api.training.delChapterById({ id });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else setChapters(currentChapters => normalizeSortOrder(currentChapters.filter(chapter => chapter.id !== id)));
+  });
+  const [reorderPending, onMoveChapter] = useAsyncCallbackPending(async (index: number, direction: -1 | 1) => {
+    const nextChapters = moveItem(chapters, index, direction);
+    if (nextChapters === chapters) return;
+    setChapters(nextChapters);
+    const items = nextChapters.map((chapter, nextIndex) => ({ id: chapter.id, sortOrder: nextIndex + 1 }));
+    const { requestError } = await api.training.reorderChapters({ trainingId: props.training.id, items });
+    if (requestError) {
+      toast.error(requestError((key: string) => key));
+      setChapters(chapters);
+    }
+  });
+
   useEffect(() => {
-    appState.enterNewPage(props.training.title, "training");
-  }, [props.training.title]);
+    appState.enterNewPage(training.title, "training");
+  }, [training.title]);
+
+  function normalizeSortOrder(items: ApiTypes.ChapterMetaDto[]): ApiTypes.ChapterMetaDto[] {
+    return items.map((item, index) => ({ ...item, sortOrder: index + 1 }));
+  }
+
+  function moveItem(items: ApiTypes.ChapterMetaDto[], index: number, direction: -1 | 1): ApiTypes.ChapterMetaDto[] {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return items;
+    const nextItems = [...items];
+    [nextItems[index], nextItems[targetIndex]] = [nextItems[targetIndex], nextItems[index]];
+    return normalizeSortOrder(nextItems);
+  }
+
+  function onChapterCreated(chapter: ApiTypes.ChapterMetaDto) {
+    setChapters(currentChapters =>
+      normalizeSortOrder([...currentChapters, chapter].sort((a, b) => a.sortOrder - b.sortOrder))
+    );
+  }
+
+  const [renamePending, onRenameTraining] = useAsyncCallbackPending(async (title: string) => {
+    const { requestError, response } = await api.training.updateTraining({ id: training.id, title });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else setTraining(currentTraining => ({ ...currentTraining, title: response.title }));
+  });
+
+  const manageModal = canManageTraining && (
+    <TrainingManageModal
+      title="管理章节"
+      actions={
+        <>
+          <RenameTitleModal
+            title="修改训练名称"
+            label="训练"
+            initialTitle={training.title}
+            pending={renamePending}
+            onSubmit={onRenameTraining}
+          />
+          <CreateChapterModal
+            trainingId={training.id}
+            nextSortOrder={chapters.length + 1}
+            onCreated={onChapterCreated}
+          />
+        </>
+      }
+    >
+      {chapters.length ? (
+        <Table basic="very" textAlign="center" unstackable className={style.manageTable}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell width={1}>#</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>章节</Table.HeaderCell>
+              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
+              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {chapters.map((chapter, index) => (
+              <Table.Row key={chapter.id}>
+                <Table.Cell>{chapter.sortOrder}</Table.Cell>
+                <Table.Cell className={style.tableTitle}>{chapter.title}</Table.Cell>
+                <Table.Cell>
+                  <OrderButtons
+                    index={index}
+                    count={chapters.length}
+                    disabled={reorderPending}
+                    onMoveUp={() => onMoveChapter(index, -1)}
+                    onMoveDown={() => onMoveChapter(index, 1)}
+                  />
+                </Table.Cell>
+                <Table.Cell>
+                  <DeleteConfirmModal
+                    title="删除章节"
+                    content={`确定删除章节「${chapter.title}」吗？该章节下的小节和题目关联也会一并删除。`}
+                    pending={deletePending}
+                    onConfirm={() => onDelete(chapter.id)}
+                  />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      ) : (
+        <div className={style.manageEmpty}>暂无章节</div>
+      )}
+    </TrainingManageModal>
+  );
 
   return (
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
-          <Header as="h1">{props.training.title}</Header>
+          <Header as="h1">{training.title}</Header>
         </div>
-        <div className={style.headerActions}>
-          <CreateChapterModal trainingId={props.training.id} nextSortOrder={props.chapters.length + 1} />
-        </div>
+        {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
 
-      {props.training.description && <Segment className={style.description}>{props.training.description}</Segment>}
+      {training.description && <Segment className={style.description}>{training.description}</Segment>}
 
-      {props.chapters.length ? (
+      {chapters.length ? (
         <Table basic="very" textAlign="center" unstackable>
           <Table.Header>
             <Table.Row>
@@ -63,12 +172,12 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {props.chapters.map(chapter => (
+            {chapters.map(chapter => (
               <Table.Row key={chapter.id}>
                 <Table.Cell>{chapter.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
-                    <Link href={`/t/${props.training.id}/${chapter.id}`}>{chapter.title}</Link>
+                    <Link href={`/t/${training.id}/${chapter.id}`}>{chapter.title}</Link>
                   </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
@@ -87,7 +196,6 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
             <Icon name="list" />
             暂无章节
           </Header>
-          <CreateChapterModal trainingId={props.training.id} nextSortOrder={1} />
         </Segment>
       )}
     </>

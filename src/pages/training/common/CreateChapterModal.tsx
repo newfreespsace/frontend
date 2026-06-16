@@ -8,6 +8,7 @@ import toast from "@/utils/toast";
 interface CreateChapterModalProps {
   trainingId: number;
   nextSortOrder: number;
+  onCreated?: (chapter: ApiTypes.ChapterMetaDto) => void | Promise<void>;
 }
 
 const CreateChapterModal: React.FC<CreateChapterModalProps> = props => {
@@ -32,7 +33,10 @@ const CreateChapterModal: React.FC<CreateChapterModalProps> = props => {
     if (requestError) toast.error(requestError((key: string) => key));
     else {
       setOpen(false);
-      navigation.navigate(`/t/${props.trainingId}/${response.id}`);
+      setTitle("");
+      setDescription("");
+      if (props.onCreated) await props.onCreated(response);
+      else navigation.navigate(`/t/${props.trainingId}/${response.id}`);
     }
   });
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Header, Icon, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
@@ -7,9 +7,14 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending } from "@/utils/hooks";
 import CreateSectionModal from "../common/CreateSectionModal";
+import DeleteConfirmModal from "../common/DeleteConfirmModal";
+import OrderButtons from "../common/OrderButtons";
+import RenameTitleModal from "../common/RenameTitleModal";
+import TrainingManageModal from "../common/TrainingManageModal";
 import TrainingProgressBar from "../common/TrainingProgressBar";
+import toast from "@/utils/toast";
 
 interface ChapterViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -40,28 +45,129 @@ async function fetchData(trainingId: number, chapterId: number): Promise<Chapter
 interface ChapterViewPageProps extends ChapterViewData {}
 
 let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
+  const [chapter, setChapter] = useState(props.chapter);
+  const [sections, setSections] = useState(props.sections);
+  const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
+  const [deletePending, onDelete] = useAsyncCallbackPending(async (id: number) => {
+    const { requestError } = await api.training.delSectionById({ id });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else setSections(currentSections => normalizeSortOrder(currentSections.filter(section => section.id !== id)));
+  });
+  const [reorderPending, onMoveSection] = useAsyncCallbackPending(async (index: number, direction: -1 | 1) => {
+    const nextSections = moveItem(sections, index, direction);
+    if (nextSections === sections) return;
+    setSections(nextSections);
+    const items = nextSections.map((section, nextIndex) => ({ id: section.id, sortOrder: nextIndex + 1 }));
+    const { requestError } = await api.training.reorderSections({ chapterId: props.chapter.id, items });
+    if (requestError) {
+      toast.error(requestError((key: string) => key));
+      setSections(sections);
+    }
+  });
+
   useEffect(() => {
-    appState.enterNewPage(props.chapter.title, "training");
-  }, [props.chapter.title]);
+    appState.enterNewPage(chapter.title, "training");
+  }, [chapter.title]);
+
+  function normalizeSortOrder(items: ApiTypes.SectionMetaDto[]): ApiTypes.SectionMetaDto[] {
+    return items.map((item, index) => ({ ...item, sortOrder: index + 1 }));
+  }
+
+  function moveItem(items: ApiTypes.SectionMetaDto[], index: number, direction: -1 | 1): ApiTypes.SectionMetaDto[] {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return items;
+    const nextItems = [...items];
+    [nextItems[index], nextItems[targetIndex]] = [nextItems[targetIndex], nextItems[index]];
+    return normalizeSortOrder(nextItems);
+  }
+
+  function onSectionCreated(section: ApiTypes.SectionMetaDto) {
+    setSections(currentSections =>
+      normalizeSortOrder([...currentSections, section].sort((a, b) => a.sortOrder - b.sortOrder))
+    );
+  }
+
+  const [renamePending, onRenameChapter] = useAsyncCallbackPending(async (title: string) => {
+    const { requestError, response } = await api.training.updateChapter({ id: chapter.id, title });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else setChapter(currentChapter => ({ ...currentChapter, title: response.title }));
+  });
+
+  const manageModal = canManageTraining && (
+    <TrainingManageModal
+      title="管理小节"
+      actions={
+        <>
+          <RenameTitleModal
+            title="修改章节名称"
+            label="章节"
+            initialTitle={chapter.title}
+            pending={renamePending}
+            onSubmit={onRenameChapter}
+          />
+          <CreateSectionModal
+            trainingId={props.training.id}
+            chapterId={chapter.id}
+            nextSortOrder={sections.length + 1}
+            onCreated={onSectionCreated}
+          />
+        </>
+      }
+    >
+      {sections.length ? (
+        <Table basic="very" textAlign="center" unstackable className={style.manageTable}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell width={1}>#</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>小节</Table.HeaderCell>
+              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
+              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {sections.map((section, index) => (
+              <Table.Row key={section.id}>
+                <Table.Cell>{section.sortOrder}</Table.Cell>
+                <Table.Cell className={style.tableTitle}>{section.title}</Table.Cell>
+                <Table.Cell>
+                  <OrderButtons
+                    index={index}
+                    count={sections.length}
+                    disabled={reorderPending}
+                    onMoveUp={() => onMoveSection(index, -1)}
+                    onMoveDown={() => onMoveSection(index, 1)}
+                  />
+                </Table.Cell>
+                <Table.Cell>
+                  <DeleteConfirmModal
+                    title="删除小节"
+                    content={`确定删除小节「${section.title}」吗？该小节内的题目关联也会一并删除。`}
+                    pending={deletePending}
+                    onConfirm={() => onDelete(section.id)}
+                  />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      ) : (
+        <div className={style.manageEmpty}>暂无小节</div>
+      )}
+    </TrainingManageModal>
+  );
 
   return (
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
-          <Header as="h1">{props.chapter.title}</Header>
+          <Header as="h1">{chapter.title}</Header>
         </div>
-        <div className={style.headerActions}>
-          <CreateSectionModal
-            trainingId={props.training.id}
-            chapterId={props.chapter.id}
-            nextSortOrder={props.sections.length + 1}
-          />
-        </div>
+        {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
 
-      {props.chapter.description && <Segment className={style.description}>{props.chapter.description}</Segment>}
+      {chapter.description && <Segment className={style.description}>{chapter.description}</Segment>}
 
-      {props.sections.length ? (
+      {sections.length ? (
         <Table basic="very" textAlign="center" unstackable>
           <Table.Header>
             <Table.Row>
@@ -71,12 +177,12 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {props.sections.map(section => (
+            {sections.map(section => (
               <Table.Row key={section.id}>
                 <Table.Cell>{section.sortOrder}</Table.Cell>
                 <Table.Cell className={style.tableTitle}>
                   <div className={style.titleWithProgress}>
-                    <Link href={`/t/${props.training.id}/${props.chapter.id}/${section.id}`}>{section.title}</Link>
+                    <Link href={`/t/${props.training.id}/${chapter.id}/${section.id}`}>{section.title}</Link>
                   </div>
                 </Table.Cell>
                 <Table.Cell className={style.tableDescription}>
@@ -95,7 +201,6 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
             <Icon name="list alternate" />
             暂无小节
           </Header>
-          <CreateSectionModal trainingId={props.training.id} chapterId={props.chapter.id} nextSortOrder={1} />
         </Segment>
       )}
     </>

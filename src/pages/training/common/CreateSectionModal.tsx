@@ -9,6 +9,7 @@ interface CreateSectionModalProps {
   trainingId: number;
   chapterId: number;
   nextSortOrder: number;
+  onCreated?: (section: ApiTypes.SectionMetaDto) => void | Promise<void>;
 }
 
 const CreateSectionModal: React.FC<CreateSectionModalProps> = props => {
@@ -33,7 +34,10 @@ const CreateSectionModal: React.FC<CreateSectionModalProps> = props => {
     if (requestError) toast.error(requestError((key: string) => key));
     else {
       setOpen(false);
-      navigation.navigate(`/t/${props.trainingId}/${props.chapterId}/${response.id}`);
+      setTitle("");
+      setDescription("");
+      if (props.onCreated) await props.onCreated(response);
+      else navigation.navigate(`/t/${props.trainingId}/${props.chapterId}/${response.id}`);
     }
   });
 

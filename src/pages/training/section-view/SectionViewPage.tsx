@@ -7,13 +7,17 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useLocalizer, useScreenWidthWithin } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer, useScreenWidthWithin } from "@/utils/hooks";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { StatusIcon } from "@/components/StatusText";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
 import { sortTags } from "@/pages/problem/problemTag";
 import AddProblemModal from "../common/AddProblemModal";
-import TrainingProgressBar from "../common/TrainingProgressBar";
+import DeleteConfirmModal from "../common/DeleteConfirmModal";
+import OrderButtons from "../common/OrderButtons";
+import RenameTitleModal from "../common/RenameTitleModal";
+import TrainingManageModal from "../common/TrainingManageModal";
+import toast from "@/utils/toast";
 
 interface SectionViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -55,6 +59,37 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
   const _ = useLocalizer("problem_set");
   const [section, setSection] = useState(props.section);
   const isVeryNarrowScreen = useScreenWidthWithin(0, 640);
+  const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
+  const [deletePending, onDeleteProblem] = useAsyncCallbackPending(async (problemId: number) => {
+    const problems = section.problems
+      .filter(problem => problem.meta.id !== problemId)
+      .map((problem, index) => ({ problemId: problem.meta.id, sortOrder: index + 1 }));
+    const { requestError, response } = await api.training.setSectionProblems({
+      sectionId: section.id,
+      problems
+    });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else if (!response.success) toast.error("删除失败");
+    else setSection(await fetchSection(section.id));
+  });
+  const [reorderPending, onMoveProblem] = useAsyncCallbackPending(async (index: number, direction: -1 | 1) => {
+    const nextSection = moveProblem(section, index, direction);
+    if (nextSection === section) return;
+    setSection(nextSection);
+    const problems = nextSection.problems.map((problem, nextIndex) => ({
+      problemId: problem.meta.id,
+      sortOrder: nextIndex + 1
+    }));
+    const { requestError, response } = await api.training.setSectionProblems({
+      sectionId: section.id,
+      problems
+    });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else if (!response.success) {
+      toast.error("保存失败");
+      setSection(section);
+    }
+  });
 
   useEffect(() => {
     appState.enterNewPage(section.title, "training");
@@ -64,15 +99,98 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
     setSection(await fetchSection(section.id));
   }
 
+  const [renamePending, onRenameSection] = useAsyncCallbackPending(async (title: string) => {
+    const { requestError, response } = await api.training.updateSection({ id: section.id, title });
+    if (requestError) toast.error(requestError((key: string) => key));
+    else setSection(currentSection => ({ ...currentSection, title: response.title }));
+  });
+
+  function moveProblem(
+    currentSection: ApiTypes.GetSectionByIdResponseDto,
+    index: number,
+    direction: -1 | 1
+  ): ApiTypes.GetSectionByIdResponseDto {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= currentSection.problems.length) return currentSection;
+    const problems = [...currentSection.problems];
+    [problems[index], problems[targetIndex]] = [problems[targetIndex], problems[index]];
+    return { ...currentSection, problems };
+  }
+
+  const manageModal = canManageTraining && (
+    <TrainingManageModal
+      title="管理题目"
+      actions={
+        <>
+          <RenameTitleModal
+            title="修改小节名称"
+            label="小节"
+            initialTitle={section.title}
+            pending={renamePending}
+            onSubmit={onRenameSection}
+          />
+          <AddProblemModal section={section} onAdded={onProblemAdded} />
+        </>
+      }
+    >
+      {section.problems.length ? (
+        <Table basic="very" textAlign="center" unstackable className={style.manageTable}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell width={1}>#</Table.HeaderCell>
+              <Table.HeaderCell className={style.tableTitle}>题目</Table.HeaderCell>
+              <Table.HeaderCell width={2}>顺序</Table.HeaderCell>
+              <Table.HeaderCell width={1}>操作</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {section.problems.map((problem, index) => (
+              <Table.Row key={problem.meta.id}>
+                <Table.Cell>{index + 1}</Table.Cell>
+                <Table.Cell className={style.tableTitle}>
+                  <span className={style.problemId}>
+                    {getProblemIdString(problem.meta, { hideHashTagOnDisplayId: true })}
+                  </span>
+                  {" " + getProblemDisplayName(null, problem.title, _)}
+                </Table.Cell>
+                <Table.Cell>
+                  <OrderButtons
+                    index={index}
+                    count={section.problems.length}
+                    disabled={reorderPending}
+                    onMoveUp={() => onMoveProblem(index, -1)}
+                    onMoveDown={() => onMoveProblem(index, 1)}
+                  />
+                </Table.Cell>
+                <Table.Cell>
+                  <DeleteConfirmModal
+                    title="移除题目"
+                    content={`确定从当前小节移除「${getProblemDisplayName(
+                      null,
+                      problem.title,
+                      _
+                    )}」吗？题目本身不会被删除。`}
+                    pending={deletePending}
+                    onConfirm={() => onDeleteProblem(problem.meta.id)}
+                  />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      ) : (
+        <div className={style.manageEmpty}>暂无题目</div>
+      )}
+    </TrainingManageModal>
+  );
+
   return (
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
           <Header as="h1">{section.title}</Header>
         </div>
-        <div className={style.headerActions}>
-          <AddProblemModal section={section} onAdded={onProblemAdded} />
-        </div>
+        {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
 
       {section.description && <Segment className={style.description}>{section.description}</Segment>}
@@ -143,7 +261,6 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
             <Icon name="file alternate" />
             暂无题目
           </Header>
-          <AddProblemModal section={section} onAdded={onProblemAdded} />
         </Segment>
       )}
     </>

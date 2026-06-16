@@ -7,6 +7,7 @@ import toast from "@/utils/toast";
 
 interface CreateTrainingModalProps {
   nextSortOrder: number;
+  onCreated?: (training: ApiTypes.TrainingMetaDto) => void | Promise<void>;
 }
 
 const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
@@ -30,7 +31,10 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
     if (requestError) toast.error(requestError((key: string) => key));
     else {
       setOpen(false);
-      navigation.navigate(`/t/${response.id}`);
+      setTitle("");
+      setDescription("");
+      if (props.onCreated) await props.onCreated(response);
+      else navigation.navigate(`/t/${response.id}`);
     }
   });
 
