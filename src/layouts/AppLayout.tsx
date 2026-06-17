@@ -100,7 +100,11 @@ let AppLayout: React.FC = props => {
     }
   };
 
-  const navMenuItems = Object.keys(navButtons).map(name => (
+  const navButtonNames = Object.keys(navButtons).filter(
+    (name: NavButtonName) => appState.activeGroupContests.length === 0 || name === "contests"
+  ) as NavButtonName[];
+
+  const navMenuItems = navButtonNames.map(name => (
     <Menu.Item key={name} as={Link} href={navButtons[name].url} active={appState.activeNavButton === name}>
       <Icon name={navButtons[name].icon} />
       {_(navButtons[name].text)}
@@ -169,7 +173,7 @@ let AppLayout: React.FC = props => {
   );
 
   const logo = (
-    <Menu.Item as={Link} href="/" className={style.logoItem}>
+    <Menu.Item as={Link} href={appState.activeGroupContests.length > 0 ? "/c" : "/"} className={style.logoItem}>
       <div className={style.content}>
         {appState.appLogoThemed && (
           <div className={style.logo}>

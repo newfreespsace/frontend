@@ -97,6 +97,9 @@ function isContestLockedPath(request: NaviRequest): boolean {
 
 function withContestAccessRestriction(routes: Matcher<any, any>): Matcher<any, any> {
   return map(request => {
+    const contestLocked = (appState.activeGroupContests || []).length > 0;
+    if (contestLocked && (request.path === "/" || request.path === "")) return redirect("/c");
+
     if (isContestLockedPath(request)) return routes;
 
     return route({
