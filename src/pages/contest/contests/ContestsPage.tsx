@@ -77,12 +77,8 @@ let ContestsPage: React.FC<ContestsPageProps> = props => {
                         {_(`.status.${status}`)}
                       </Label>
                     </Table.Cell>
-                    <Table.Cell title={formatDateTime(contest.startTime)[1]}>
-                      {formatDateTime(contest.startTime)[0]}
-                    </Table.Cell>
-                    <Table.Cell title={formatDateTime(contest.endTime)[1]}>
-                      {formatDateTime(contest.endTime)[0]}
-                    </Table.Cell>
+                    <Table.Cell>{formatDateTime(contest.startTime)[1]}</Table.Cell>
+                    <Table.Cell>{formatDateTime(contest.endTime)[1]}</Table.Cell>
                     <Table.Cell className={style.subtitle}>{contest.subtitle}</Table.Cell>
                   </Table.Row>
                 );
