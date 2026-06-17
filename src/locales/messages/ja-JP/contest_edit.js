@@ -12,6 +12,8 @@ return {
   type_noi: "NOI",
   is_public: "公開する",
   hide_statistics: "終了まで統計を隠す",
+  group: "グループ",
+  select_group: "グループを検索して選択",
   problems: "問題",
   admins: "管理者",
   add_problem: "問題を検索して追加",
@@ -24,6 +26,8 @@ return {
     EMPTY_TITLE: "タイトルは必須です。",
     INVALID_TIME_RANGE: "時間範囲が無効です。",
     NO_SUCH_PROBLEM: "問題が存在しません。",
+    GROUP_REQUIRED: "コンテストのグループを選択してください。",
+    NO_SUCH_GROUP: "グループが存在しません。",
     NO_SUCH_USER: "ユーザーが存在しません。"
   }
 };

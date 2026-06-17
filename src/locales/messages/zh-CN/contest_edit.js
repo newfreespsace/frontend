@@ -12,6 +12,8 @@ return {
   type_noi: "NOI",
   is_public: "公开比赛",
   hide_statistics: "比赛结束前隐藏统计",
+  group: "用户组",
+  select_group: "搜索并选择用户组",
   problems: "题目",
   admins: "管理员",
   add_problem: "搜索并添加题目",
@@ -24,6 +26,8 @@ return {
     EMPTY_TITLE: "比赛名不能为空。",
     INVALID_TIME_RANGE: "比赛时间无效。",
     NO_SUCH_PROBLEM: "题目不存在。",
+    GROUP_REQUIRED: "请选择比赛所属用户组。",
+    NO_SUCH_GROUP: "用户组不存在。",
     NO_SUCH_USER: "用户不存在。"
   }
 };

@@ -73,6 +73,7 @@ declare namespace ApiTypes {
     type: "noi" | "ioi" | "acm";
     isPublic: boolean;
     hideStatistics: boolean;
+    groupId?: number;
     holderId: number;
     problemIds: number[];
     adminIds: number[];
@@ -319,6 +320,7 @@ declare namespace ApiTypes {
     error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
     meta?: ApiTypes.ContestMetaDto;
     holder?: ApiTypes.UserMetaDto;
+    group?: ApiTypes.GroupMetaDto;
     admins?: ApiTypes.UserMetaDto[];
     problems?: ApiTypes.ContestProblemDto[];
     permissions: {
@@ -1146,6 +1148,7 @@ declare namespace ApiTypes {
     type: "noi" | "ioi" | "acm";
     isPublic: boolean;
     hideStatistics: boolean;
+    groupId?: number;
     problemIds: number[];
     adminIds: number[];
     rankingParams: {};
@@ -1157,6 +1160,8 @@ declare namespace ApiTypes {
       | "EMPTY_TITLE"
       | "INVALID_TIME_RANGE"
       | "NO_SUCH_PROBLEM"
+      | "GROUP_REQUIRED"
+      | "NO_SUCH_GROUP"
       | "NO_SUCH_USER";
     contestId?: number;
   }

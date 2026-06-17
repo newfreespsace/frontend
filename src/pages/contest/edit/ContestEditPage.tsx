@@ -13,6 +13,7 @@ import toast from "@/utils/toast";
 import ProblemSearch from "@/components/ProblemSearch";
 import UserSearch from "@/components/UserSearch";
 import UserLink from "@/components/UserLink";
+import GroupSearch from "@/components/GroupSearch";
 
 function toDatetimeLocal(value: string) {
   const date = value ? new Date(value) : new Date();
@@ -57,6 +58,7 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
   const [type, setType] = useState<ApiTypes.SaveContestRequestDto["type"]>(props.response?.meta.type || "acm");
   const [isPublic, setIsPublic] = useState(props.response?.meta.isPublic ?? true);
   const [hideStatistics, setHideStatistics] = useState(props.response?.meta.hideStatistics ?? false);
+  const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(props.response?.group || null);
   const [problems, setProblems] = useState<ApiTypes.ContestProblemDto[]>(props.response?.problems || []);
   const [admins, setAdmins] = useState<ApiTypes.UserMetaDto[]>(props.response?.admins || []);
 
@@ -75,6 +77,7 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
       type,
       isPublic,
       hideStatistics,
+      groupId: group?.id,
       problemIds: problems.map(problem => problem.meta.id),
       adminIds: admins.map(admin => admin.id),
       rankingParams: {}
@@ -153,6 +156,19 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
               checked={hideStatistics}
               onChange={(e, data) => setHideStatistics(!!data.checked)}
             />
+          </Form.Field>
+
+          <Form.Field>
+            <label>{_(".group")}</label>
+            <GroupSearch placeholder={_(".select_group")} onResultSelect={setGroup} />
+            {group && (
+              <List divided relaxed className={style.list}>
+                <List.Item className={style.listItem}>
+                  {group.name}
+                  <Button icon="trash" size="mini" className={style.remove} onClick={() => setGroup(null)} />
+                </List.Item>
+              </List>
+            )}
           </Form.Field>
 
           <Form.Field>

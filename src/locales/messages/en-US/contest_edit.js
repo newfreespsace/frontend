@@ -12,6 +12,8 @@ return {
   type_noi: "NOI",
   is_public: "Public contest",
   hide_statistics: "Hide statistics before the contest ends",
+  group: "Group",
+  select_group: "Search and select group",
   problems: "Problems",
   admins: "Admins",
   add_problem: "Search and add problem",
@@ -24,6 +26,8 @@ return {
     EMPTY_TITLE: "Contest title is required.",
     INVALID_TIME_RANGE: "Invalid contest time range.",
     NO_SUCH_PROBLEM: "Problem does not exist.",
+    GROUP_REQUIRED: "Please select the contest group.",
+    NO_SUCH_GROUP: "Group does not exist.",
     NO_SUCH_USER: "User does not exist."
   }
 };
