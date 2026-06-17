@@ -63,6 +63,7 @@ export async function downloadProblemFile(
     filenameList: [filename]
   });
   if (requestError) return toast.error(requestError(_));
+  if (response.error) return toast.error(_(`problem_files.error.${response.error}`));
   else if (response.downloadInfo.length === 0) return toast.error(_("problem_files.error.NO_SUCH_FILE"));
 
   downloadFile(response.downloadInfo[0].downloadUrl);
