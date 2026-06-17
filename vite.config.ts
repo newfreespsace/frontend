@@ -168,7 +168,7 @@ export default defineConfig({
     proxy: {
       // 匹配所有以 /api 开头的请求路径
       "/api": {
-        target: "http://localhost:2002", // 目标后端服务地址
+        target: "http://127.0.0.1:2002", // 目标后端服务地址
         changeOrigin: true, // 允许跨域
         ws: true
       }
