@@ -143,6 +143,10 @@ let AppLayout: React.FC = props => {
           <Icon name="comments" />
           {_(".header.user.discussions")}
         </Dropdown.Item>
+        <Dropdown.Item as={Link} href="/gallery">
+          <Icon name="images" />
+          {_(".header.user.gallery")}
+        </Dropdown.Item>
         {appState.currentUserJoinedGroupsCount > 0 && (
           <Dropdown.Item as={Link} href="/groups">
             <Icon name="users" />

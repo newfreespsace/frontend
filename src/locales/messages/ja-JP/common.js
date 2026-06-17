@@ -16,6 +16,7 @@ return {
       submissions: "自分の提出",
       problems: "自分の問題",
       discussions: "[TBT] My discussions",
+      gallery: "[TBT] My gallery",
       groups: "[TBT] My groups",
       edit_profile: "プロファイル設定",
       preference: "環境設定",

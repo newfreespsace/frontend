@@ -16,6 +16,7 @@ return {
       submissions: "我的提交",
       problems: "我的题目",
       discussions: "我的讨论",
+      gallery: "我的图库",
       groups: "我的用户组",
       edit_profile: "编辑资料",
       preference: "偏好设置",

@@ -1,0 +1,67 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quota {
+  flex: 1;
+  min-width: 0;
+}
+
+.quotaText {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.imageCard {
+  border: 1px solid rgba(34, 36, 38, 0.15);
+  border-radius: 4px;
+  background: var(--theme-background, #fff);
+  overflow: hidden;
+}
+
+.preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.body {
+  padding: 0.75rem;
+}
+
+.filename {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0.35rem;
+}
+
+.meta {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.9rem;
+  margin-bottom: 0.7rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.empty {
+  margin-top: 1rem !important;
+}

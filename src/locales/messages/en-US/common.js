@@ -16,6 +16,7 @@ return {
       submissions: "My submissions",
       problems: "My problems",
       discussions: "My discussions",
+      gallery: "My gallery",
       groups: "My groups",
       edit_profile: "Edit profile",
       preference: "Preference",

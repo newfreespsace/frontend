@@ -13,6 +13,25 @@ declare namespace ApiTypes {
     error?: "PERMISSION_DENIED";
     judgeClient?: ApiTypes.JudgeClientInfoDto;
   }
+  export interface AddGalleryImageRequestDto {
+    filename: string;
+    mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+    width?: number;
+    height?: number;
+    uploadInfo: ApiTypes.FileUploadInfoDto;
+  }
+  export interface AddGalleryImageResponseDto {
+    error?:
+      | "PERMISSION_DENIED"
+      | "FILE_TOO_LARGE"
+      | "TOTAL_SIZE_TOO_LARGE"
+      | "TOO_MANY_IMAGES"
+      | "INVALID_IMAGE_TYPE"
+      | "FILE_UUID_EXISTS"
+      | "FILE_NOT_UPLOADED";
+    signedUploadRequest?: ApiTypes.SignedFileUploadRequestDto;
+    image?: ApiTypes.GalleryImageDto;
+  }
   export interface AddProblemFileRequestDto {
     problemId: number;
     type: "TestData" | "AdditionalFile";
@@ -173,6 +192,12 @@ declare namespace ApiTypes {
   }
   export interface DeleteDiscussionResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_DISCUSSION";
+  }
+  export interface DeleteGalleryImageRequestDto {
+    id: number;
+  }
+  export interface DeleteGalleryImageResponseDto {
+    error?: "PERMISSION_DENIED" | "NO_SUCH_IMAGE";
   }
   export interface DeleteGroupRequestDto {
     groupId: number;
@@ -397,6 +422,10 @@ declare namespace ApiTypes {
     permissions?: ApiTypes.DiscussionPermissionsDto;
     haveManagePermissionsPermission?: boolean;
   }
+  export interface GetGalleryQuotaResponseDto {
+    error?: "PERMISSION_DENIED";
+    quota?: ApiTypes.GalleryQuotaDto;
+  }
   export interface GetGroupListResponseDto {
     groups: ApiTypes.GroupMetaDto[];
     groupsWithAdminPermission: number[];
@@ -613,6 +642,25 @@ declare namespace ApiTypes {
     name: string;
     memberCount: number;
   }
+  export interface GalleryImageDto {
+    id: number;
+    publicId: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+    width?: number;
+    height?: number;
+    createdAt: string; // date-time
+    downloadUrl?: string;
+  }
+  export interface GalleryQuotaDto {
+    acceptedProblemCount: number;
+    usedSize: number;
+    quotaSize: number;
+    imageCount: number;
+    maxImageCount: number;
+    maxImageSize: number;
+  }
   export interface HeaderParameters {
     "maintaince-key": ApiTypes.Parameters.MaintainceKey;
   }
@@ -654,6 +702,11 @@ declare namespace ApiTypes {
   export interface ListJudgeClientsResponseDto {
     judgeClients: ApiTypes.JudgeClientInfoDto[];
     hasManagePermission: boolean;
+  }
+  export interface ListGalleryImagesResponseDto {
+    error?: "PERMISSION_DENIED";
+    images?: ApiTypes.GalleryImageDto[];
+    quota?: ApiTypes.GalleryQuotaDto;
   }
   export interface ListUserSessionsRequestDto {
     userId?: number;
