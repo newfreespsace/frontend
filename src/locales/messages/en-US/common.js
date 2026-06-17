@@ -37,9 +37,12 @@ return {
     github: "Open source"
   },
   invalid_url: "Invalid URL.",
+  contest_access_restricted:
+    "Your group has an active contest. You can only access active contests and your own contest submissions.",
   request_error: {
     400: "Invalid request.",
     401: "Verification failed. Please refresh and try again.",
+    403: "Permission denied.",
     429: "Too many requests. Please try again later.",
     500: "Server error. Please try again later.",
     502: "Couldn't connect to the server. Please try again later.",

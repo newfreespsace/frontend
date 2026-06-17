@@ -142,6 +142,9 @@ export class AppState {
   @observable
   currentUserPrivileges: ApiTypes.GetSessionInfoResponseDto["userPrivileges"] = [];
 
+  @observable
+  activeGroupContests: ApiTypes.ContestMetaDto[] = [];
+
   currentUserHasPrivilege = computedFn(function (
     this: AppState,
     privilege: ApiTypes.GetSessionInfoResponseDto["userPrivileges"][0]

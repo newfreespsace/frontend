@@ -679,7 +679,11 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   query: inContest
                     ? {
                         contestId: props.contest.id.toString(),
-                        contestProblemIndex: props.contestPid.toString()
+                        contestProblemIndex: props.contestPid.toString(),
+                        ...(appState.activeGroupContests.some(activeContest => activeContest.id === props.contest.id) &&
+                        appState.currentUser
+                          ? { submitter: appState.currentUser.username }
+                          : {})
                       }
                     : props.idType === "id"
                     ? {

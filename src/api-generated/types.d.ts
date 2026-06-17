@@ -512,6 +512,7 @@ declare namespace ApiTypes {
       | "SkipRecaptcha"
     )[];
     userPreference?: ApiTypes.UserPreferenceDto;
+    activeGroupContests?: ApiTypes.ContestMetaDto[];
     serverPreference: ApiTypes.PreferenceConfig;
     serverVersion: ApiTypes.ServerVersionDto;
   }

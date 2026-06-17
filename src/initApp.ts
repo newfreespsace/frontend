@@ -18,6 +18,7 @@ function applySessionInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {
     appState.currentUser = sessionInfo.userMeta;
     appState.currentUserJoinedGroupsCount = sessionInfo.joinedGroupsCount;
     appState.currentUserPrivileges = sessionInfo.userPrivileges || [];
+    appState.activeGroupContests = sessionInfo.activeGroupContests || [];
     appState.userPreference = sessionInfo.userPreference || {};
     appState.serverPreference = sessionInfo.serverPreference;
     appState.serverVersion = sessionInfo.serverVersion;

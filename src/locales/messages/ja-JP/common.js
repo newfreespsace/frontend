@@ -36,9 +36,12 @@ return {
     github: "[TBT] Open source"
   },
   invalid_url: "[TBT] Invalid URL.",
+  contest_access_restricted:
+    "[TBT] Your group has an active contest. You can only access active contests and your own contest submissions.",
   request_error: {
     400: "[TBT] Invalid request.",
     401: "[TBT] Verification failed. Please refresh and try again.",
+    403: "[TBT] Permission denied.",
     429: "[TBT] Too many requests. Please try again later.",
     500: "[TBT] Server error. Please try again later.",
     502: "[TBT] Couldn't connect to the server. Please try again later.",
