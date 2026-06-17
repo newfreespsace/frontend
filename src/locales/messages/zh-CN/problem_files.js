@@ -31,9 +31,11 @@ return {
   cancel_upload: "取消上传",
   back_to_problem: "返回题目",
   no_files_to_download: "无任何文件可下载。",
+  remaining_testdata_downloads: "今日测试数据文件下载次数剩余 {remaining} 次。",
   invalid_filename: "无效的文件名。",
   error: {
     PERMISSION_DENIED: "权限不足。",
+    DAILY_DOWNLOAD_LIMIT_EXCEEDED: "今日测试数据文件下载次数已用完。",
     NO_SUCH_PROBLEM: "无此题目。",
     NO_SUCH_FILE: "无此文件。",
     TOO_MANY_FILES: "文件数量超出限制，请联系管理员协助上传。",

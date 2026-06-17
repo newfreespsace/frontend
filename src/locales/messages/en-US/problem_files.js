@@ -31,9 +31,11 @@ return {
   cancel_upload: "Cancel",
   back_to_problem: "Back to Problem",
   no_files_to_download: "No files to download.",
+  remaining_testdata_downloads: "{remaining} test data file downloads remaining today.",
   invalid_filename: "Invalid filename.",
   error: {
     PERMISSION_DENIED: "Permission denied.",
+    DAILY_DOWNLOAD_LIMIT_EXCEEDED: "No test data file downloads remaining today.",
     NO_SUCH_PROBLEM: "No such problem.",
     NO_SUCH_FILE: "No such file.",
     TOO_MANY_FILES: "Too many files. Please contact the administrator.",

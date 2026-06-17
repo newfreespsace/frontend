@@ -49,6 +49,15 @@ if (window.apiEndpoint.toLowerCase().startsWith("https://")) {
   (streamsaver as any).mitm = `${window.apiEndpoint}api/cors/streamsaver/mitm.html`;
 }
 
+function showRemainingTestdataDownloads(response: ApiTypes.DownloadProblemFilesResponseDto, _: Localizer) {
+  if (response.remainingTestdataDownloads == null) return;
+  toast.info(
+    _("problem_files.remaining_testdata_downloads", {
+      remaining: response.remainingTestdataDownloads.toString()
+    })
+  );
+}
+
 export async function downloadProblemFile(
   problemId: number,
   type: "TestData" | "AdditionalFile",
@@ -66,6 +75,7 @@ export async function downloadProblemFile(
   if (response.error) return toast.error(_(`problem_files.error.${response.error}`));
   else if (response.downloadInfo.length === 0) return toast.error(_("problem_files.error.NO_SUCH_FILE"));
 
+  showRemainingTestdataDownloads(response, _);
   downloadFile(response.downloadInfo[0].downloadUrl);
 }
 
@@ -87,6 +97,8 @@ export async function downloadProblemFilesAsArchive(
   const { downloadInfo } = response;
 
   if (downloadInfo.length === 0) return toast.error(_("problem_files.no_files_to_download"));
+
+  showRemainingTestdataDownloads(response, _);
 
   const fileStream = streamsaver.createWriteStream(filename);
   let i = 0;

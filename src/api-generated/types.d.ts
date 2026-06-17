@@ -283,8 +283,9 @@ declare namespace ApiTypes {
     filenameList: string[];
   }
   export interface DownloadProblemFilesResponseDto {
-    error?: "NO_SUCH_PROBLEM" | "PERMISSION_DENIED";
+    error?: "NO_SUCH_PROBLEM" | "PERMISSION_DENIED" | "DAILY_DOWNLOAD_LIMIT_EXCEEDED";
     downloadInfo?: ApiTypes.ProblemFileDownloadInfoDto[];
+    remainingTestdataDownloads?: number;
   }
   export interface DownloadSubmissionFileRequestDto {
     submissionId: number;
