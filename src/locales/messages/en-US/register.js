@@ -9,6 +9,7 @@ return {
   password: "Password",
   retype_password: "Retype Password",
   register: "Register",
+  register_disabled: "Registration is disabled.",
   already_have_account: "Already have an account? ",
   login: "Login",
   empty_username: "Please enter your username",
@@ -27,6 +28,7 @@ return {
   passwords_do_not_match_message: "Two passwords don't match.",
   errors: {
     ALREADY_LOGGEDIN: "You have already logged in.",
+    REGISTER_DISABLED: "Registration is disabled.",
     DUPLICATE_USERNAME: "Username already taken.",
     DUPLICATE_EMAIL: "Email already used.",
     INVALID_EMAIL_VERIFICATION_CODE: "Invalid email verification code.",

@@ -1,6 +1,10 @@
 // This file is generated automatically, do NOT modify it.
 
 declare namespace ApiTypes {
+  export type DeepPartial<T> = {
+    [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+  };
+
   export interface AddJudgeClientRequestDto {
     name: string;
     allowedHosts: string[];
@@ -509,6 +513,10 @@ declare namespace ApiTypes {
     serverPreference: ApiTypes.PreferenceConfig;
     serverVersion: ApiTypes.ServerVersionDto;
   }
+  export interface GetSitePreferenceResponseDto {
+    error?: "PERMISSION_DENIED";
+    preference?: ApiTypes.PreferenceConfig;
+  }
   export interface GetSubmissionDetailRequestDto {
     submissionId: string;
     locale: "en_US" | "zh_CN" | "ja_JP";
@@ -736,6 +744,7 @@ declare namespace ApiTypes {
     recaptchaEnabled: boolean;
     recaptchaKey: string;
     requireEmailVerification: boolean;
+    allowRegister: boolean;
     allowUserChangeUsername: boolean;
     allowEveryoneCreateProblem: boolean;
     allowNonPrivilegedUserEditPublicProblem: boolean;
@@ -1031,7 +1040,12 @@ declare namespace ApiTypes {
     password: string;
   }
   export interface RegisterResponseDto {
-    error?: "ALREADY_LOGGEDIN" | "DUPLICATE_USERNAME" | "DUPLICATE_EMAIL" | "INVALID_EMAIL_VERIFICATION_CODE";
+    error?:
+      | "ALREADY_LOGGEDIN"
+      | "REGISTER_DISABLED"
+      | "DUPLICATE_USERNAME"
+      | "DUPLICATE_EMAIL"
+      | "INVALID_EMAIL_VERIFICATION_CODE";
     token?: string;
   }
   export interface RejudgeSubmissionRequestDto {
@@ -1427,6 +1441,13 @@ declare namespace ApiTypes {
   export interface UpdateHomepageSettingsResponseDto {
     error?: "PERMISSION_DENIED" | "NO_SUCH_DISCUSSION";
     errorDiscussionId?: number;
+  }
+  export interface UpdateSitePreferenceRequestDto {
+    preference?: ApiTypes.DeepPartial<ApiTypes.PreferenceConfig>;
+  }
+  export interface UpdateSitePreferenceResponseDto {
+    error?: "PERMISSION_DENIED";
+    preference?: ApiTypes.PreferenceConfig;
   }
   export interface UpdateProblemJudgeInfoRequestDto {
     problemId: number;

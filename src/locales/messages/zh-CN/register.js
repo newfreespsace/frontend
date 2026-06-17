@@ -9,6 +9,7 @@ return {
   password: "密码",
   retype_password: "确认密码",
   register: "注册",
+  register_disabled: "注册已关闭。",
   already_have_account: "已有账户？",
   login: "登录",
   empty_username: "用户名不能为空",
@@ -27,6 +28,7 @@ return {
   passwords_do_not_match_message: "两次输入的密码不一致。",
   errors: {
     ALREADY_LOGGEDIN: "你已经登陆过。",
+    REGISTER_DISABLED: "注册已关闭。",
     DUPLICATE_USERNAME: "用户名已被使用。",
     DUPLICATE_EMAIL: "邮箱已被使用。",
     INVALID_EMAIL_VERIFICATION_CODE: "邮箱验证码无效。",

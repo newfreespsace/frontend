@@ -163,6 +163,7 @@ let RegisterPage: React.FC = () => {
       else if (response.error) {
         switch (response.error) {
           case "ALREADY_LOGGEDIN":
+          case "REGISTER_DISABLED":
             toast.error(_(`.errors.${response.error}`));
             break;
           case "DUPLICATE_USERNAME":
@@ -212,6 +213,21 @@ let RegisterPage: React.FC = () => {
     }, 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!appState.serverPreference.security.allowRegister) {
+    return (
+      <>
+        <Header as="h1" textAlign="center">
+          {_(".register_new_account")}
+        </Header>
+        <Message warning content={_(".register_disabled")} />
+        <Message className={style.message}>
+          {_(".already_have_account")}
+          <PseudoLink onClick={() => navigateTo("login")}>{_(".login")}</PseudoLink>
+        </Message>
+      </>
+    );
+  }
 
   async function onSendEmailVerificationCode() {
     if (sendEmailVerificationCodePending) return;

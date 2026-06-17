@@ -112,9 +112,11 @@ let AppLayout: React.FC = props => {
       <Button className={style.loginAndRegisterButton} onClick={() => onLoginOrRegisterClick("login")}>
         {_(".header.user.login")}
       </Button>
-      <Button className={style.loginAndRegisterButton} primary onClick={() => onLoginOrRegisterClick("register")}>
-        {_(".header.user.register")}
-      </Button>
+      {appState.serverPreference.security.allowRegister && (
+        <Button className={style.loginAndRegisterButton} primary onClick={() => onLoginOrRegisterClick("register")}>
+          {_(".header.user.register")}
+        </Button>
+      )}
     </>
   );
 
@@ -152,6 +154,12 @@ let AppLayout: React.FC = props => {
           <Icon name="cog" />
           {_(".header.user.preference")}
         </Dropdown.Item>
+        {appState.currentUser.isAdmin && (
+          <Dropdown.Item as={Link} href="/site-settings">
+            <Icon name="settings" />
+            {_(".header.user.site_settings")}
+          </Dropdown.Item>
+        )}
         <Dropdown.Item onClick={onLogoutClick}>
           <Icon name="power" />
           {_(".header.user.logout")}

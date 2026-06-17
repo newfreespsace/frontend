@@ -11,6 +11,7 @@ import * as ImportedContestApi from "./modules/contest";
 import * as ImportedDiscussionApi from "./modules/discussion";
 import * as ImportedHomepageApi from "./modules/homepage";
 import * as ImportedTrainingApi from "./modules/training";
+import * as ImportedSiteSettingApi from "./modules/site-setting";
 
 export const user = ImportedUserApi;
 export const auth = ImportedAuthApi;
@@ -23,3 +24,4 @@ export const contest = ImportedContestApi;
 export const discussion = ImportedDiscussionApi;
 export const homepage = ImportedHomepageApi;
 export const training = ImportedTrainingApi;
+export const siteSetting = ImportedSiteSettingApi;

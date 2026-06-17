@@ -308,10 +308,12 @@ let LoginPage: React.FC = () => {
             </Button>
           </Segment>
         </Form>
-        <Message className={style.message}>
-          {_(".new_user")}
-          <PseudoLink onClick={() => navigateTo("register")}>{_(".register")}</PseudoLink>
-        </Message>
+        {appState.serverPreference.security.allowRegister && (
+          <Message className={style.message}>
+            {_(".new_user")}
+            <PseudoLink onClick={() => navigateTo("register")}>{_(".register")}</PseudoLink>
+          </Message>
+        )}
       </div>
     </>
   );

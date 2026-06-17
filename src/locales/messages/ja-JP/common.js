@@ -19,6 +19,7 @@ return {
       groups: "[TBT] My groups",
       edit_profile: "プロファイル設定",
       preference: "環境設定",
+      site_settings: "[TBT] Site Settings",
       logout: "ログアウト"
     }
   },

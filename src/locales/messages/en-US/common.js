@@ -19,6 +19,7 @@ return {
       groups: "My groups",
       edit_profile: "Edit profile",
       preference: "Preference",
+      site_settings: "Site Settings",
       logout: "Logout"
     }
   },
