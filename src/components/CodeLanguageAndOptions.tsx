@@ -49,7 +49,7 @@ let CodeLanguageAndOptions: React.FC<CodeLanguageAndOptionsProps> = props => {
         onChange={(e, { value }) => !props.pending && onSwitchLanguage(value as CodeLanguage)}
       />
       {props.elementAfterLanguageSelect}
-      {compileAndRunOptions[props.language as CodeLanguage].map(option => {
+      {(compileAndRunOptions[props.language as CodeLanguage] || []).map(option => {
         switch (option.type) {
           case CodeLanguageOptionType.Select:
             return (
