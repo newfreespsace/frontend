@@ -113,7 +113,7 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     statistics: true,
     discussionCount: true,
     permissionOfCurrentUser: true,
-    lastSubmissionAndLastAcceptedSubmission: true
+    lastSubmissionAndLastAcceptedSubmission: false
   });
 
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
