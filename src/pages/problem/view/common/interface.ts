@@ -7,7 +7,7 @@ export interface ProblemTypeLabelsProps<JudgeInfo> {
 
 export interface ProblemTypeSubmitViewProps<JudgeInfo, SubmissionContent = object> {
   judgeInfo: JudgeInfo;
-  lastSubmission: ApiTypes.ProblemLastSubmissionDto;
+  lastSubmission?: ApiTypes.ProblemLastSubmissionDto;
 
   inSubmitView: boolean;
   pendingSubmit: boolean;

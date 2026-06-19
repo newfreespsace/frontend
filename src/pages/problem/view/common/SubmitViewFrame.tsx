@@ -17,7 +17,7 @@ interface SubmitViewFrameProps {
 
   inSubmitView: boolean;
   pendingSubmit: boolean;
-  lastSubmission: ApiTypes.ProblemLastSubmissionDto;
+  lastSubmission?: ApiTypes.ProblemLastSubmissionDto;
   submissionContent: unknown;
   onCloseSubmitView: () => void;
   onUpdateSubmissionContent: (path: string, value: unknown) => void;

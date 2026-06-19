@@ -347,7 +347,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   const [inSubmitView, setInSubmitView] = useState(false);
   const refScrollTopBackup = useRef(0);
   const [submissionContent, setSubmissionContent] = useState(
-    props.problem.lastSubmission.lastSubmissionContent || ProblemTypeView.getDefaultSubmissionContent()
+    props.problem.lastSubmission?.lastSubmissionContent || ProblemTypeView.getDefaultSubmissionContent()
   );
   const scrollElement = document.documentElement;
 
@@ -426,7 +426,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   );
 
   const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(props.problem.meta.id);
-
+  const lastAcceptedSubmission = props.problem.lastSubmission?.lastAcceptedSubmission;
   return (
     <>
       {permissionManager}
@@ -434,11 +434,8 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       <div className={style.topContainer}>
         <div className={style.titleSection}>
           <Header as="h1" className={style.header}>
-            {props.problem.lastSubmission.lastAcceptedSubmission && (
-              <Link
-                className={style.lastAcceptedSubmission}
-                href={`/s/${props.problem.lastSubmission.lastAcceptedSubmission.id}`}
-              >
+            {lastAcceptedSubmission && (
+              <Link className={style.lastAcceptedSubmission} href={`/s/${lastAcceptedSubmission.id}`}>
                 <StatusIcon status="Accepted" />
               </Link>
             )}
