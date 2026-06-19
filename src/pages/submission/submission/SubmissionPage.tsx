@@ -22,6 +22,7 @@ import { TestcaseResultCommon, ProblemTypeSubmissionView, GetAdditionalSectionsC
 import { SubmissionProgressMessageMetaOnly, SubmissionProgressType } from "../common";
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
+import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -268,14 +269,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   }, []);
 
   async function onDownload(filename: string) {
-    const { requestError, response } = await api.problem.downloadProblemFiles({
-      problemId: meta.problem.id,
-      type: "TestData",
-      filenameList: [filename]
-    });
-    if (requestError) toast.error(requestError(_));
-    else if (response.error) toast.error(_(`.error.${response.error}`));
-    else downloadFile(response.downloadInfo[0].downloadUrl);
+    await downloadProblemFile(meta.problem.id, "TestData", filename, _);
   }
 
   const isWideScreen = useScreenWidthWithin(1024, Infinity);
