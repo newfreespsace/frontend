@@ -95,6 +95,27 @@ function isContestLockedPath(request: NaviRequest): boolean {
   return false;
 }
 
+function isAnonymousAllowedPath(pathname: string): boolean {
+  return pathname === "/login" || pathname === "/register" || pathname === "/forgot";
+}
+
+function withLoginRequired(routes: Matcher<any, any>): Matcher<any, any> {
+  return map(request => {
+    const loggedIn = Boolean(appState.currentUser);
+
+    if (!loggedIn) {
+      if (isAnonymousAllowedPath(request.path)) return routes;
+      return redirect("/login", { exact: false });
+    }
+
+    if (request.path === "/login" || request.path === "/register" || request.path === "/forgot") {
+      return redirect("/", { exact: false });
+    }
+
+    return routes;
+  });
+}
+
 function withContestAccessRestriction(routes: Matcher<any, any>): Matcher<any, any> {
   return map(request => {
     const contestLocked = (appState.activeGroupContests || []).length > 0;
@@ -145,40 +166,42 @@ const AppRouter: React.FC = () => {
             elements
           );
         },
-        withContestAccessRestriction(
-          mount({
-            "/": getRoute(() => import("./pages/home"), "home"),
-            "/homepage-settings": getRoute(() => import("./pages/home"), "homeSettings"),
-            "/login": lazy(() => import("./pages/auth/login")),
-            "/register": lazy(() => import("./pages/auth/register")),
-            "/forgot": lazy(() => import("./pages/auth/forgot")),
-            "/p": getRoute(() => import("./pages/problem"), "p"),
-            "/c": getRoute(() => import("./pages/contest"), "c"),
-            "/s": getRoute(() => import("./pages/submission"), "s"),
-            "/u": getRoute(() => import("./pages/user"), "u"),
-            "/user": getRoute(() => import("./pages/user"), "user"),
-            "/groups": getRoute(() => import("./pages/user"), "groups"),
-            "/d": getRoute(() => import("./pages/discussion"), "d"),
-            "/judge-machine": lazy(() => import("./pages/judge-machine")),
-            "/site-settings": lazy(() => import("./pages/site-settings")),
-            "/gallery": lazy(() => import("./pages/gallery")),
-            "/t": getRoute(() => import("./pages/training"), "t"),
-            ...legacyRoutes({
-              "/problem": getRoute(() => import("./pages/problem"), "problem"),
-              "/problems": getRoute(() => import("./pages/problem"), "problems"),
-              "/contest": getRoute(() => import("./pages/contest"), "contest"),
-              "/contests": getRoute(() => import("./pages/contest"), "contests"),
-              "/submissions": redirect(request => ({ pathname: "/s", query: request.query })),
-              "/submission/:id": redirect(request => `/s/${request.params.id}`),
-              "/ranklist": redirect("/u"),
-              "/discussion/global": redirect("/d"),
-              "/discussion/problems": redirect("/d?problemId=all"),
-              "/discussion/problem/:id": redirect(request => `/d?problemId=${request.params.id}`),
-              "/article/0/edit": redirect("/d/new"),
-              "/article/:id": redirect(request => `/d/${request.params.id}`),
-              "/article/:id/edit": redirect(request => `/d/${request.params.id}/edit`)
+        withLoginRequired(
+          withContestAccessRestriction(
+            mount({
+              "/": getRoute(() => import("./pages/home"), "home"),
+              "/homepage-settings": getRoute(() => import("./pages/home"), "homeSettings"),
+              "/login": lazy(() => import("./pages/auth/login")),
+              "/register": lazy(() => import("./pages/auth/register")),
+              "/forgot": lazy(() => import("./pages/auth/forgot")),
+              "/p": getRoute(() => import("./pages/problem"), "p"),
+              "/c": getRoute(() => import("./pages/contest"), "c"),
+              "/s": getRoute(() => import("./pages/submission"), "s"),
+              "/u": getRoute(() => import("./pages/user"), "u"),
+              "/user": getRoute(() => import("./pages/user"), "user"),
+              "/groups": getRoute(() => import("./pages/user"), "groups"),
+              "/d": getRoute(() => import("./pages/discussion"), "d"),
+              "/judge-machine": lazy(() => import("./pages/judge-machine")),
+              "/site-settings": lazy(() => import("./pages/site-settings")),
+              "/gallery": lazy(() => import("./pages/gallery")),
+              "/t": getRoute(() => import("./pages/training"), "t"),
+              ...legacyRoutes({
+                "/problem": getRoute(() => import("./pages/problem"), "problem"),
+                "/problems": getRoute(() => import("./pages/problem"), "problems"),
+                "/contest": getRoute(() => import("./pages/contest"), "contest"),
+                "/contests": getRoute(() => import("./pages/contest"), "contests"),
+                "/submissions": redirect(request => ({ pathname: "/s", query: request.query })),
+                "/submission/:id": redirect(request => `/s/${request.params.id}`),
+                "/ranklist": redirect("/u"),
+                "/discussion/global": redirect("/d"),
+                "/discussion/problems": redirect("/d?problemId=all"),
+                "/discussion/problem/:id": redirect(request => `/d?problemId=${request.params.id}`),
+                "/article/0/edit": redirect("/d/new"),
+                "/article/:id": redirect(request => `/d/${request.params.id}`),
+                "/article/:id/edit": redirect(request => `/d/${request.params.id}/edit`)
+              })
             })
-          })
+          )
         )
       ),
     []
