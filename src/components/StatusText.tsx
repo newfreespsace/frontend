@@ -6,6 +6,7 @@ import style from "./StatusText.module.less";
 import { SubmissionStatusAll } from "@/interfaces/SubmissionStatus";
 
 const icons: Record<SubmissionStatusAll, SemanticICONS> = {
+  Submitted: "check circle outline",
   Pending: "hourglass half",
   ConfigurationError: "code",
   SystemError: "server",

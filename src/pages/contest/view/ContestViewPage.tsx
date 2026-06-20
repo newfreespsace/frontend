@@ -203,7 +203,7 @@ const ProblemStatusCell: React.FC<ProblemStatusCellProps> = props => {
       ) : null
     ) : contest.type === "noi" && problem.status ? (
       <>
-        <StatusText status={problem.status} statusText={`${problem.score} / 100`} />
+        <StatusText status={problem.status} statusText={problem.score == null ? undefined : `${problem.score} / 100`} />
       </>
     ) : // <StatusText status={"Wrong"} />
     problem.score != null ? (

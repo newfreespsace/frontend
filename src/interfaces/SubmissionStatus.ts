@@ -17,6 +17,7 @@ export enum SubmissionStatus {
 }
 
 export enum SubmissionStatusAll {
+  Submitted = "Submitted",
   Pending = "Pending",
 
   ConfigurationError = "ConfigurationError",
