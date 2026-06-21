@@ -233,9 +233,18 @@ let HomePage: React.FC<HomePageProps> = props => {
       </>
     );
 
+  const countdownItems = props.countdown
+    ? Object.entries(props.countdown.items).filter(([, time]) => {
+        const timestamp = new Date(time as string).getTime();
+        const expiredVisibleDuration = 7 * 24 * 60 * 60 * 1000;
+
+        return timestamp >= Date.now() - expiredVisibleDuration;
+      })
+    : [];
+
   const getCountdown = () =>
     props.countdown &&
-    Object.keys(props.countdown.items).length > 0 && (
+    countdownItems.length > 0 && (
       <>
         <Header
           className={style.header}
@@ -246,7 +255,7 @@ let HomePage: React.FC<HomePageProps> = props => {
           attached="top"
         />
         <Segment className={style.segment} attached="bottom">
-          {Object.entries(props.countdown.items).map(([event, time], i) => (
+          {countdownItems.map(([event, time], i) => (
             <EmojiRenderer key={i}>
               <div className={style.countdown}>
                 <Countdown
