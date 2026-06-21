@@ -21,6 +21,9 @@
 }
 
 .table {
+  table-layout: fixed;
+  width: 100%;
+
   .columnRank {
     width: 65px;
   }
@@ -30,15 +33,17 @@
   }
 
   .columnBio {
-    display: flex;
-    justify-content: center;
+    overflow: hidden;
+    text-align: center;
 
     > div {
-      white-space: normal;
+      max-width: 100%;
+      white-space: nowrap;
       height: 19.5px;
       overflow: hidden;
+      text-overflow: ellipsis;
     }
-  }
+  } 
 
   .columnAcceptedProblemCount {
     width: 100px;
