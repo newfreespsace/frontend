@@ -35,11 +35,15 @@
 }
 
 .tableTitle {
+  width: 420px;
   text-align: left !important;
 }
 
 .progressTable {
   table-layout: fixed;
+  :global(tbody tr) {
+    height: 56px;
+  }
 }
 
 .indexColumn {
@@ -47,7 +51,7 @@
 }
 
 .progressColumn {
-  width: 620px;
+  // width: 420px;
   text-align: left !important;
 }
 

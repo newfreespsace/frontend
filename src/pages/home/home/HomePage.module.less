@@ -84,18 +84,22 @@
 .trainingTitleCell {
   width: 34%;
   min-width: 160px;
-  text-align: center !important;
+  text-align: left !important;
   vertical-align: middle !important;
   white-space: normal;
   word-break: break-word;
+  padding-left: 24px !important;
 }
 
 .trainingTable {
   width: 100%;
+  :global(tbody tr) {
+    height: 56px;
+  }
 }
 
 .trainingProgressCell {
-  width: 66%;
+  width: 30%;
 }
 
 .trainingProgress {
