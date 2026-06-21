@@ -198,6 +198,18 @@ let AppLayout: React.FC = props => {
           <EmojiRenderer>
             <div>{appState.serverPreference.siteName} Powered by Lyrio</div>
           </EmojiRenderer>
+          <span>
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              style={{
+                color: appState.theme === "far" ? "#666666" : "#C7C7C7",
+                textDecoration: "none"
+              }}
+            >
+              蜀ICP备2023021852号-1
+            </a>
+          </span>
           <div id={style.footerVersion} className="monospace">
             <span>
               F: <span title={formatDateTime(window.appVersion.date)[1]}>{window.appVersion.hash}</span>
