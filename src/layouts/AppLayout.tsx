@@ -34,6 +34,21 @@ let AppLayout: React.FC = props => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [showProgressBar, setShowProgressBar] = useState(false);
+
+  useEffect(() => {
+    if (!loadingRoute) {
+      setShowProgressBar(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowProgressBar(true);
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [loadingRoute]);
+
   useEffect(() => {
     if (sidebarOpen !== document.documentElement.classList.contains(style.sidebarOpen))
       document.documentElement.classList.toggle(style.sidebarOpen);
@@ -287,7 +302,7 @@ let AppLayout: React.FC = props => {
 
   return (
     <>
-      <GlobalProgressBar isAnimating={!!loadingRoute} />
+      <GlobalProgressBar isAnimating={showProgressBar} />
       <Menu borderless fixed="top" className={style.menu}>
         <Container id={style.mainMenuContainer}>
           {logo}
