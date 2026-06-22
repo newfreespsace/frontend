@@ -268,7 +268,7 @@ const GalleryPage: React.FC<GalleryPageProps> = props => {
         <div className={style.grid}>
           {props.images.map(image => (
             <div className={style.imageCard} key={image.id}>
-              <img className={style.preview} src={image.downloadUrl} alt={image.filename} />
+              <img className={style.preview} src={getPermanentImageUrl(image)} alt={image.filename} />
               <div className={style.body}>
                 <div className={style.filename} title={image.filename}>
                   {image.filename}
