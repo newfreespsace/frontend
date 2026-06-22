@@ -91,6 +91,7 @@ let UsersPage: React.FC<UsersPageProps> = props => {
           <div className={style.actions}>
             {appState.currentUserHasPrivilege("ManageUser") && (
               <Button
+                className={style.viewToggleButton}
                 basic={!activeView}
                 primary={activeView}
                 content={activeView ? _(".all_users") : _(".active_users")}

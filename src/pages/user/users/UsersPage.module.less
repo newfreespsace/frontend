@@ -27,10 +27,7 @@
   table-layout: fixed;
   width: 100%;
 
-  .columnRank {
-    width: 65px;
-  }
-
+  .columnRank,
   .columnLastActive {
     width: 130px;
   }
@@ -59,7 +56,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-  } 
+  }
 
   .columnAcceptedProblemCount {
     width: 100px;
@@ -69,9 +66,14 @@
     width: 100px;
   }
 
-  th, td:not(.bio) {
+  th,
+  td:not(.bio) {
     white-space: nowrap;
   }
+}
+
+.viewToggleButton {
+  min-width: 150px;
 }
 
 @media only screen and (max-width: 767px) {
