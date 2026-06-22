@@ -707,7 +707,12 @@ declare namespace ApiTypes {
   export interface ListGalleryImagesResponseDto {
     error?: "PERMISSION_DENIED";
     images?: ApiTypes.GalleryImageDto[];
+    totalCount?: number;
     quota?: ApiTypes.GalleryQuotaDto;
+  }
+  export interface ListGalleryImagesRequestDto {
+    skipCount: number;
+    takeCount: number;
   }
   export interface ActiveUserDto {
     user: ApiTypes.UserMetaDto;

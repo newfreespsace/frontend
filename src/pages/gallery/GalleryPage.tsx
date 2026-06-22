@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useCurrentRoute } from "react-navi";
 import { Button, Header, Icon, Progress, Segment } from "semantic-ui-react";
 
 import style from "./GalleryPage.module.less";
@@ -6,6 +7,7 @@ import style from "./GalleryPage.module.less";
 import api from "@/api";
 import { RouteError } from "@/AppRouter";
 import { appState } from "@/appState";
+import { Pagination } from "@/components/Pagination";
 import { makeToBeLocalizedText } from "@/locales";
 import copyToClipboard from "@/utils/copyToClipboard";
 import formatDateTime from "@/utils/formatDateTime";
@@ -18,21 +20,28 @@ import { useRecaptcha } from "@/utils/hooks/useRecaptcha";
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 const compressedImageType = "image/webp";
+const GALLERY_IMAGES_PER_PAGE = 10;
 
 interface GalleryPageProps {
   images: ApiTypes.GalleryImageDto[];
   quota: ApiTypes.GalleryQuotaDto;
+  totalCount: number;
+  currentPage: number;
 }
 
-async function fetchData(): Promise<GalleryPageProps> {
-  const { requestError, response } = await api.gallery.listImages();
+async function fetchData(currentPage: number): Promise<Omit<GalleryPageProps, "currentPage">> {
+  const { requestError, response } = await api.gallery.listImages({
+    skipCount: GALLERY_IMAGES_PER_PAGE * (currentPage - 1),
+    takeCount: GALLERY_IMAGES_PER_PAGE
+  });
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
   if (response.error)
     throw new RouteError(makeToBeLocalizedText(`gallery.error.${response.error}`), { showBack: true });
 
   return {
     images: response.images,
-    quota: response.quota
+    quota: response.quota,
+    totalCount: response.totalCount
   };
 }
 
@@ -131,6 +140,7 @@ const GalleryPage: React.FC<GalleryPageProps> = props => {
   const _ = useLocalizer("gallery");
   const common = useLocalizer("common");
   const navigation = useNavigationChecked();
+  const currentRoute = useCurrentRoute();
   const recaptcha = useRecaptcha();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<FileUploadApiProgress>(null);
@@ -257,7 +267,7 @@ const GalleryPage: React.FC<GalleryPageProps> = props => {
         />
       </div>
 
-      {props.images.length === 0 ? (
+      {props.totalCount === 0 ? (
         <Segment placeholder className={style.empty}>
           <Header icon>
             <Icon name="images" />
@@ -265,33 +275,53 @@ const GalleryPage: React.FC<GalleryPageProps> = props => {
           </Header>
         </Segment>
       ) : (
-        <div className={style.grid}>
-          {props.images.map(image => (
-            <div className={style.imageCard} key={image.id}>
-              <img className={style.preview} src={getPermanentImageUrl(image)} alt={image.filename} />
-              <div className={style.body}>
-                <div className={style.filename} title={image.filename}>
-                  {image.filename}
-                </div>
-                <div className={style.meta}>
-                  {formatFileSize(image.size, 1)}
-                  {image.width && image.height ? ` · ${image.width}x${image.height}` : ""}
-                  <br />
-                  {formatDateTime(image.createdAt)[1]}
-                </div>
-                <div className={style.actions}>
-                  <Button size="mini" icon="copy" title={_(".copy_markdown")} onClick={() => onCopyMarkdown(image)} />
-                  <Button size="mini" icon="code" title={_(".copy_html")} onClick={() => onCopyHtml(image)} />
-                  <Button size="mini" icon="trash" title={_(".delete")} onClick={() => onDelete(image)} />
+        <>
+          <div className={style.grid}>
+            {props.images.map(image => (
+              <div className={style.imageCard} key={image.id}>
+                <img className={style.preview} src={getPermanentImageUrl(image)} alt={image.filename} />
+                <div className={style.body}>
+                  <div className={style.filename} title={image.filename}>
+                    {image.filename}
+                  </div>
+                  <div className={style.meta}>
+                    {formatFileSize(image.size, 1)}
+                    {image.width && image.height ? ` · ${image.width}x${image.height}` : ""}
+                    <br />
+                    {formatDateTime(image.createdAt)[1]}
+                  </div>
+                  <div className={style.actions}>
+                    <Button size="mini" icon="copy" title={_(".copy_markdown")} onClick={() => onCopyMarkdown(image)} />
+                    <Button size="mini" icon="code" title={_(".copy_html")} onClick={() => onCopyHtml(image)} />
+                    <Button size="mini" icon="trash" title={_(".delete")} onClick={() => onDelete(image)} />
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+          {props.totalCount <= GALLERY_IMAGES_PER_PAGE ? null : (
+            <div className={style.pagination}>
+              <Pagination
+                totalCount={props.totalCount}
+                currentPage={props.currentPage}
+                itemsPerPage={GALLERY_IMAGES_PER_PAGE}
+                pageUrl={page => ({
+                  query: {
+                    ...currentRoute.url.query,
+                    page: page.toString()
+                  }
+                })}
+              />
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </>
   );
 };
 
 export default GalleryPage;
-export const route = fetchData;
+export const route = async request => {
+  const currentPage = Math.max(1, Number(request.query.page) || 1);
+  return <GalleryPage {...await fetchData(currentPage)} currentPage={currentPage} />;
+};

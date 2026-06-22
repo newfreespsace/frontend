@@ -4,7 +4,10 @@
 
 import { createPostApi } from "@/api";
 
-export const listImages = createPostApi<void, ApiTypes.ListGalleryImagesResponseDto>("gallery/listImages", false);
+export const listImages = createPostApi<ApiTypes.ListGalleryImagesRequestDto, ApiTypes.ListGalleryImagesResponseDto>(
+  "gallery/listImages",
+  false
+);
 export const getQuota = createPostApi<void, ApiTypes.GetGalleryQuotaResponseDto>("gallery/getQuota", false);
 export const addImage = createPostApi<ApiTypes.AddGalleryImageRequestDto, ApiTypes.AddGalleryImageResponseDto>(
   "gallery/addImage",
