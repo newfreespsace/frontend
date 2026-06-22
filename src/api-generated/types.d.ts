@@ -709,6 +709,18 @@ declare namespace ApiTypes {
     images?: ApiTypes.GalleryImageDto[];
     quota?: ApiTypes.GalleryQuotaDto;
   }
+  export interface ActiveUserDto {
+    user: ApiTypes.UserMetaDto;
+    lastAccessTime: number;
+  }
+  export interface ListActiveUsersRequestDto {
+    sinceTime?: number;
+    takeCount?: number;
+  }
+  export interface ListActiveUsersResponseDto {
+    error?: "PERMISSION_DENIED" | "TAKE_TOO_MANY";
+    users?: ApiTypes.ActiveUserDto[];
+  }
   export interface ListUserSessionsRequestDto {
     userId?: number;
     username?: string;

@@ -26,6 +26,10 @@ export const listUserSessions = createPostApi<
   ApiTypes.ListUserSessionsRequestDto,
   ApiTypes.ListUserSessionsResponseDto
 >("auth/listUserSessions", false);
+export const listActiveUsers = createPostApi<ApiTypes.ListActiveUsersRequestDto, ApiTypes.ListActiveUsersResponseDto>(
+  "auth/listActiveUsers",
+  false
+);
 export const revokeUserSession = createPostApi<
   ApiTypes.RevokeUserSessionRequestDto,
   ApiTypes.RevokeUserSessionResponseDto

@@ -6,8 +6,11 @@
 
   display: flex;
 
-  .manageGroups {
+  .actions {
     margin-left: auto !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 
     > :global(.button) {
       margin-left: 14px;
@@ -26,6 +29,10 @@
 
   .columnRank {
     width: 65px;
+  }
+
+  .columnLastActive {
+    width: 130px;
   }
 
   .columnUsername {
@@ -68,6 +75,22 @@
 }
 
 @media only screen and (max-width: 767px) {
+  .header {
+    display: block;
+
+    .actions {
+      margin-top: 11px;
+      margin-left: 0 !important;
+      justify-content: flex-start;
+
+      > :global(.button) {
+        margin-left: 0;
+        margin-right: 8px !important;
+        margin-bottom: 8px;
+      }
+    }
+  }
+
   .columnBio {
     display: none !important;
   }
