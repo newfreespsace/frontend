@@ -4,7 +4,7 @@ return {
     TAKE_TOO_MANY: "请求每页项目数量超出限制。",
     PERMISSION_DENIED: "权限不足。"
   },
-  active_users: "24 小时活跃用户",
+  active_users: "活跃用户",
   all_users: "全部用户",
   manage_groups: "管理用户组",
   rank: "排名",

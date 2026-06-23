@@ -4,7 +4,7 @@ return {
     TAKE_TOO_MANY: "Requested number of items per page exceeds the limit.",
     PERMISSION_DENIED: "Permission denied."
   },
-  active_users: "Active in 24h",
+  active_users: "Active users",
   all_users: "All users",
   manage_groups: "Manage groups",
   rank: "Rank",
