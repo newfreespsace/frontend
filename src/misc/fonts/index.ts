@@ -129,7 +129,7 @@ export function updateCodeFontCss(locale: Locale) {
     locale,
     "monospace"
   )} !important;
-  font-size: ${fontPreference?.codeFontSize || 14}px !important;
+  font-size: ${fontPreference?.codeFontSize || 16}px !important;
   line-height: ${fontPreference?.codeLineHeight || 1.3} !important;
   font-variant-ligatures: ${fontPreference?.codeFontLigatures === false ? "none" : "normal"} !important;
 }`
@@ -138,7 +138,7 @@ export function updateCodeFontCss(locale: Locale) {
 
 export function generateCodeFontEditorOptions(locale: Locale): editor.IStandaloneEditorConstructionOptions {
   const fontPreference = appState.userPreference?.font;
-  const fontSize = fontPreference?.codeFontSize || 14;
+  const fontSize = fontPreference?.codeFontSize || 16;
 
   return {
     fontFamily: generateFontFamily(fontPreference?.codeFontFace || availableCodeFonts[0], locale, "monospace"),
