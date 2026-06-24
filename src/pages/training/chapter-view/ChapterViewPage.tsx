@@ -176,7 +176,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
       </div>
 
       {chapter.description && (
-        <p>
+        <p style={{ marginBottom: 24 }}>
           <MarkdownContent content={chapter.description} />
         </p>
       )}
