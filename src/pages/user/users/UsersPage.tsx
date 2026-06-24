@@ -20,7 +20,7 @@ import MarkdownContent from "@/markdown/MarkdownContent";
 import TimeAgo from "@/components/TimeAgo";
 
 const USERS_PER_PAGE = appState.serverPreference.pagination.userList;
-const ACTIVE_USER_TIME_RANGE = 24 * 60 * 60 * 1000;
+const ACTIVE_USER_TIME_RANGE = 30 * 24 * 60 * 60 * 1000;
 
 enum SortBy {
   rating = "rating",
