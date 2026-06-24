@@ -169,9 +169,9 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
       </div>
 
       {training.description && (
-        <Message info>
+        <p>
           <MarkdownContent content={training.description} />
-        </Message>
+        </p>
       )}
 
       {chapters.length ? (

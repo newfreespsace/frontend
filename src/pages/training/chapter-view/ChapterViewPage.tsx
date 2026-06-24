@@ -176,9 +176,9 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
       </div>
 
       {chapter.description && (
-        <Message info>
+        <p>
           <MarkdownContent content={chapter.description} />
-        </Message>
+        </p>
       )}
 
       {sections.length ? (

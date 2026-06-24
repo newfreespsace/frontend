@@ -217,9 +217,9 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
       </div>
 
       {section.description && (
-        <Message info>
+        <p>
           <MarkdownContent content={section.description} />
-        </Message>
+        </p>
       )}
 
       {section.problems.length ? (
