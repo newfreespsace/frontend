@@ -8,6 +8,7 @@ import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
+import MarkdownContent from "@/markdown/MarkdownContent";
 import CreateChapterModal from "../common/CreateChapterModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
@@ -82,11 +83,18 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
     );
   }
 
-  const [renamePending, onRenameTraining] = useAsyncCallbackPending(async (title: string) => {
-    const { requestError, response } = await api.training.updateTraining({ id: training.id, title });
-    if (requestError) toast.error(requestError((key: string) => key));
-    else setTraining(currentTraining => ({ ...currentTraining, title: response.title }));
-  });
+  const [renamePending, onRenameTraining] = useAsyncCallbackPending(
+    async ({ title, description }: { title: string; description: string }) => {
+      const { requestError, response } = await api.training.updateTraining({ id: training.id, title, description });
+      if (requestError) toast.error(requestError((key: string) => key));
+      else
+        setTraining(currentTraining => ({
+          ...currentTraining,
+          title: response.title,
+          description: response.description
+        }));
+    }
+  );
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
@@ -97,6 +105,7 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
             title={_(".rename_training")}
             label={_(".training")}
             initialTitle={training.title}
+            initialDescription={training.description}
             pending={renamePending}
             onSubmit={onRenameTraining}
           />
@@ -159,7 +168,11 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
         {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
 
-      {training.description && <Segment className={style.description}>{training.description}</Segment>}
+      {training.description && (
+        <p>
+          <MarkdownContent content={training.description} />
+        </p>
+      )}
 
       {chapters.length ? (
         <Table basic="very" textAlign="center" unstackable className={style.progressTable}>

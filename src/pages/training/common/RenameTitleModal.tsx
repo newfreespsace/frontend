@@ -8,14 +8,16 @@ interface RenameTitleModalProps {
   title: string;
   label: string;
   initialTitle: string;
+  initialDescription?: string;
   pending?: boolean;
-  onSubmit: (title: string) => Promise<void>;
+  onSubmit: (values: { title: string; description: string }) => Promise<void>;
 }
 
 const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
   const _ = useLocalizer("training");
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(props.initialTitle);
+  const [description, setDescription] = useState(props.initialDescription || "");
 
   const [internalPending, onSubmit] = useAsyncCallbackPending(async () => {
     const normalizedTitle = title.trim();
@@ -23,10 +25,19 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
       toast.error(_(".input_item_name", { item: props.label }));
       return;
     }
-    await props.onSubmit(normalizedTitle);
+    await props.onSubmit({
+      title: normalizedTitle,
+      description: description.trim()
+    });
     setOpen(false);
   });
   const pending = props.pending || internalPending;
+
+  function onOpen() {
+    setTitle(props.initialTitle);
+    setDescription(props.initialDescription || "");
+    setOpen(true);
+  }
 
   return (
     <Modal
@@ -34,7 +45,7 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
       open={open}
       onClose={() => !pending && setOpen(false)}
       trigger={
-        <Button className="labeled icon" onClick={() => setOpen(true)}>
+        <Button className="labeled icon" onClick={onOpen}>
           <Icon name="edit" />
           {_(".rename")}
         </Button>
@@ -43,7 +54,12 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
       <Modal.Header>{props.title}</Modal.Header>
       <Modal.Content>
         <Form onSubmit={onSubmit}>
-          <Form.Input label={_(".name")} value={title} onChange={e => setTitle(e.currentTarget.value)} />
+          <Form.Input label={_(".title_field")} value={title} onChange={e => setTitle(e.currentTarget.value)} />
+          <Form.TextArea
+            label={_(".description")}
+            value={description}
+            onChange={(e, { value }) => setDescription(String(value))}
+          />
         </Form>
       </Modal.Content>
       <Modal.Actions>

@@ -8,6 +8,7 @@ import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
+import MarkdownContent from "@/markdown/MarkdownContent";
 import CreateSectionModal from "../common/CreateSectionModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
@@ -88,11 +89,18 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
     );
   }
 
-  const [renamePending, onRenameChapter] = useAsyncCallbackPending(async (title: string) => {
-    const { requestError, response } = await api.training.updateChapter({ id: chapter.id, title });
-    if (requestError) toast.error(requestError((key: string) => key));
-    else setChapter(currentChapter => ({ ...currentChapter, title: response.title }));
-  });
+  const [renamePending, onRenameChapter] = useAsyncCallbackPending(
+    async ({ title, description }: { title: string; description: string }) => {
+      const { requestError, response } = await api.training.updateChapter({ id: chapter.id, title, description });
+      if (requestError) toast.error(requestError((key: string) => key));
+      else
+        setChapter(currentChapter => ({
+          ...currentChapter,
+          title: response.title,
+          description: response.description
+        }));
+    }
+  );
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
@@ -103,6 +111,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
             title={_(".rename_chapter")}
             label={_(".chapter")}
             initialTitle={chapter.title}
+            initialDescription={chapter.description}
             pending={renamePending}
             onSubmit={onRenameChapter}
           />
@@ -166,7 +175,11 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
         {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
 
-      {chapter.description && <Segment className={style.description}>{chapter.description}</Segment>}
+      {chapter.description && (
+        <p>
+          <MarkdownContent content={chapter.description} />
+        </p>
+      )}
 
       {sections.length ? (
         <Table basic="very" textAlign="center" unstackable className={style.progressTable}>

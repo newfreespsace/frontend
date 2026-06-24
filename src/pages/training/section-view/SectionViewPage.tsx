@@ -8,6 +8,7 @@ import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Link, useAsyncCallbackPending, useLocalizer, useScreenWidthWithin } from "@/utils/hooks";
+import MarkdownContent from "@/markdown/MarkdownContent";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { StatusIcon } from "@/components/StatusText";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
@@ -100,11 +101,18 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
     setSection(await fetchSection(section.id));
   }
 
-  const [renamePending, onRenameSection] = useAsyncCallbackPending(async (title: string) => {
-    const { requestError, response } = await api.training.updateSection({ id: section.id, title });
-    if (requestError) toast.error(requestError((key: string) => key));
-    else setSection(currentSection => ({ ...currentSection, title: response.title }));
-  });
+  const [renamePending, onRenameSection] = useAsyncCallbackPending(
+    async ({ title, description }: { title: string; description: string }) => {
+      const { requestError, response } = await api.training.updateSection({ id: section.id, title, description });
+      if (requestError) toast.error(requestError((key: string) => key));
+      else
+        setSection(currentSection => ({
+          ...currentSection,
+          title: response.title,
+          description: response.description
+        }));
+    }
+  );
 
   function moveProblem(
     currentSection: ApiTypes.GetSectionByIdResponseDto,
@@ -127,6 +135,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
             title={_(".rename_section")}
             label={_(".section")}
             initialTitle={section.title}
+            initialDescription={section.description}
             pending={renamePending}
             onSubmit={onRenameSection}
           />
@@ -207,7 +216,11 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         )}
       </div>
 
-      {section.description && <Segment className={style.description}>{section.description}</Segment>}
+      {section.description && (
+        <p>
+          <MarkdownContent content={section.description} />
+        </p>
+      )}
 
       {section.problems.length ? (
         <Table basic="very" textAlign="center" unstackable>
