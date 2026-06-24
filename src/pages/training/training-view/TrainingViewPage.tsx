@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, Icon, Segment, Table } from "semantic-ui-react";
+import { Header, Icon, Message, MessageHeader, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "../common/TrainingPage.module.less";
@@ -169,9 +169,9 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
       </div>
 
       {training.description && (
-        <p>
+        <Message info>
           <MarkdownContent content={training.description} />
-        </p>
+        </Message>
       )}
 
       {chapters.length ? (
