@@ -167,6 +167,26 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   }
   // End toggle tags
 
+  // Begin referenced training sections
+  const [referencedSections, setReferencedSections] = useState<ApiTypes.ProblemReferencedSectionDto[]>([]);
+  useEffect(() => {
+    if (inContest) return;
+
+    let cancelled = false;
+    api.training
+      .querySectionsByProblemId({
+        problemId: props.problem.meta.id
+      })
+      .then(({ requestError, response }) => {
+        if (!cancelled && !requestError) setReferencedSections(response.references);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inContest, props.problem.meta.id]);
+  // End referenced training sections
+
   // Begin copy sample
   const [lastCopiedSample, setLastCopiedSample] = useState<{ id: number; type: "input" | "output" }>({
     id: null,
@@ -423,6 +443,27 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
         <Statistic.Label>{_(".statistic.submissions")}</Statistic.Label>
       </Statistic>
     </Statistic.Group>
+  );
+
+  const referencedSectionList = !inContest && referencedSections.length > 0 && (
+    <Menu pointing secondary vertical className={`${style.actionMenu} ${style.referencedSectionsMenu}`}>
+      <Menu.Item className={style.referencedSectionsTitle} disabled>
+        {_(".referenced_sections.title")}
+      </Menu.Item>
+      {referencedSections.map(reference => (
+        <Menu.Item
+          as={Link}
+          key={`${reference.trainingId}-${reference.chapterId}-${reference.sectionId}`}
+          className={style.referencedSection}
+          href={`/t/${reference.trainingId}/${reference.chapterId}/${reference.sectionId}`}
+        >
+          <Icon name="bookmark outline" />
+          <span>
+            {reference.trainingTitle} / {reference.chapterTitle} / {reference.sectionTitle}
+          </span>
+        </Menu.Item>
+      ))}
+    </Menu>
   );
 
   const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(props.problem.meta.id);
@@ -837,6 +878,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 </Menu>
               </>
             )}
+            {referencedSectionList}
           </div>
         </div>
       </div>

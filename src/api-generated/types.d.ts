@@ -1023,6 +1023,15 @@ declare namespace ApiTypes {
     filterByOwner?: boolean;
     filterNonpublic?: boolean;
   }
+  export interface ProblemReferencedSectionDto {
+    trainingId: number;
+    trainingTitle: string;
+    chapterId: number;
+    chapterTitle: string;
+    sectionId: number;
+    sectionTitle: string;
+    sortOrder: number;
+  }
   export interface QuerySectionByChapterIdDto {
     chapterId: number;
   }
@@ -1037,6 +1046,12 @@ declare namespace ApiTypes {
     memberCount: number;
     problemCount: number;
     result: ApiTypes.SectionGroupRanklistItemDto[];
+  }
+  export interface QuerySectionsByProblemIdDto {
+    problemId: number;
+  }
+  export interface QuerySectionsByProblemIdResponseDto {
+    references: ApiTypes.ProblemReferencedSectionDto[];
   }
   export interface QuerySubmissionRequestDto {
     locale: "en_US" | "zh_CN" | "ja_JP";

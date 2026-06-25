@@ -79,6 +79,9 @@ return {
     read: "read",
     write: "write"
   },
+  referenced_sections: {
+    title: "[TBT] Referenced by training sections"
+  },
   sample: {
     input: "入力",
     output: "出力",

@@ -77,6 +77,9 @@ return {
     read: "只读",
     write: "读写"
   },
+  referenced_sections: {
+    title: "引用该题目的训练小节"
+  },
   sample: {
     input: "输入",
     output: "输出",

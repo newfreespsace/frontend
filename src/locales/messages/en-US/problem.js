@@ -78,6 +78,9 @@ return {
     read: "Read Only",
     write: "Read/Write"
   },
+  referenced_sections: {
+    title: "Referenced by training sections"
+  },
   sample: {
     input: "Input",
     output: "Output",
