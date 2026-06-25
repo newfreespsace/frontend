@@ -65,7 +65,7 @@ const PreferenceView: React.FC<PreferenceViewProps> = props => {
     props.preference.font?.codeFontFace || availableCodeFonts[0] || "monospace"
   );
   const [codeFontSize, setCodeFontSize] = useState(props.preference.font?.codeFontSize || 16);
-  const [codeLineHeight, setCodeLineHeight] = useState(props.preference.font?.codeLineHeight || 1.5);
+  const [codeLineHeight, setCodeLineHeight] = useState(props.preference.font?.codeLineHeight || 1.3);
   const [codeFontLigatures, setCodeFontLigatures] = useState(props.preference.font?.codeFontLigatures !== false);
   const [markdownEditorFont, setMarkdownEditorFont] = useState(
     (props.preference.font?.markdownEditorFont || "content") as "content" | "code"
