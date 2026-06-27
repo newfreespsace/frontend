@@ -20,7 +20,9 @@ export const loadPrism = (() => {
 })();
 
 function normalizeLanguageName(language: string) {
-  return language.trim().toLowerCase();
+  const normalized = language.trim().toLowerCase();
+  if (normalized === "c++") return "cpp";
+  return normalized;
 }
 
 function normalizeCode(code: string) {
