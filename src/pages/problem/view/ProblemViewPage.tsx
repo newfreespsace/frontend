@@ -457,7 +457,6 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
           className={style.referencedSection}
           href={`/t/${reference.trainingId}/${reference.chapterId}/${reference.sectionId}`}
         >
-          <Icon name="bookmark outline" />
           <span>{reference.sectionTitle}</span>
         </Menu.Item>
       ))}
