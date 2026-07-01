@@ -227,9 +227,12 @@ const ProfileView: React.FC<ProfileViewProps> = props => {
         <div className={style.notes}>{_(!hasPrivilege ? ".email_notes" : ".email_notes_admin")}</div>
         <Header className={style.header} size="tiny" content={_(".nickname")} />
         <Input
+          readOnly={!hasPrivilege}
           fluid
           value={nickname}
-          onChange={(e, { value }) => !pending && value.length < 24 && (setModified(true), setNickname(value))}
+          onChange={(e, { value }) =>
+            !pending && hasPrivilege && value.length <= 24 && (setModified(true), setNickname(value))
+          }
         />
         <Header className={style.header} size="tiny" content={_(".bio")} />
         <Form>

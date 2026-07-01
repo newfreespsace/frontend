@@ -1126,6 +1126,7 @@ declare namespace ApiTypes {
     username: string;
     email: string;
     emailVerificationCode?: string;
+    nickname: string;
     password: string;
   }
   export interface RegisterResponseDto {

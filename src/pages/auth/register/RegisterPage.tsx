@@ -53,11 +53,13 @@ let RegisterPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [emailVerificationCode, setEmailVerificationCode] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
   const [registerPending, setRegisterPending] = useState(false);
 
   const refUsernameInput = useRef<HTMLInputElement>();
+  const refNicknameInput = useRef<HTMLInputElement>();
   const refEmailInput = useRef<HTMLInputElement>();
   const refEmailVerificationCodeInput = useRef<HTMLInputElement>();
   const refPasswordInput = useRef<HTMLInputElement>();
@@ -84,6 +86,17 @@ let RegisterPage: React.FC = () => {
       }
 
       if (!response.usernameAvailable) return _(".username_already_taken");
+      return true;
+    }
+  );
+
+  const [checkNickname, waitForNicknameCheck, getNicknameUIValidateStatus, getNicknameUIHelp] = useFieldCheck(
+    nickname,
+    false,
+    false,
+    value => {
+      if (!value.trim()) return _(".empty_nickname");
+      if (value.trim().length > 24) return _(".invalid_nickname");
       return true;
     }
   );
@@ -136,6 +149,10 @@ let RegisterPage: React.FC = () => {
       toast.error(_(".username_unavailable_message"));
       refUsernameInput.current.focus();
       refUsernameInput.current.select();
+    } else if (!(await waitForNicknameCheck())) {
+      toast.error(_(".invalid_nickname_message"));
+      refNicknameInput.current.focus();
+      refNicknameInput.current.select();
     } else if (!(await waitForEmailCheck())) {
       toast.error(_(".email_unavailable_message"));
       refEmailInput.current.focus();
@@ -154,6 +171,7 @@ let RegisterPage: React.FC = () => {
           username: username,
           email: email,
           emailVerificationCode: emailVerificationCode,
+          nickname: nickname,
           password: password
         },
         recaptcha("Register")
@@ -292,6 +310,29 @@ let RegisterPage: React.FC = () => {
                 autoComplete="username"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                 onBlur={() => checkUsername()}
+                onKeyPress={onEnterPress(() => refNicknameInput.current.focus())}
+              />
+            </Ref>
+
+            {/* nickname */}
+            <Ref innerRef={field => field && (refNicknameInput.current = field.querySelector("input"))}>
+              <Form.Field
+                control={Input}
+                error={
+                  getNicknameUIValidateStatus() === "error" && {
+                    content: getNicknameUIHelp(),
+                    pointing: "left"
+                  }
+                }
+                loading={getNicknameUIValidateStatus() === "validating"}
+                fluid
+                icon="id badge"
+                iconPosition="left"
+                placeholder={_(".nickname")}
+                value={nickname}
+                autoComplete="nickname"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
+                onBlur={() => checkNickname()}
                 onKeyPress={onEnterPress(() => refEmailInput.current.focus())}
               />
             </Ref>
