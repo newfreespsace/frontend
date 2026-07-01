@@ -217,7 +217,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
       </div>
 
       {section.description && (
-        <p style={{ marginBottom: 24 }}>
+        <p style={{ marginBottom: 60, marginTop: 30 }}>
           <MarkdownContent content={section.description} />
         </p>
       )}

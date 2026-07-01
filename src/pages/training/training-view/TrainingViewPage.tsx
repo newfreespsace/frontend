@@ -169,7 +169,7 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
       </div>
 
       {training.description && (
-        <p style={{ marginBottom: 24 }}>
+        <p style={{ marginBottom: 60, marginTop: 30 }}>
           <MarkdownContent content={training.description} />
         </p>
       )}
