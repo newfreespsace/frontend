@@ -223,16 +223,18 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             onBlur={checkQueryProblemId}
             error={queryProblemIdError}
           />
-          <Form.Input
-            className={style.queryInputSubmitter}
-            icon="user"
-            iconPosition="left"
-            placeholder={_(".query.submitter")}
-            value={querySubmitter}
-            onChange={(e, { value }) => setQuerySubmitter(value)}
-            onBlur={checkQuerySubmitter}
-            error={querySubmitterError}
-          />
+          {appState.currentUser?.isAdmin && (
+            <Form.Input
+              className={style.queryInputSubmitter}
+              icon="user"
+              iconPosition="left"
+              placeholder={_(".query.submitter")}
+              value={querySubmitter}
+              onChange={(e, { value }) => setQuerySubmitter(value)}
+              onBlur={checkQuerySubmitter}
+              error={querySubmitterError}
+            />
+          )}
           <Form.Select
             className={
               style.queryInputCodeLanguage + " " + style.select + (!queryCodeLanguage ? " " + style.selectedAll : "")
@@ -292,7 +294,8 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             content={isWideScreen ? _(".query.filter") : null}
             onClick={() => onFilter(false)}
           />
-          {appState.currentUser && (
+
+          {appState.currentUser?.isAdmin && (
             <Button
               className={(isWideScreen ? "labeled icon " : "") + style.mySubmissions}
               primary
