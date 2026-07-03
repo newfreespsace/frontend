@@ -113,7 +113,7 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     statistics: true,
     discussionCount: true,
     permissionOfCurrentUser: true,
-    lastSubmissionAndLastAcceptedSubmission: false
+    lastSubmissionAndLastAcceptedSubmission: true
   });
 
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
@@ -465,6 +465,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
 
   const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(props.problem.meta.id);
   const lastAcceptedSubmission = props.problem.lastSubmission?.lastAcceptedSubmission;
+  const canViewDiscussion = Boolean(lastAcceptedSubmission) || appState.currentUserHasPrivilege("ManageDiscussion");
   return (
     <>
       {permissionManager}
@@ -748,7 +749,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {!inContest && (
+              {!inContest && canViewDiscussion && (
                 <Menu.Item
                   as={Link}
                   href={{
