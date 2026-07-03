@@ -112,8 +112,9 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     judgeInfoToBePreprocessed: true,
     statistics: true,
     discussionCount: true,
+    canViewDiscussion: true,
     permissionOfCurrentUser: true,
-    lastSubmissionAndLastAcceptedSubmission: true
+    lastSubmissionAndLastAcceptedSubmission: false
   });
 
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
@@ -367,7 +368,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   const [inSubmitView, setInSubmitView] = useState(false);
   const refScrollTopBackup = useRef(0);
   const [submissionContent, setSubmissionContent] = useState(
-    props.problem.lastSubmission?.lastSubmissionContent || ProblemTypeView.getDefaultSubmissionContent()
+    (!inContest && props.problem.lastSubmission?.lastSubmissionContent) || ProblemTypeView.getDefaultSubmissionContent()
   );
   const scrollElement = document.documentElement;
 
@@ -464,8 +465,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   );
 
   const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(props.problem.meta.id);
-  const lastAcceptedSubmission = props.problem.lastSubmission?.lastAcceptedSubmission;
-  const canViewDiscussion = Boolean(lastAcceptedSubmission) || appState.currentUserHasPrivilege("ManageDiscussion");
+  const lastAcceptedSubmission = !inContest && props.problem.lastSubmission?.lastAcceptedSubmission;
   return (
     <>
       {permissionManager}
@@ -564,7 +564,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       <Divider className={style.divider} />
       <ProblemTypeView.SubmitView
         judgeInfo={props.problem.judgeInfo}
-        lastSubmission={props.problem.lastSubmission}
+        lastSubmission={!inContest ? props.problem.lastSubmission : undefined}
         inSubmitView={inSubmitView}
         pendingSubmit={submitPending}
         submissionContent={submissionContent}
@@ -749,7 +749,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {!inContest && canViewDiscussion && (
+              {!inContest && props.problem.canViewDiscussion && (
                 <Menu.Item
                   as={Link}
                   href={{
