@@ -36,7 +36,6 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
   const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(null);
   const [ranklist, setRanklist] = useState<ApiTypes.QuerySectionGroupRanklistResponseDto>(null);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
-  const storageKey = `training.section.${props.section.id}.ranklist.group`;
 
   const [pending, queryRanklist] = useAsyncCallbackPending(async (selectedGroup?: ApiTypes.GroupMetaDto) => {
     setGroup(selectedGroup);
@@ -46,51 +45,14 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
       groupId: selectedGroup?.id
     });
     if (requestError) toast.error(requestError((key: string) => key));
-    else {
-      setRanklist(response);
-      if (selectedGroup) saveLastViewedGroup(selectedGroup);
-    }
+    else setRanklist(response);
   });
 
   useEffect(() => {
     appState.enterNewPage(_(".ranklist_page_title", { title: props.section.title }), "training");
 
-    if (canManageTraining) {
-      const lastViewedGroup = getLastViewedGroup();
-      if (lastViewedGroup) queryRanklist(lastViewedGroup);
-    } else queryRanklist();
+    queryRanklist();
   }, [appState.locale, props.section.id, props.section.title]);
-
-  function getLastViewedGroup(): ApiTypes.GroupMetaDto {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return null;
-      const savedGroup = JSON.parse(raw);
-      if (
-        typeof savedGroup.id !== "number" ||
-        typeof savedGroup.name !== "string" ||
-        typeof savedGroup.memberCount !== "number"
-      ) {
-        localStorage.removeItem(storageKey);
-        return null;
-      }
-      return savedGroup;
-    } catch {
-      localStorage.removeItem(storageKey);
-      return null;
-    }
-  }
-
-  function saveLastViewedGroup(selectedGroup: ApiTypes.GroupMetaDto) {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        id: selectedGroup.id,
-        name: selectedGroup.name,
-        memberCount: selectedGroup.memberCount
-      })
-    );
-  }
 
   function renderRank(rank: number): React.ReactNode {
     if (rank === 1) return <span className={`${style.rankRibbon} ${style.rankFirst}`}>{rank}</span>;
