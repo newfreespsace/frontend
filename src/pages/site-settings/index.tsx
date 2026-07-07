@@ -32,6 +32,9 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
   }, [appState.locale]);
 
   const [allowRegister, setAllowRegister] = useState(props.preference.security.allowRegister);
+  const [hideSubmissionTestcaseDetailsForNormalUsers, setHideSubmissionTestcaseDetailsForNormalUsers] = useState(
+    props.preference.security.hideSubmissionTestcaseDetailsForNormalUsers
+  );
   const [pending, setPending] = useState(false);
 
   async function onSubmit() {
@@ -41,7 +44,8 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
     const { requestError, response } = await api.siteSetting.updatePreference({
       preference: {
         security: {
-          allowRegister
+          allowRegister,
+          hideSubmissionTestcaseDetailsForNormalUsers
         }
       }
     });
@@ -67,6 +71,14 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
               label={_(".allow_register")}
               checked={allowRegister}
               onChange={(e, { checked }) => setAllowRegister(!!checked)}
+            />
+          </Form.Field>
+          <Form.Field>
+            <Checkbox
+              toggle
+              label={_(".hide_submission_testcase_details_for_normal_users")}
+              checked={hideSubmissionTestcaseDetailsForNormalUsers}
+              onChange={(e, { checked }) => setHideSubmissionTestcaseDetailsForNormalUsers(!!checked)}
             />
           </Form.Field>
           <Button primary loading={pending} onClick={onSubmit}>

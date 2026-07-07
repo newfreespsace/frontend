@@ -829,6 +829,7 @@ declare namespace ApiTypes {
     discussionDefaultPublic: boolean;
     discussionReplyDefaultPublic: boolean;
     allowEveryoneCreateDiscussion: boolean;
+    hideSubmissionTestcaseDetailsForNormalUsers: boolean;
   }
   export interface ProblemContentSectionDto {
     sectionTitle: string;
