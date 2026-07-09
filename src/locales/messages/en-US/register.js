@@ -16,7 +16,8 @@ return {
   empty_nickname: "Please enter your nickname",
   invalid_nickname: "Nickname must be in the length of 1 to 24",
   empty_username: "Please enter your username",
-  invalid_username: 'Username should contains only A-Z, a-z, 0-9 and "-_.#$" and be in the length of 3 to 24',
+  invalid_username:
+    "Username must be 3 to 24 characters, start with a letter or number, and contain only letters, numbers, underscores, and hyphens",
   username_already_taken: "Username already taken",
   empty_email: "Please enter your email address",
   invalid_email: "Invalid email address",

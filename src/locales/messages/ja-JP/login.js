@@ -25,7 +25,8 @@ return {
     title: "[TBT] Choose a new username",
     message:
       "[TBT] We are sorry but your username is invalid in our new system. You must choose a new username to continue.",
-    message_username: "[TBT] ユーザ名は 3 文字から 24 文字で，英数字と <code>-_.#$</code> が使用できます。",
+    message_username:
+      "[TBT] Username must be 3 to 24 characters, start with a letter or number, and contain only letters, numbers, underscores, and hyphens.",
     invalid_username: "[TBT] Invalid username.",
     placeholder: "[TBT] New username",
     confirm: "[TBT] Rename",

@@ -16,7 +16,7 @@ return {
   empty_nickname: "昵称不能为空",
   invalid_nickname: "昵称长度需要在 1 到 24 之间",
   empty_username: "用户名不能为空",
-  invalid_username: "用户名需要仅包含大小写字母、数字和「-_.#$」，且长度在 3 到 24 之间",
+  invalid_username: "用户名长度需要在 3 到 24 之间，以字母或数字开头，且仅包含大小写字母、数字、下划线和短横线",
   username_already_taken: "用户名已被使用",
   empty_email: "邮箱不能为空",
   invalid_email: "邮箱无效",

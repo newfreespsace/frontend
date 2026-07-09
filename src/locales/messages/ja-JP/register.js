@@ -15,7 +15,8 @@ return {
   empty_nickname: "[TBT] Please enter your nickname",
   invalid_nickname: "[TBT] Nickname must be in the length of 1 to 24",
   empty_username: "ユーザ名を入力してください",
-  invalid_username: "ユーザ名は 3 文字から 24 文字で，英数字と -_.#$ が使用できます。",
+  invalid_username:
+    "[TBT] Username must be 3 to 24 characters, start with a letter or number, and contain only letters, numbers, underscores, and hyphens.",
   username_already_taken: "このユーザ名はすでに使用されています",
   empty_email: "メールアドレスを入力してください",
   invalid_email: "無効なメールアドレスです",
