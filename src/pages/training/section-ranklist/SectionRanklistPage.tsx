@@ -9,6 +9,7 @@ import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import GroupSearch from "@/components/GroupSearch";
 import ScoreText from "@/components/ScoreText";
+import { StatusIcon } from "@/components/StatusText";
 import { getProblemUrl } from "@/pages/problem/utils";
 import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import toast from "@/utils/toast";
@@ -124,6 +125,9 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
                 <Table.Body>
                   {ranklist.result.map(item => {
                     const acceptedProblemIds = new Set(item.acceptedProblemIds);
+                    const submissionsByProblemId = new Map(
+                      (item.submissions || []).map(submission => [submission.problemId, submission])
+                    );
                     return (
                       <Table.Row key={item.user.id}>
                         <Table.Cell className={style.rank}>{renderRank(item.rank)}</Table.Cell>
@@ -143,9 +147,16 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
                         </Table.Cell>
                         {props.section.problems.map(problem => {
                           const accepted = acceptedProblemIds.has(problem.meta.id);
+                          const submission = submissionsByProblemId.get(problem.meta.id);
                           return (
                             <Table.Cell key={problem.meta.id} className={accepted ? style.acceptedCell : undefined}>
-                              {accepted && <ScoreText score={100}>+</ScoreText>}
+                              {submission?.canView ? (
+                                <Link href={`/s/${submission.submissionId}`}>
+                                  <StatusIcon status={submission.status} noMarginRight />
+                                </Link>
+                              ) : (
+                                submission && <StatusIcon status={submission.status} noMarginRight />
+                              )}
                             </Table.Cell>
                           );
                         })}

@@ -1267,6 +1267,27 @@ declare namespace ApiTypes {
     user: ApiTypes.UserMetaDto;
     acceptedProblemCount: number;
     acceptedProblemIds: number[];
+    submissions: ApiTypes.SectionGroupRanklistProblemSubmissionDto[];
+  }
+  export interface SectionGroupRanklistProblemSubmissionDto {
+    problemId: number;
+    submissionId: number;
+    status:
+      | "Accepted"
+      | "PartiallyCorrect"
+      | "WrongAnswer"
+      | "RuntimeError"
+      | "TimeLimitExceeded"
+      | "MemoryLimitExceeded"
+      | "CompilationError"
+      | "FileError"
+      | "OutputLimitExceeded"
+      | "JudgementFailed"
+      | "ConfigurationError"
+      | "SystemError"
+      | "Canceled"
+      | "Pending";
+    canView: boolean;
   }
   export interface SectionMetaDto {
     id: number;
