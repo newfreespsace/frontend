@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Dropdown,
@@ -17,6 +17,7 @@ import { observer } from "mobx-react";
 import twemoji from "twemoji";
 import TextAreaAutoSize from "react-textarea-autosize";
 import { v4 as uuid } from "uuid";
+import MarkdownIt from "markdown-it";
 
 import style from "./DiscussionViewPage.module.less";
 import loadMoreBackground from "./LoadMoreBackground.svg";
@@ -40,7 +41,7 @@ import toast from "@/utils/toast";
 import UserLink from "@/components/UserLink";
 import formatDateTime from "@/utils/formatDateTime";
 import UserAvatar from "@/components/UserAvatar";
-import MarkdownContent from "@/markdown/MarkdownContent";
+import MarkdownContent, { MarkdownContentPatcher } from "@/markdown/MarkdownContent";
 import PseudoLink from "@/components/PseudoLink";
 import { onEnterPress } from "@/utils/onEnterPress";
 import PermissionManager from "@/components/LazyPermissionManager";
@@ -80,6 +81,73 @@ const Emoji: React.FC<EmojiProps> = React.memo(props => (
     }}
   />
 ));
+
+interface MarkdownOutlineItem {
+  id: string;
+  level: number;
+  title: string;
+}
+
+const DISCUSSION_HEADING_SCROLL_OFFSET = 90;
+const markdownOutlineParser = new MarkdownIt({ html: true });
+
+function stripMarkdownHeadingText(text: string) {
+  return text
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[`*_~]/g, "")
+    .trim();
+}
+
+function extractMarkdownOutline(content: string): MarkdownOutlineItem[] {
+  const outline: MarkdownOutlineItem[] = [];
+  const tokens = markdownOutlineParser.parse(content, {});
+
+  tokens.forEach((token, index) => {
+    if (token.type !== "heading_open" || !["h1", "h2", "h3"].includes(token.tag)) return;
+
+    const titleToken = tokens[index + 1];
+    const title = titleToken?.type === "inline" ? stripMarkdownHeadingText(titleToken.content) : "";
+    if (!title) return;
+
+    outline.push({
+      id: `discussion-heading-${outline.length + 1}`,
+      level: Number(token.tag.slice(1)),
+      title
+    });
+  });
+
+  return outline;
+}
+
+function createDiscussionMarkdownContentPatcher(
+  outline: MarkdownOutlineItem[],
+  onPatchResult?: () => void
+): MarkdownContentPatcher {
+  return {
+    onPatchRenderer: renderer => {
+      let headingIndex = 0;
+      const defaultRender = renderer.renderer.rules.heading_open;
+
+      renderer.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
+        if (["h1", "h2", "h3"].includes(tokens[idx].tag)) {
+          const item = outline[headingIndex++];
+          if (item) tokens[idx].attrSet("id", item.id);
+        }
+
+        return defaultRender ? defaultRender(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options);
+      };
+    },
+    onPatchResult: () => {
+      if (onPatchResult) onPatchResult();
+    },
+    onXssFileterAttr: (tagName, attrName, value, escapeAttrValue) => {
+      if (/^h[1-3]$/i.test(tagName) && attrName.toLowerCase() === "id" && /^discussion-heading-\d+$/.test(value)) {
+        return `id="${escapeAttrValue(value)}"`;
+      }
+    }
+  };
+}
 
 interface ReactionEmojiPickerProps {
   currentUserReactions: string[];
@@ -138,6 +206,7 @@ interface DiscussionItemProps {
   discussion: ApiTypes.DiscussionDto;
 
   content: string;
+  markdownContentPatcher?: MarkdownContentPatcher;
   isPublic: boolean;
   reactions: ApiTypes.DiscussionOrReplyReactionsDto;
   publisher: ApiTypes.UserMetaDto;
@@ -397,7 +466,7 @@ let DiscussionItem: React.FC<DiscussionItemProps> = props => {
           </div>
         </Header>
         <Segment attached className={style.content}>
-          <MarkdownContent content={props.content} />
+          <MarkdownContent content={props.content} patcher={props.markdownContentPatcher} />
         </Segment>
         {emojisAndCount.length > 0 && (
           <Segment attached="bottom" className={style.emojiList}>
@@ -1011,6 +1080,75 @@ let DiscussionViewPage: React.FC<DiscussionViewPageProps> = props => {
   );
 
   const isMobile = useScreenWidthWithin(0, 768);
+  const outline = useMemo(() => extractMarkdownOutline(discussion.content), [discussion.content]);
+  const outlineRef = useRef<HTMLElement>();
+  const [outlineRenderVersion, setOutlineRenderVersion] = useState(0);
+  const [activeOutlineId, setActiveOutlineId] = useState<string>();
+  const discussionMarkdownContentPatcher = useMemo(
+    () => createDiscussionMarkdownContentPatcher(outline, () => setOutlineRenderVersion(version => version + 1)),
+    [outline]
+  );
+
+  useEffect(() => {
+    setActiveOutlineId(outline[0]?.id);
+  }, [outline]);
+
+  useEffect(() => {
+    if (isMobile || outline.length === 0) return;
+
+    let frame = 0;
+    const updateActiveHeading = () => {
+      frame = 0;
+      const headings = outline
+        .map(item => document.getElementById(item.id))
+        .filter((element): element is HTMLElement => !!element);
+      if (headings.length === 0) return;
+
+      let activeHeading = headings[0];
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top <= DISCUSSION_HEADING_SCROLL_OFFSET) activeHeading = heading;
+        else break;
+      }
+
+      setActiveOutlineId(activeHeading.id);
+    };
+
+    const requestUpdateActiveHeading = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateActiveHeading);
+    };
+
+    requestUpdateActiveHeading();
+    window.addEventListener("scroll", requestUpdateActiveHeading, { passive: true });
+    window.addEventListener("resize", requestUpdateActiveHeading);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", requestUpdateActiveHeading);
+      window.removeEventListener("resize", requestUpdateActiveHeading);
+    };
+  }, [isMobile, outline, outlineRenderVersion]);
+
+  useEffect(() => {
+    if (!activeOutlineId || !outlineRef.current) return;
+
+    const activeLink = outlineRef.current.querySelector(`[href="#${activeOutlineId}"]`);
+    if (activeLink) activeLink.scrollIntoView({ block: "nearest" });
+  }, [activeOutlineId]);
+
+  function onClickOutlineItem(e: React.MouseEvent<HTMLAnchorElement>, item: MarkdownOutlineItem) {
+    e.preventDefault();
+
+    const heading = document.getElementById(item.id);
+    if (!heading) return;
+
+    window.history.pushState(null, "", `${window.location.pathname}${window.location.search}#${item.id}`);
+    window.scrollTo({
+      top: Math.max(0, heading.getBoundingClientRect().top + window.pageYOffset - DISCUSSION_HEADING_SCROLL_OFFSET),
+      behavior: "smooth"
+    });
+    setActiveOutlineId(item.id);
+  }
 
   return (
     <>
@@ -1036,79 +1174,102 @@ let DiscussionViewPage: React.FC<DiscussionViewPageProps> = props => {
         </div>
         {!isMobile && <div className={style.actions}>{actions}</div>}
       </div>
-      <div className={style.items + (isMobile ? " " + style.mobile : "")}>
-        <DiscussionItem
-          type="Discussion"
-          discussion={discussion}
-          content={discussion.content}
-          isPublic={discussion.meta.isPublic}
-          reactions={discussion.reactions}
-          publisher={discussion.publisher}
-          publishTime={new Date(discussion.meta.publishTime)}
-          editTime={discussion.meta.editTime && new Date(discussion.meta.editTime)}
-          permission={discussion.permissions}
-          onReaction={async (emoji: string, reaction: boolean) =>
-            await onReaction("Discussion", discussion.meta.id, emoji, reaction)
-          }
-          onSetPublic={() => onSetPublic("Discussion", discussion.meta.id, !discussion.meta.isPublic)}
-          onManagePermission={() => refOpenPermissionManager.current && refOpenPermissionManager.current()}
-          onEnterEdit={`/d/${discussion.meta.id}/edit`}
-          onDelete={async () => await onDelete("Discussion", discussion.meta.id)}
-        />
-        {items.map((item, i) =>
-          item.type === "EditReply" ? (
-            <DiscussionEditor
-              key={item.reply.id}
-              publisher={item.reply.publisher}
-              content={item.editReplyContent}
-              type="UpdateReply"
-              onCancel={() => onCancelEdit(item.reply.id)}
-              onChangeContent={content => mergeItem(item.reply.id, { editReplyContent: content })}
-              onSubmit={content => onUpdateReply(item.reply.id, content)}
-            />
-          ) : item.type === "Reply" ? (
+      <div className={style.contentLayout}>
+        <div className={style.mainColumn}>
+          <div className={style.items + (isMobile ? " " + style.mobile : "")}>
             <DiscussionItem
-              key={item.reply.id}
-              type="Reply"
+              type="Discussion"
               discussion={discussion}
-              content={item.reply.content}
-              isPublic={item.reply.isPublic}
-              reactions={item.reply.reactions}
-              publisher={item.reply.publisher}
-              publishTime={new Date(item.reply.publishTime)}
-              editTime={item.reply.editTime && new Date(item.reply.editTime)}
-              permission={item.reply.permissions}
+              content={discussion.content}
+              markdownContentPatcher={discussionMarkdownContentPatcher}
+              isPublic={discussion.meta.isPublic}
+              reactions={discussion.reactions}
+              publisher={discussion.publisher}
+              publishTime={new Date(discussion.meta.publishTime)}
+              editTime={discussion.meta.editTime && new Date(discussion.meta.editTime)}
+              permission={discussion.permissions}
               onReaction={async (emoji: string, reaction: boolean) =>
-                await onReaction("DiscussionReply", item.reply.id, emoji, reaction)
+                await onReaction("Discussion", discussion.meta.id, emoji, reaction)
               }
-              onQuote={() => onQuote(item.reply.publisher.username, item.reply.content)}
-              onSetPublic={() => onSetPublic("DiscussionReply", item.reply.id, !item.reply.isPublic)}
-              onEnterEdit={() => onEnterEdit(item.reply.id)}
-              onDelete={async () => await onDelete("DiscussionReply", item.reply.id)}
+              onSetPublic={() => onSetPublic("Discussion", discussion.meta.id, !discussion.meta.isPublic)}
+              onManagePermission={() => refOpenPermissionManager.current && refOpenPermissionManager.current()}
+              onEnterEdit={`/d/${discussion.meta.id}/edit`}
+              onDelete={async () => await onDelete("Discussion", discussion.meta.id)}
             />
-          ) : (
-            <div key={`LoadMore${i}`} className={style.loadMore}>
-              <div>
-                {_(item.loadMore.count === 1 ? ".load_more.hidden_count" : ".load_more.hidden_count_s", {
-                  count: item.loadMore.count
-                })}
-                <PseudoLink onClick={() => onLoadMore(item)}>{_(".load_more.load_more")}</PseudoLink>
-              </div>
-            </div>
-          )
-        )}
-        {appState.currentUser && (
-          <>
-            {!isMobile && <div className={style.dividerBeforeAddReply} />}
-            <DiscussionEditor
-              ref={refNewReply}
-              publisher={appState.currentUser}
-              content={newReplyContent}
-              type="NewReply"
-              onChangeContent={setNewReplyContent}
-              onSubmit={onAddNewReply}
-            />
-          </>
+            {items.map((item, i) =>
+              item.type === "EditReply" ? (
+                <DiscussionEditor
+                  key={item.reply.id}
+                  publisher={item.reply.publisher}
+                  content={item.editReplyContent}
+                  type="UpdateReply"
+                  onCancel={() => onCancelEdit(item.reply.id)}
+                  onChangeContent={content => mergeItem(item.reply.id, { editReplyContent: content })}
+                  onSubmit={content => onUpdateReply(item.reply.id, content)}
+                />
+              ) : item.type === "Reply" ? (
+                <DiscussionItem
+                  key={item.reply.id}
+                  type="Reply"
+                  discussion={discussion}
+                  content={item.reply.content}
+                  isPublic={item.reply.isPublic}
+                  reactions={item.reply.reactions}
+                  publisher={item.reply.publisher}
+                  publishTime={new Date(item.reply.publishTime)}
+                  editTime={item.reply.editTime && new Date(item.reply.editTime)}
+                  permission={item.reply.permissions}
+                  onReaction={async (emoji: string, reaction: boolean) =>
+                    await onReaction("DiscussionReply", item.reply.id, emoji, reaction)
+                  }
+                  onQuote={() => onQuote(item.reply.publisher.username, item.reply.content)}
+                  onSetPublic={() => onSetPublic("DiscussionReply", item.reply.id, !item.reply.isPublic)}
+                  onEnterEdit={() => onEnterEdit(item.reply.id)}
+                  onDelete={async () => await onDelete("DiscussionReply", item.reply.id)}
+                />
+              ) : (
+                <div key={`LoadMore${i}`} className={style.loadMore}>
+                  <div>
+                    {_(item.loadMore.count === 1 ? ".load_more.hidden_count" : ".load_more.hidden_count_s", {
+                      count: item.loadMore.count
+                    })}
+                    <PseudoLink onClick={() => onLoadMore(item)}>{_(".load_more.load_more")}</PseudoLink>
+                  </div>
+                </div>
+              )
+            )}
+            {appState.currentUser && (
+              <>
+                {!isMobile && <div className={style.dividerBeforeAddReply} />}
+                <DiscussionEditor
+                  ref={refNewReply}
+                  publisher={appState.currentUser}
+                  content={newReplyContent}
+                  type="NewReply"
+                  onChangeContent={setNewReplyContent}
+                  onSubmit={onAddNewReply}
+                />
+              </>
+            )}
+          </div>
+        </div>
+        {!isMobile && outline.length > 0 && (
+          <aside className={style.outline} ref={outlineRef}>
+            <nav>
+              {outline.map(item => (
+                <a
+                  key={item.id}
+                  className={
+                    style[`level${Math.min(item.level, 6)}`] + (item.id === activeOutlineId ? " " + style.active : "")
+                  }
+                  href={`#${item.id}`}
+                  onClick={e => onClickOutlineItem(e, item)}
+                >
+                  {item.title}
+                </a>
+              ))}
+            </nav>
+          </aside>
         )}
       </div>
     </>
