@@ -433,7 +433,9 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
 
   const navigateToLogin = useLoginOrRegisterNavigation("login");
 
-  const statistic = (
+  const hasStatistics =
+    props.problem.meta.acceptedSubmissionCount != null && props.problem.meta.submissionCount != null;
+  const statistic = hasStatistics ? (
     <Statistic.Group size="small" className={style.statistic}>
       <Statistic>
         <Statistic.Value>{props.problem.meta.acceptedSubmissionCount}</Statistic.Value>
@@ -444,7 +446,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
         <Statistic.Label>{_(".statistic.submissions")}</Statistic.Label>
       </Statistic>
     </Statistic.Group>
-  );
+  ) : null;
 
   const referencedSectionList = !inContest && referencedSections.length > 0 && (
     <Menu pointing secondary vertical className={`${style.actionMenu} ${style.referencedSectionsMenu}`}>
