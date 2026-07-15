@@ -28,6 +28,7 @@ return {
     statistics: "统计",
     discussion: "讨论",
     files: "文件",
+    additional_files: "附加文件",
     edit: "编辑",
     judge_settings: "评测设置",
     permission_manage: "权限管理",

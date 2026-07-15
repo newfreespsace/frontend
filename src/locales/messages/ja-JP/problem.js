@@ -28,6 +28,7 @@ return {
     statistics: "統計",
     discussion: "ディスカッション",
     files: "ファイル",
+    additional_files: "他のファイル",
     edit: "編集",
     judge_settings: "ジャッジ設定",
     permission_manage: "権限管理",

@@ -744,6 +744,15 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 }}
               />
 
+              {inContest && props.problem.additionalFiles?.length > 0 && (
+                <Menu.Item
+                  name={_(".action.additional_files")}
+                  icon="folder open"
+                  as={Link}
+                  href={{ pathname: `/c/${props.contest.id}/p/${props.contestPid}/files` }}
+                />
+              )}
+
               {inContest && ProblemTypeView.enableStatistics() && (
                 <Menu.Item
                   name={_(".action.back_to_contest")}
@@ -790,14 +799,6 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   icon="folder open"
                   as={Link}
                   href={getProblemUrl(props.problem.meta, { subRoute: "files" })}
-                />
-              )}
-              {inContest && props.problem.additionalFiles?.length > 0 && (
-                <Menu.Item
-                  name={_(".action.files")}
-                  icon="folder open"
-                  as={Link}
-                  href={{ pathname: `/c/${props.contest.id}/p/${props.contestPid}/files` }}
                 />
               )}
             </Menu>

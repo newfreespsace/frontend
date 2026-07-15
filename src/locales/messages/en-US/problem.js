@@ -28,6 +28,7 @@ return {
     statistics: "Statistics",
     discussion: "Discussion",
     files: "Files",
+    additional_files: "Additional Files",
     edit: "Edit",
     judge_settings: "Judge Settings",
     permission_manage: "Permissions",
