@@ -77,7 +77,6 @@ interface SubmissionContent {
   language: CodeLanguage;
   code: string;
   compileAndRunOptions: any;
-  skipSamples?: boolean;
 }
 
 type TraditionalProblemSubmitViewProps = ProblemTypeSubmitViewProps<JudgeInfoTraditional, SubmissionContent>;
@@ -87,7 +86,6 @@ let TraditionalProblemSubmitView: React.FC<TraditionalProblemSubmitViewProps> = 
     <>
       <SubmitViewFrame
         {...props}
-        showSkipSamples={props.judgeInfo.runSamples}
         mainContent={
           <SubmitViewFrame.EditorWrapper>
             <CodeEditor

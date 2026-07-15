@@ -28,7 +28,6 @@ interface SubmissionContent {
   language: CodeLanguage;
   code: string;
   compileAndRunOptions: any;
-  skipSamples?: boolean;
 }
 
 type SubmitAnswerProblemSubmitViewProps = ProblemTypeSubmitViewProps<JudgeInfoSubmitAnswer, SubmissionContent>;
@@ -80,7 +79,6 @@ let SubmitAnswerProblemSubmitView: React.FC<SubmitAnswerProblemSubmitViewProps> 
       <SubmitViewFrame
         {...props}
         onGetSubmitFile={onGetSubmitFile}
-        showSkipSamples={false}
         mainContent={
           <SubmitViewFrame.EditorWrapper disabled={selectedFiles.length > 0}>
             <TabbedEditor

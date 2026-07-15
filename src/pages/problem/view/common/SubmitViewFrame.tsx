@@ -1,5 +1,5 @@
 import React from "react";
-import { Header, Menu, Button, Checkbox } from "semantic-ui-react";
+import { Header, Menu, Button } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "./SubmitViewFrame.module.less";
@@ -9,7 +9,6 @@ import StatusText from "@/components/StatusText";
 import ScoreText from "@/components/ScoreText";
 
 interface SubmitViewFrameProps {
-  showSkipSamples: boolean;
   mainContent: React.ReactNode;
   sidebarContent: React.ReactNode;
   submitDisabled: boolean;
@@ -18,9 +17,7 @@ interface SubmitViewFrameProps {
   inSubmitView: boolean;
   pendingSubmit: boolean;
   lastSubmission?: ApiTypes.ProblemLastSubmissionDto;
-  submissionContent: unknown;
   onCloseSubmitView: () => void;
-  onUpdateSubmissionContent: (path: string, value: unknown) => void;
   onSubmit: (onGetSubmitFile?: () => Promise<Blob>) => void;
 }
 
@@ -36,14 +33,6 @@ let SubmitViewFrame: React.FC<SubmitViewFrameProps> = props => {
           <div />
         </Menu>
         {props.sidebarContent}
-        {props.showSkipSamples && (
-          <Checkbox
-            className={style.skipSamples}
-            label={_(".submit.skip_samples")}
-            checked={(props.submissionContent as any).skipSamples}
-            onChange={(e, { checked }) => props.onUpdateSubmissionContent("skipSamples", checked)}
-          />
-        )}
         <Button
           className={style.submitButton}
           primary

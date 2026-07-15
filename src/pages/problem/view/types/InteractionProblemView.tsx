@@ -39,7 +39,6 @@ interface SubmissionContent {
   language: CodeLanguage;
   code: string;
   compileAndRunOptions: any;
-  skipSamples?: boolean;
 }
 
 type InteractionProblemSubmitViewProps = ProblemTypeSubmitViewProps<JudgeInfoInteraction, SubmissionContent>;
@@ -49,7 +48,6 @@ let InteractionProblemSubmitView: React.FC<InteractionProblemSubmitViewProps> = 
     <>
       <SubmitViewFrame
         {...props}
-        showSkipSamples={props.judgeInfo.runSamples}
         mainContent={
           <SubmitViewFrame.EditorWrapper>
             <CodeEditor
