@@ -84,7 +84,7 @@ function isContestLockedPath(request: NaviRequest): boolean {
 
   if (pathname === "/c" || pathname === "/c/") return true;
 
-  const contestMatch = pathname.match(/^\/c\/(\d+)(?:\/p\/\d+|\/s\/\d+)?\/?$/);
+  const contestMatch = pathname.match(/^\/c\/(\d+)(?:\/p\/\d+(?:\/files)?|\/s\/\d+)?\/?$/);
   if (contestMatch) return activeContestIds.has(contestMatch[1]);
 
   if (pathname === "/s" || pathname === "/s/") {
