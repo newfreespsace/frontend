@@ -54,7 +54,10 @@ import { downloadProblemFile, downloadProblemFilesAsArchive } from "../files/Pro
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 
-export function useProblemViewMarkdownContentPatcher(problemId: number): MarkdownContentPatcher {
+export function useProblemViewMarkdownContentPatcher(
+  problemId: number,
+  contestContext?: { contestId: number; contestProblemIndex: number }
+): MarkdownContentPatcher {
   const _ = useLocalizer();
 
   const FILE_DOWNLOAD_LINK_PREFIX = "file:";
@@ -73,13 +76,14 @@ export function useProblemViewMarkdownContentPatcher(problemId: number): Markdow
         fileUrl.substr(FILE_DOWNLOAD_LINK_ALL_PREFIX.length),
         "AdditionalFile",
         [],
-        _
+        _,
+        contestContext
       );
       return true;
     } else if (fileUrl.startsWith(FILE_DOWNLOAD_LINK_PREFIX)) {
       const filename = fileUrl.substr(FILE_DOWNLOAD_LINK_PREFIX.length).split("/").join("");
 
-      downloadProblemFile(problemId, "AdditionalFile", filename, _);
+      downloadProblemFile(problemId, "AdditionalFile", filename, _, contestContext);
       return true;
     }
 
@@ -114,6 +118,7 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     discussionCount: true,
     canViewDiscussion: true,
     permissionOfCurrentUser: true,
+    additionalFiles: true,
     lastSubmissionAndLastAcceptedSubmission: false
   });
 
@@ -142,6 +147,9 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
 
   const inContest = !!props.contest;
   const contestProblemLabel = inContest ? String.fromCharCode(64 + props.contestPid) : null;
+  const contestDownloadContext = inContest
+    ? { contestId: props.contest.id, contestProblemIndex: props.contestPid }
+    : undefined;
 
   const [idString, title, all] = getProblemDisplayName(
     props.problem.meta,
@@ -466,7 +474,10 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
     </Menu>
   );
 
-  const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(props.problem.meta.id);
+  const problemViewMarkdownContentPatcher = useProblemViewMarkdownContentPatcher(
+    props.problem.meta.id,
+    contestDownloadContext
+  );
   const lastAcceptedSubmission = !inContest && props.problem.lastSubmission?.lastAcceptedSubmission;
   return (
     <>
@@ -779,6 +790,14 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   icon="folder open"
                   as={Link}
                   href={getProblemUrl(props.problem.meta, { subRoute: "files" })}
+                />
+              )}
+              {inContest && props.problem.additionalFiles?.length > 0 && (
+                <Menu.Item
+                  name={_(".action.files")}
+                  icon="folder open"
+                  as={Link}
+                  href={{ pathname: `/c/${props.contest.id}/p/${props.contestPid}/files` }}
                 />
               )}
             </Menu>

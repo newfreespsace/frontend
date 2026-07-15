@@ -279,6 +279,8 @@ declare namespace ApiTypes {
   }
   export interface DownloadProblemFilesRequestDto {
     problemId: number;
+    contestId?: number;
+    contestProblemIndex?: number;
     type: "TestData" | "AdditionalFile";
     filenameList: string[];
   }

@@ -62,12 +62,14 @@ export async function downloadProblemFile(
   problemId: number,
   type: "TestData" | "AdditionalFile",
   filename: string,
-  _: Localizer
+  _: Localizer,
+  contestContext?: { contestId: number; contestProblemIndex: number }
 ) {
   if (!filename) return toast.error(_("problem_files.error.NO_SUCH_FILE"));
 
   const { requestError, response } = await api.problem.downloadProblemFiles({
     problemId,
+    ...contestContext,
     type,
     filenameList: [filename]
   });
@@ -84,10 +86,12 @@ export async function downloadProblemFilesAsArchive(
   filename: string,
   type: "TestData" | "AdditionalFile",
   filenames: string[],
-  _: Localizer
+  _: Localizer,
+  contestContext?: { contestId: number; contestProblemIndex: number }
 ) {
   const { requestError, response } = await api.problem.downloadProblemFiles({
     problemId,
+    ...contestContext,
     type,
     filenameList: filenames
   });
@@ -677,6 +681,9 @@ FileTable = observer(FileTable);
 interface ProblemFilesPageProps {
   idType?: "id" | "displayId";
   problem?: ApiTypes.GetProblemResponseDto;
+  contest?: ApiTypes.ContestMetaDto;
+  contestPid?: number;
+  additionalFilesOnly?: boolean;
 }
 
 let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
@@ -691,7 +698,7 @@ let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
   const recaptcha = useRecaptcha();
 
   function transformResponseToFileTableItems(fileList: ApiTypes.ProblemFileDto[]): FileTableItem[] {
-    return fileList.map(file => ({
+    return (fileList || []).map(file => ({
       uuid: uuid(),
       filename: file.filename,
       size: file.size
@@ -857,6 +864,10 @@ let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
   }
 
   const isWideScreen = useScreenWidthWithin(960, Infinity);
+  const contestContext = props.contest
+    ? { contestId: props.contest.id, contestProblemIndex: props.contestPid }
+    : undefined;
+  const canManageFiles = !props.additionalFilesOnly && props.problem.permissionOfCurrentUser.includes("Modify");
 
   const fileTableTestdata = (
     <>
@@ -878,7 +889,7 @@ let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
         }
       />
       <FileTable
-        hasPermission={props.problem.permissionOfCurrentUser.includes("Modify")}
+        hasPermission={canManageFiles}
         color="green"
         files={fileListTestData}
         onDownloadFile={filename => downloadProblemFile(props.problem.meta.id, "TestData", filename, _)}
@@ -898,20 +909,36 @@ let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
         className={style.header + " withIcon"}
         icon="file alternate outline"
         as="h2"
-        content={_(".header_additional_files")}
+        content={
+          <>
+            {_(".header_additional_files")}
+            {props.additionalFilesOnly && (
+              <Button
+                className={style.backToProblem}
+                primary
+                as={Link}
+                href={{ pathname: `/c/${props.contest.id}/p/${props.contestPid}` }}
+                content={_(".back_to_problem")}
+              />
+            )}
+          </>
+        }
       />
       <FileTable
-        hasPermission={props.problem.permissionOfCurrentUser.includes("Modify")}
+        hasPermission={canManageFiles}
         color="pink"
         files={fileListAdditionalFiles}
-        onDownloadFile={filename => downloadProblemFile(props.problem.meta.id, "AdditionalFile", filename, _)}
+        onDownloadFile={filename =>
+          downloadProblemFile(props.problem.meta.id, "AdditionalFile", filename, _, contestContext)
+        }
         onDownloadFilesAsArchive={filenames =>
           downloadProblemFilesAsArchive(
             props.problem.meta.id,
             `AdditionalFile_${idString}.zip`,
             "AdditionalFile",
             filenames,
-            _
+            _,
+            contestContext
           )
         }
         onRenameFile={(filename, newFilename) =>
@@ -928,7 +955,11 @@ let ProblemFilesPage: React.FC<ProblemFilesPageProps> = props => {
   return (
     <>
       <Grid>
-        {isWideScreen ? (
+        {props.additionalFilesOnly ? (
+          <Grid.Row>
+            <Grid.Column width={isWideScreen ? 8 : 16}>{fileTableAdditionalFile}</Grid.Column>
+          </Grid.Row>
+        ) : isWideScreen ? (
           <>
             <Grid.Row>
               <Grid.Column width={8}>{fileTableTestdata}</Grid.Column>
@@ -964,5 +995,28 @@ export default {
     const problem = await fetchData("displayId", displayId);
 
     return <ProblemFilesPage key={uuid()} idType="displayId" problem={problem} />;
+  }),
+  contest: defineRoute(async request => {
+    const contestId = Number(request.params.id);
+    const contestPid = Number(request.params.pid);
+    const { requestError, response } = await api.contest.getContestProblem({
+      contestId,
+      pid: contestPid,
+      locale: appState.locale
+    });
+
+    if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
+    if (response.error) throw new RouteError(makeToBeLocalizedText(`contest.error.${response.error}`));
+
+    return (
+      <ProblemFilesPage
+        key={uuid()}
+        idType="id"
+        problem={response.problem}
+        contest={response.contest}
+        contestPid={response.pid}
+        additionalFilesOnly
+      />
+    );
   })
 };
