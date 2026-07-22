@@ -17,6 +17,7 @@ import AddProblemModal from "../common/AddProblemModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
 import OrderButtons from "../common/OrderButtons";
 import RenameTitleModal from "../common/RenameTitleModal";
+import TrainingBreadcrumb from "../common/TrainingBreadcrumb";
 import TrainingManageModal from "../common/TrainingManageModal";
 import toast from "@/utils/toast";
 
@@ -361,7 +362,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
-          <Header as="h1">{section.title}</Header>
+          <TrainingBreadcrumb training={props.training} chapter={props.chapter} section={section} />
         </div>
         {(appState.currentUser || canManageTraining) && (
           <div className={style.headerActions}>

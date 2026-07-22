@@ -15,6 +15,7 @@ import OrderButtons from "../common/OrderButtons";
 import RenameTitleModal from "../common/RenameTitleModal";
 import TrainingManageModal from "../common/TrainingManageModal";
 import TrainingProgressBar from "../common/TrainingProgressBar";
+import TrainingBreadcrumb from "../common/TrainingBreadcrumb";
 import toast from "@/utils/toast";
 
 interface ChapterViewData {
@@ -170,7 +171,7 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
     <>
       <div className={style.header}>
         <div className={style.headerTitle}>
-          <Header as="h1">{chapter.title}</Header>
+          <TrainingBreadcrumb training={props.training} chapter={chapter} />
         </div>
         {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
       </div>
