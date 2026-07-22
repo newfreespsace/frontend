@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Icon, Label, Modal, Segment } from "semantic-ui-react";
+import { Button, Dropdown, Form, Icon, Label, Modal, Segment } from "semantic-ui-react";
 
 import style from "./TrainingPage.module.less";
 
@@ -21,6 +21,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = props => {
   const _ = useLocalizer("training");
   const [open, setOpen] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState<ApiTypes.QueryProblemSetResponseItemDto>(null);
+  const [category, setCategory] = useState<ApiTypes.SectionProblemDto["category"]>("Exercise");
 
   const [pending, onSubmit] = useAsyncCallbackPending(async () => {
     if (!selectedProblem) {
@@ -32,9 +33,17 @@ const AddProblemModal: React.FC<AddProblemModalProps> = props => {
       return;
     }
 
+    const nextSortOrder =
+      props.section.problems
+        .filter(problem => problem.category === category)
+        .reduce((max, problem) => Math.max(max, problem.sortOrder), 0) + 1;
     const problems = props.section.problems
-      .map((problem, index) => ({ problemId: problem.meta.id, sortOrder: index + 1 }))
-      .concat({ problemId: selectedProblem.meta.id, sortOrder: props.section.problems.length + 1 });
+      .map(problem => ({
+        problemId: problem.meta.id,
+        category: problem.category,
+        sortOrder: problem.sortOrder
+      }))
+      .concat({ problemId: selectedProblem.meta.id, category, sortOrder: nextSortOrder });
     const { requestError, response } = await api.training.setSectionProblems({
       sectionId: props.section.id,
       problems
@@ -44,6 +53,7 @@ const AddProblemModal: React.FC<AddProblemModalProps> = props => {
     else {
       await props.onAdded();
       setSelectedProblem(null);
+      setCategory("Exercise");
       setOpen(false);
     }
   });
@@ -73,6 +83,21 @@ const AddProblemModal: React.FC<AddProblemModalProps> = props => {
             {selectedProblem.title}
           </Segment>
         )}
+        <Form className={style.problemCategoryForm}>
+          <Form.Field>
+            <label>{_(".problem_category")}</label>
+            <Dropdown
+              selection
+              fluid
+              value={category}
+              options={[
+                { key: "Example", text: _(".example"), value: "Example" },
+                { key: "Exercise", text: _(".exercise"), value: "Exercise" }
+              ]}
+              onChange={(event, data) => setCategory(data.value as ApiTypes.SectionProblemDto["category"])}
+            />
+          </Form.Field>
+        </Form>
       </Modal.Content>
       <Modal.Actions>
         <Button onClick={() => setOpen(false)}>{_(".cancel")}</Button>

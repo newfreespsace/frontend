@@ -531,7 +531,7 @@ declare namespace ApiTypes {
     sortOrder: number;
     problemCount: number;
     acceptedProblemCount: number;
-    problems: ApiTypes.QueryProblemSetResponseItemDto[];
+    problems: ApiTypes.SectionProblemDto[];
   }
   export interface GetSessionInfoResponseDto {
     userMeta?: ApiTypes.UserMetaDto;
@@ -1300,6 +1300,10 @@ declare namespace ApiTypes {
     problemCount: number;
     acceptedProblemCount: number;
   }
+  export interface SectionProblemDto extends ApiTypes.QueryProblemSetResponseItemDto {
+    category: "Example" | "Exercise";
+    sortOrder: number;
+  }
   export interface SendEmailVerificationCodeRequestDto {
     email: string;
     type: "Register" | "ChangeEmail" | "ResetPassword";
@@ -1398,6 +1402,7 @@ declare namespace ApiTypes {
   }
   export interface SetSectionProblemItemDto {
     problemId: number;
+    category: "Example" | "Exercise";
     sortOrder: number;
   }
   export interface SetSectionProblemsDto {
