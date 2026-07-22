@@ -52,14 +52,11 @@ interface StatusTextProps {
 }
 
 const StatusText: React.FC<StatusTextProps> = props => {
-  const text = props.statusText || props.status.replace(/([A-Z])/g, " $1").trimStart();
+  const status = props.status || SubmissionStatusAll.Pending;
+  const text = props.statusText || status.replace(/([A-Z])/g, " $1").trimStart();
   return (
-    <span className={"statuscolor " + style[props.status]}>
-      <Icon
-        className={"statusicon" + " " + style.icon}
-        loading={icons[props.status] === "spinner"}
-        name={icons[props.status]}
-      />
+    <span className={"statuscolor " + style[status]}>
+      <Icon className={"statusicon" + " " + style.icon} loading={icons[status] === "spinner"} name={icons[status]} />
       <span className="statustext">{text}</span>
     </span>
   );

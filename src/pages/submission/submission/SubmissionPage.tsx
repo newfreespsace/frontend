@@ -124,7 +124,7 @@ function parseProgress<T extends TestcaseResultCommon>(
       status = "Running";
       break;
     case SubmissionProgressType.Finished:
-      status = resultMeta.status;
+      status = resultMeta?.status ?? progress.status ?? "Submitted";
       pending = false;
       break;
   }
@@ -134,7 +134,7 @@ function parseProgress<T extends TestcaseResultCommon>(
 
   if (progress.progressType === SubmissionProgressType.Finished) {
     // If finished, use the score from result meta
-    score = resultMeta.score;
+    score = resultMeta?.score ?? progress.score ?? 0;
   } else if (progress.progressType === SubmissionProgressType.Running) {
     // If NOT finished, calculate score and append progress to the status text
     let totalCount = 0;
@@ -156,8 +156,8 @@ function parseProgress<T extends TestcaseResultCommon>(
   let memoryUsed = 0;
   if (progress.progressType === SubmissionProgressType.Finished) {
     // If finished, use the time/memory usage from result meta
-    timeUsed = resultMeta.timeUsed;
-    memoryUsed = resultMeta.memoryUsed;
+    timeUsed = resultMeta?.timeUsed ?? 0;
+    memoryUsed = resultMeta?.memoryUsed ?? 0;
   } else if (Array.isArray(progress.subtasks)) {
     // If NOT finished, calculate them
     for (const subtask of progress.subtasks) {
