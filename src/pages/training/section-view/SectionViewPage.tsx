@@ -183,6 +183,10 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
     return section.problems.filter(problem => problem.category === category);
   }
 
+  const nonEmptyProblemCategories = sectionProblemCategories.filter(
+    category => getProblemsByCategory(category).length > 0
+  );
+
   function getCategoryTitle(category: ApiTypes.SectionProblemDto["category"]) {
     return category === "Example" ? _(".example_problems") : _(".exercise_problems");
   }
@@ -354,7 +358,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         </>
       }
     >
-      {sectionProblemCategories.map(renderManageProblemGroup)}
+      {nonEmptyProblemCategories.map(renderManageProblemGroup)}
     </TrainingManageModal>
   );
 
@@ -388,7 +392,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
         </p>
       )}
 
-      {sectionProblemCategories.map(renderProblemGroup)}
+      {nonEmptyProblemCategories.map(renderProblemGroup)}
     </>
   );
 };
