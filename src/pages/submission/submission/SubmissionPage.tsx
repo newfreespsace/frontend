@@ -93,22 +93,15 @@ function parseProgress<T extends TestcaseResultCommon>(
   resultMeta?: ApiTypes.SubmissionBasicMetaDto
 ): SubmissionProgressMeta {
   if (!progress) {
-    if (resultMeta?.status === "Canceled")
-      return {
-        pending: false,
-        status: "Canceled",
-        score: 0,
-        timeUsed: 0,
-        memoryUsed: 0
-      };
-    else
-      return {
-        pending: true,
-        status: "Waiting",
-        score: 0,
-        timeUsed: 0,
-        memoryUsed: 0
-      };
+    const resultStatus = resultMeta?.status as string | undefined;
+    const status = resultStatus === "Canceled" || resultStatus === "Submitted" ? resultStatus : "Waiting";
+    return {
+      pending: status === "Waiting",
+      status,
+      score: 0,
+      timeUsed: 0,
+      memoryUsed: 0
+    };
   }
 
   let status = "",
