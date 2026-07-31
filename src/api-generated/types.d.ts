@@ -904,6 +904,8 @@ declare namespace ApiTypes {
   export interface ProblemReviewMetaDto {
     problem: ApiTypes.ProblemMetaDto;
     title: string;
+    contestId?: number;
+    contestProblemIndex?: number;
     reviewNumber: number;
     totalReviewCount: number;
     availableAt: string; // date-time

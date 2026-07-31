@@ -15,6 +15,7 @@ import formatDateTime from "@/utils/formatDateTime";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import TrainingProgressBar from "@/pages/training/common/TrainingProgressBar";
 import { getProblemDisplayName, getProblemUrl } from "@/pages/problem/utils";
+import { getProblemReviewUrl } from "@/pages/problem-review/utils";
 
 async function fetchData() {
   const homepageResult = await api.homepage.getHomepage({
@@ -361,7 +362,7 @@ let HomePage: React.FC<HomePageProps> = props => {
                   <List.Item key={review.problem.id}>
                     <List.Content>
                       <List.Header>
-                        <Link href={`${getProblemUrl(review.problem)}?review=true`}>
+                        <Link href={getProblemReviewUrl(review)}>
                           <EmojiRenderer>{getProblemDisplayName(review.problem, review.title, _)}</EmojiRenderer>
                         </Link>
                       </List.Header>

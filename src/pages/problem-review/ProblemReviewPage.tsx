@@ -9,9 +9,11 @@ import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
 import { Pagination } from "@/components/Pagination";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
-import { getProblemDisplayName, getProblemUrl } from "@/pages/problem/utils";
+import { getProblemDisplayName } from "@/pages/problem/utils";
 import formatDateTime from "@/utils/formatDateTime";
 import { Link, useLocalizer } from "@/utils/hooks";
+
+import { getProblemReviewUrl } from "./utils";
 
 const REVIEWS_PER_PAGE = 20;
 
@@ -71,7 +73,7 @@ let ProblemReviewPage: React.FC<ProblemReviewPageProps> = props => {
               {props.queryResult.result.map(review => (
                 <Table.Row key={review.problem.id}>
                   <Table.Cell className={style.problem}>
-                    <Link href={`${getProblemUrl(review.problem)}?review=true`}>
+                    <Link href={getProblemReviewUrl(review)}>
                       <EmojiRenderer>{getProblemDisplayName(review.problem, review.title, _)}</EmojiRenderer>
                     </Link>
                   </Table.Cell>

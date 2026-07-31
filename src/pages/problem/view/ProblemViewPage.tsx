@@ -1020,6 +1020,7 @@ export default {
     const cid = Number(request.params.id);
     const pid = Number(request.params.pid);
     const response = await fetchContestProblemData(cid, pid, appState.locale);
+    const review = request.query.review === "true" ? await fetchProblemReview(response.problem.meta.id) : null;
 
     const ProblemTypeView = await getProblemTypeView(response.problem.meta.type as ProblemType);
 
@@ -1028,6 +1029,7 @@ export default {
         idType="id"
         requestedLocale={appState.locale}
         problem={response.problem}
+        review={review}
         ProblemTypeView={ProblemTypeView}
         contest={response.contest}
         contestPid={response.pid}
