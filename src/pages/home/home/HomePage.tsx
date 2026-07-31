@@ -362,9 +362,11 @@ let HomePage: React.FC<HomePageProps> = props => {
                   <List.Item key={review.problem.id}>
                     <List.Content>
                       <List.Header>
-                        <Link href={getProblemReviewUrl(review)}>
-                          <EmojiRenderer>{getProblemDisplayName(review.problem, review.title, _)}</EmojiRenderer>
-                        </Link>
+                        <EmojiRenderer>
+                          <Link href={getProblemReviewUrl(review)}>
+                            {getProblemDisplayName(review.problem, review.title, _)}
+                          </Link>
+                        </EmojiRenderer>
                       </List.Header>
                       <List.Description className={style.reviewDescription}>
                         <span>

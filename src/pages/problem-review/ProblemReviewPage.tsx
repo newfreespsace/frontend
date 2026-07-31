@@ -73,9 +73,11 @@ let ProblemReviewPage: React.FC<ProblemReviewPageProps> = props => {
               {props.queryResult.result.map(review => (
                 <Table.Row key={review.problem.id}>
                   <Table.Cell className={style.problem}>
-                    <Link href={getProblemReviewUrl(review)}>
-                      <EmojiRenderer>{getProblemDisplayName(review.problem, review.title, _)}</EmojiRenderer>
-                    </Link>
+                    <EmojiRenderer>
+                      <Link href={getProblemReviewUrl(review)}>
+                        {getProblemDisplayName(review.problem, review.title, _)}
+                      </Link>
+                    </EmojiRenderer>
                   </Table.Cell>
                   <Table.Cell>
                     <span>
