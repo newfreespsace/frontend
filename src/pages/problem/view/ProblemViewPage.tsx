@@ -145,6 +145,7 @@ interface ProblemViewPageProps {
 
   contest?: ApiTypes.ContestMetaDto;
   contestPid?: number;
+  contestPermissions?: ApiTypes.GetContestProblemResponseDto["permissions"];
 }
 
 let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
@@ -158,6 +159,19 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   const contestDownloadContext = inContest
     ? { contestId: props.contest.id, contestProblemIndex: props.contestPid }
     : undefined;
+  const [contestNow, setContestNow] = useState(Date.now());
+  const postContestOpensAt = props.contestPermissions?.postContestOpensAt
+    ? new Date(props.contestPermissions.postContestOpensAt).getTime()
+    : Infinity;
+  const contestCanSubmit =
+    !inContest ||
+    props.contestPermissions?.canSubmit ||
+    (props.contestPermissions?.submissionState === "cooldown" && contestNow >= postContestOpensAt);
+  useEffect(() => {
+    if (props.contestPermissions?.submissionState !== "cooldown") return;
+    const timer = window.setInterval(() => setContestNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [props.contestPermissions?.submissionState]);
 
   const [idString, title, all] = getProblemDisplayName(
     props.problem.meta,
@@ -619,6 +633,14 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       />
       <div className={style.statementView} style={{ display: inSubmitView ? "none" : null }}>
         <div className={style.leftContainer}>
+          {inContest && props.contestPermissions?.submissionState === "cooldown" && !contestCanSubmit && (
+            <Message
+              info
+              content={_(".post_submission_opens_at", {
+                time: formatDateTime(props.contestPermissions.postContestOpensAt)[1]
+              })}
+            />
+          )}
           {localizedContentUnavailableMessageVisable &&
             ![appState.contentLocale, props.requestedLocale].includes(
               props.problem.localizedContentsOfLocale.locale as Locale
@@ -735,22 +757,26 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
         <div className={style.rightContainer}>
           <div className={style.actionMenusWrapper}>
             <Menu pointing secondary vertical className={style.actionMenu}>
-              {props.problem.submittable && props.ProblemTypeView.isSubmittable(props.problem.judgeInfo) && (
-                <Popup
-                  trigger={
-                    <Menu.Item
-                      className={style.menuItemImportant}
-                      name={_(".action.submit")}
-                      icon="paper plane"
-                      onClick={appState.currentUser ? openSubmitView : null}
-                    />
-                  }
-                  disabled={!!appState.currentUser}
-                  content={<Button primary content={_(".action.login_to_submit")} onClick={() => navigateToLogin()} />}
-                  on="click"
-                  position="top left"
-                />
-              )}
+              {contestCanSubmit &&
+                props.problem.submittable &&
+                props.ProblemTypeView.isSubmittable(props.problem.judgeInfo) && (
+                  <Popup
+                    trigger={
+                      <Menu.Item
+                        className={style.menuItemImportant}
+                        name={_(".action.submit")}
+                        icon="paper plane"
+                        onClick={appState.currentUser ? openSubmitView : null}
+                      />
+                    }
+                    disabled={!!appState.currentUser}
+                    content={
+                      <Button primary content={_(".action.login_to_submit")} onClick={() => navigateToLogin()} />
+                    }
+                    on="click"
+                    position="top left"
+                  />
+                )}
               <Menu.Item
                 name={_(".action.submission")}
                 icon="list"
@@ -1005,6 +1031,7 @@ export default {
         ProblemTypeView={ProblemTypeView}
         contest={response.contest}
         contestPid={response.pid}
+        contestPermissions={response.permissions}
       />
     );
   })

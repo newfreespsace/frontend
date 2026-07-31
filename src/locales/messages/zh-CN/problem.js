@@ -58,12 +58,14 @@ return {
     NO_SUCH_PROBLEM: "无此题目。",
     NO_SUCH_CONTEST: "无此比赛。",
     CONTEST_NOT_RUNNING: "比赛当前不在进行中，无法提交。",
+    POST_CONTEST_SUBMISSION_NOT_OPEN: "比赛已结束，赛后提交将在结束 10 分钟后开放。",
     NO_DISPLAY_ID: "请先设置题目 ID。",
     INVALID_DISPLAY_ID: "ID 必须为整数。",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "已公开的题目必须拥有 ID。",
     DUPLICATE_DISPLAY_ID: "ID {displayId} 已被使用。"
   },
   upload_error: "上传失败：{error}",
+  post_submission_opens_at: "比赛已结束，赛后提交将在 {time} 开放。",
   submit: {
     last_submission: "上次提交",
     back_to_statement: "返回题面",

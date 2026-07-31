@@ -328,17 +328,22 @@ declare namespace ApiTypes {
       manageContest?: boolean;
       running?: boolean;
       ended?: boolean;
+      canSubmit?: boolean;
+      submissionState?: "not_started" | "official" | "cooldown" | "post_contest";
+      postContestOpensAt?: string; // date-time
     };
   }
   export interface GetContestRanklistRequestDto {
     contestId: number;
     locale: "en_US" | "zh_CN" | "ja_JP";
+    ranklistScope?: "official" | "combined";
   }
   export interface GetContestRanklistResponseDto {
     error?: "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
     meta?: ApiTypes.ContestMetaDto;
     problems?: ApiTypes.ContestProblemDto[];
     rows?: ApiTypes.ContestRanklistRowDto[];
+    ranklistScope?: "official" | "combined";
   }
   export interface GetContestRequestDto {
     contestId: number;
@@ -356,6 +361,9 @@ declare namespace ApiTypes {
       viewRanklist?: boolean;
       viewStatistics?: boolean;
       unveiled?: boolean;
+      canSubmit?: boolean;
+      submissionState?: "not_started" | "official" | "cooldown" | "post_contest";
+      postContestOpensAt?: string; // date-time
     };
   }
   export interface GetDiscussionAndRepliesRequestDto {
@@ -1486,6 +1494,7 @@ declare namespace ApiTypes {
     isPublic: boolean;
     contestId?: number;
     contestProblemIndex?: number;
+    contestPhase?: "official" | "post_contest";
     codeLanguage: string;
     answerSize: number;
     score: number;
@@ -1513,6 +1522,7 @@ declare namespace ApiTypes {
     isPublic: boolean;
     contestId?: number;
     contestProblemIndex?: number;
+    contestPhase?: "official" | "post_contest";
     codeLanguage: string;
     answerSize: number;
     score: number;
@@ -1552,6 +1562,7 @@ declare namespace ApiTypes {
       | "NO_SUCH_PROBLEM"
       | "NO_SUCH_CONTEST"
       | "CONTEST_NOT_RUNNING"
+      | "POST_CONTEST_SUBMISSION_NOT_OPEN"
       | "FILE_TOO_LARGE"
       | "FILE_UUID_EXISTS"
       | "FILE_NOT_UPLOADED";

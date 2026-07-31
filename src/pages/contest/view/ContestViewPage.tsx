@@ -73,6 +73,13 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
             {_(".ranklist")}
           </Button>
         )}
+        {props.contest.permissions.viewRanklist &&
+          ["cooldown", "post_contest"].includes(props.contest.permissions.submissionState) && (
+            <Button as={Link} href={`/c/${contest.id}/post-ranklist`}>
+              <Icon name="graduation cap" />
+              {_(".learning_ranklist")}
+            </Button>
+          )}
         <Button
           as={Link}
           href={{
@@ -124,6 +131,25 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
             <ContestActions />
           </GridColumn>
         </GridRow>
+        {props.contest.permissions.submissionState === "cooldown" && (
+          <GridRow>
+            <GridColumn>
+              <Message
+                info
+                content={_(".post_submission_opens_at", {
+                  time: formatDateTime(props.contest.permissions.postContestOpensAt)[1]
+                })}
+              />
+            </GridColumn>
+          </GridRow>
+        )}
+        {props.contest.permissions.submissionState === "post_contest" && (
+          <GridRow>
+            <GridColumn>
+              <Message positive content={_(".post_submission_open")} />
+            </GridColumn>
+          </GridRow>
+        )}
         {contest.information && (
           <GridRow>
             <GridColumn>

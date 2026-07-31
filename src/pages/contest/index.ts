@@ -8,6 +8,7 @@ export default {
       "/": lazy(() => import("./view/ContestViewPage")),
       "/edit": lazy(() => import("./edit/ContestEditPage")),
       "/ranklist": lazy(() => import("./ranklist/ContestRanklistPage")),
+      "/post-ranklist": lazy(() => import("./ranklist/ContestRanklistPage")),
       "/p/:pid": mount({
         "/": getRoute(() => import("@/pages/problem/view/ProblemViewPage"), "contest"),
         "/files": getRoute(() => import("@/pages/problem/files/ProblemFilesPage"), "contest")

@@ -59,12 +59,15 @@ return {
     NO_SUCH_PROBLEM: "問題が存在しません。",
     NO_SUCH_CONTEST: "コンテストが存在しません。",
     CONTEST_NOT_RUNNING: "コンテストは開催中ではありません。",
+    POST_CONTEST_SUBMISSION_NOT_OPEN:
+      "コンテストは終了しました。コンテスト後の提出は終了時刻の 10 分後に開始されます。",
     NO_DISPLAY_ID: "ID を設定してください。",
     INVALID_DISPLAY_ID: "ID は整数にしてください。",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "公開する問題には ID を設定してください。",
     DUPLICATE_DISPLAY_ID: "ID {displayId} は使用されています。"
   },
   upload_error: "[TBT] Failed to upload file: {error}",
+  post_submission_opens_at: "コンテスト後の提出は {time} に開始されます。",
   submit: {
     // This must be at most than full-width character characters e.g. "上次提交"
     last_submission: "[TBT] Last Sub.",

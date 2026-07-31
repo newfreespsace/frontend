@@ -59,12 +59,15 @@ return {
     NO_SUCH_PROBLEM: "No such problem.",
     NO_SUCH_CONTEST: "No such contest.",
     CONTEST_NOT_RUNNING: "The contest is not running.",
+    POST_CONTEST_SUBMISSION_NOT_OPEN:
+      "The contest has ended. Post-contest submissions open 10 minutes after the end time.",
     NO_DISPLAY_ID: "Please set ID first.",
     INVALID_DISPLAY_ID: "ID must be an integer.",
     PUBLIC_PROBLEM_MUST_HAVE_DISPLAY_ID: "A public problem must have an ID.",
     DUPLICATE_DISPLAY_ID: "ID {displayId} has already used."
   },
   upload_error: "Failed to upload file: {error}",
+  post_submission_opens_at: "The contest has ended. Post-contest submissions open at {time}.",
   submit: {
     last_submission: "Last Sub.",
     back_to_statement: "Back to Statement",

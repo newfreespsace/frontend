@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Button, Header, Icon, Label, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Label, Message, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "./ContestRanklistPage.module.less";
@@ -12,10 +12,14 @@ import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import UserLink from "@/components/UserLink";
 
-async function fetchData(contestId: number): Promise<ApiTypes.GetContestRanklistResponseDto> {
+async function fetchData(
+  contestId: number,
+  ranklistScope: "official" | "combined"
+): Promise<ApiTypes.GetContestRanklistResponseDto> {
   const { requestError, response } = await api.contest.getContestRanklist({
     contestId,
-    locale: appState.locale
+    locale: appState.locale,
+    ranklistScope
   });
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
   if (response.error) throw new RouteError(makeToBeLocalizedText(`contest.error.${response.error}`));
@@ -39,6 +43,7 @@ interface ContestRanklistScoreDetail {
       compiled?: boolean;
       time: string;
       status?: string;
+      contestPhase?: "official" | "post_contest";
     }
   >;
   accepted?: boolean;
@@ -125,22 +130,33 @@ function renderRank(rank: number): React.ReactNode {
 let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
   const _ = useLocalizer("contest");
   const { meta, problems, rows } = props.response;
+  const combined = props.response.ranklistScope === "combined";
   const firstSolvedRows = getFirstSolvedRows(meta, problems, rows);
   const maxScore = rows[0]?.score || 0;
 
   useEffect(() => {
-    appState.enterNewPage(`${meta.title} - ${_(".ranklist")}`, "contests" as any);
-  }, [appState.locale, meta.id]);
+    appState.enterNewPage(`${meta.title} - ${_(combined ? ".learning_ranklist" : ".ranklist")}`, "contests" as any);
+  }, [appState.locale, meta.id, combined]);
 
   return (
     <>
       <div className={style.header}>
-        <Header as="h1">{meta.title}</Header>
+        <Header as="h1">
+          {meta.title}
+          <Header.Subheader>{_(combined ? ".learning_ranklist" : ".ranklist")}</Header.Subheader>
+        </Header>
         <Button className={style.back} as={Link} href={`/c/${meta.id}`}>
           <Icon name="arrow left" />
           {_(".back_to_contest")}
         </Button>
       </div>
+      {combined && (
+        <Message
+          info
+          header={_(".learning_ranklist")}
+          content={meta.type === "noi" ? _(".noi_learning_ranklist_notice") : _(".learning_ranklist_notice")}
+        />
+      )}
       <div className={style.tableWrap}>
         <Table basic="very" textAlign="center" className={style.ranklist}>
           <Table.Header>
@@ -181,7 +197,7 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
                   const cellClassName = firstSolvedRows[problem.meta.id] === rowIndex ? style.firstSolved : undefined;
                   return (
                     <Table.Cell key={problem.meta.id} className={cellClassName}>
-                      <ProblemScoreCell contest={meta} detail={detail} />
+                      <ProblemScoreCell contest={meta} detail={detail} combined={combined} />
                     </Table.Cell>
                   );
                 })}
@@ -209,10 +225,12 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
 interface ProblemScoreCellProps {
   contest: ApiTypes.ContestMetaDto;
   detail?: ContestRanklistScoreDetail;
+  combined: boolean;
 }
 
 const ProblemScoreCell: React.FC<ProblemScoreCellProps> = props => {
-  const { contest, detail } = props;
+  const _ = useLocalizer("contest");
+  const { contest, detail, combined } = props;
   if (!detail) return null;
 
   const content =
@@ -238,12 +256,24 @@ const ProblemScoreCell: React.FC<ProblemScoreCellProps> = props => {
       <ScoreText score={0}>0</ScoreText>
     );
 
-  if (!detail.submissionId) return <>{content}</>;
-  return <Link href={`/c/${contest.id}/s/${detail.submissionId}`}>{content}</Link>;
+  const selectedSubmission = detail.submissionId && detail.submissions?.[detail.submissionId];
+  return (
+    <>
+      {detail.submissionId ? <Link href={`/c/${contest.id}/s/${detail.submissionId}`}>{content}</Link> : <>{content}</>}
+      {combined && selectedSubmission?.contestPhase === "post_contest" && (
+        <div>
+          <Label size="mini" color="blue">
+            {_(".post_contest_result")}
+          </Label>
+        </div>
+      )}
+    </>
+  );
 };
 
 export default defineRoute(async request => {
-  return <ContestRanklistPage response={await fetchData(Number(request.params.id))} />;
+  const ranklistScope = request.path.endsWith("/post-ranklist") ? "combined" : "official";
+  return <ContestRanklistPage response={await fetchData(Number(request.params.id), ranklistScope)} />;
 });
 
 ContestRanklistPage = observer(ContestRanklistPage);
