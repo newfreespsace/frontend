@@ -130,7 +130,7 @@ export function updateCodeFontCss(locale: Locale) {
     "monospace"
   )} !important;
   font-size: ${fontPreference?.codeFontSize || 16}px !important;
-  line-height: ${fontPreference?.codeLineHeight || 1.3} !important;
+  line-height: ${fontPreference?.codeLineHeight || 1.5} !important;
   font-variant-ligatures: ${fontPreference?.codeFontLigatures === false ? "none" : "normal"} !important;
 }`
   );
@@ -143,7 +143,7 @@ export function generateCodeFontEditorOptions(locale: Locale): editor.IStandalon
   return {
     fontFamily: generateFontFamily(fontPreference?.codeFontFace || availableCodeFonts[0], locale, "monospace"),
     fontSize: fontSize,
-    lineHeight: (fontPreference?.codeLineHeight || 1.3) * fontSize,
+    lineHeight: (fontPreference?.codeLineHeight || 1.5) * fontSize,
     fontLigatures: fontPreference?.codeFontLigatures !== false
   };
 }
