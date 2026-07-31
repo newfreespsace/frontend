@@ -13,6 +13,7 @@ import * as ImportedHomepageApi from "./modules/homepage";
 import * as ImportedTrainingApi from "./modules/training";
 import * as ImportedSiteSettingApi from "./modules/site-setting";
 import * as ImportedGalleryApi from "./modules/gallery";
+import * as ImportedProblemReviewApi from "./modules/problem-review";
 
 export const user = ImportedUserApi;
 export const auth = ImportedAuthApi;
@@ -27,3 +28,4 @@ export const homepage = ImportedHomepageApi;
 export const training = ImportedTrainingApi;
 export const siteSetting = ImportedSiteSettingApi;
 export const gallery = ImportedGalleryApi;
+export const problemReview = ImportedProblemReviewApi;

@@ -35,6 +35,14 @@ return {
     completed_before_event: "",
     completed_after_event: " 已开始"
   },
+  review: {
+    header: "待复习题目",
+    no_reviews: "当前没有待复习题目",
+    round: "第 {current}/{total} 次",
+    overdue: "逾期 {days} 天",
+    due_at: "{time} 截止",
+    view_all: "查看全部 {count} 道题"
+  },
   search_problem: "搜索题目",
   top_users: {
     header: "排名",

@@ -35,6 +35,14 @@ return {
     completed_before_event: "",
     completed_after_event: " has started"
   },
+  review: {
+    header: "Problems to review",
+    no_reviews: "No problems are due for review",
+    round: "Review {current} of {total}",
+    overdue: "{days} days overdue",
+    due_at: "Due {time}",
+    view_all: "View all {count} problems"
+  },
   search_problem: "Search Problem",
   top_users: {
     header: "Top Users",

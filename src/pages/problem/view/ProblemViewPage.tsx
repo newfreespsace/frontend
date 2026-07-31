@@ -53,6 +53,7 @@ import { onEnterPress } from "@/utils/onEnterPress";
 import { downloadProblemFile, downloadProblemFilesAsArchive } from "../files/ProblemFilesPage";
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
+import formatDateTime from "@/utils/formatDateTime";
 
 export function useProblemViewMarkdownContentPatcher(
   problemId: number,
@@ -129,11 +130,18 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
   return response;
 }
 
+async function fetchProblemReview(problemId: number) {
+  const { requestError, response } = await api.problemReview.getProblemReview({ problemId });
+  if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
+  return response.review;
+}
+
 interface ProblemViewPageProps {
   idType?: "id" | "displayId";
   requestedLocale: Locale;
   problem: ApiTypes.GetProblemResponseDto;
   ProblemTypeView: ProblemTypeView<any>;
+  review?: ApiTypes.CurrentProblemReviewDto;
 
   contest?: ApiTypes.ContestMetaDto;
   contestPid?: number;
@@ -376,7 +384,8 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   const [inSubmitView, setInSubmitView] = useState(false);
   const refScrollTopBackup = useRef(0);
   const [submissionContent, setSubmissionContent] = useState(
-    (!inContest && props.problem.lastSubmission?.lastSubmissionContent) || ProblemTypeView.getDefaultSubmissionContent()
+    (!props.review && !inContest && props.problem.lastSubmission?.lastSubmissionContent) ||
+      ProblemTypeView.getDefaultSubmissionContent()
   );
   const scrollElement = document.documentElement;
 
@@ -483,6 +492,29 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
     <>
       {permissionManager}
       {deleteDialog.element}
+      {props.review && (
+        <Message info icon>
+          <Icon name="repeat" />
+          <Message.Content>
+            <Message.Header>
+              {_(".review.header", {
+                current: props.review.reviewNumber,
+                total: props.review.totalReviewCount
+              })}
+            </Message.Header>
+            <div>
+              {_(".review.deadline", {
+                time: formatDateTime(props.review.dueAt)[1]
+              })}
+              {props.review.overdue &&
+                ` · ${_(".review.overdue", {
+                  days: props.review.overdueDays
+                })}`}
+            </div>
+            <div>{_(".review.instructions")}</div>
+          </Message.Content>
+        </Message>
+      )}
       <div className={style.topContainer}>
         <div className={style.titleSection}>
           <Header as="h1" className={style.header}>
@@ -928,6 +960,7 @@ export default {
     const id = parseInt(request.params["id"]);
     const requestedLocale: Locale = request.query["locale"] in Locale && (request.query["locale"] as Locale);
     const problem = await fetchData("id", id, requestedLocale || appState.contentLocale);
+    const review = request.query.review === "true" ? await fetchProblemReview(problem.meta.id) : null;
 
     return (
       <ProblemViewPage
@@ -935,6 +968,7 @@ export default {
         idType="id"
         requestedLocale={requestedLocale}
         problem={problem}
+        review={review}
         ProblemTypeView={await getProblemTypeView(problem.meta.type as ProblemType)}
       />
     );
@@ -943,6 +977,7 @@ export default {
     const displayId = parseInt(request.params["displayId"]);
     const requestedLocale: Locale = request.query["locale"] in Locale && (request.query["locale"] as Locale);
     const problem = await fetchData("displayId", displayId, requestedLocale || appState.contentLocale);
+    const review = request.query.review === "true" ? await fetchProblemReview(problem.meta.id) : null;
 
     return (
       <ProblemViewPage
@@ -950,6 +985,7 @@ export default {
         idType="displayId"
         requestedLocale={requestedLocale}
         problem={problem}
+        review={review}
         ProblemTypeView={await getProblemTypeView(problem.meta.type as ProblemType)}
       />
     );

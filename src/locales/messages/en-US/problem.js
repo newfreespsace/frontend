@@ -20,6 +20,12 @@ return {
     submissions: "Subs.",
     accepted: "AC."
   },
+  review: {
+    header: "Review {current} of {total}",
+    deadline: "Deadline: {time}",
+    overdue: "{days} days overdue",
+    instructions: "Solve the problem independently. A new accepted submission will complete this review."
+  },
   action: {
     submit: "Submit",
     back_to_contest: "Back to contest",

@@ -20,6 +20,12 @@ return {
     submissions: "提交",
     accepted: "通过"
   },
+  review: {
+    header: "正在进行第 {current}/{total} 次复习",
+    deadline: "本轮截止时间：{time}",
+    overdue: "已逾期 {days} 天",
+    instructions: "请重新独立完成题目；本轮开始后的新提交通过后，将自动完成本次复习。"
+  },
   action: {
     submit: "提交",
     back_to_contest: "返回比赛",

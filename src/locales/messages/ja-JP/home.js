@@ -35,6 +35,14 @@ return {
     completed_before_event: "[TBT] ",
     completed_after_event: "[TBT]  has started"
   },
+  review: {
+    header: "復習する問題",
+    no_reviews: "復習待ちの問題はありません",
+    round: "{current}/{total} 回目",
+    overdue: "{days} 日超過",
+    due_at: "{time} まで",
+    view_all: "{count} 問をすべて表示"
+  },
   search_problem: "[TBT] Search Problem",
   top_users: {
     header: "[TBT] Top Users",

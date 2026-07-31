@@ -458,11 +458,17 @@ declare namespace ApiTypes {
     friendLinks?: ApiTypes.HomepageSettingsFriendLinks;
     topUsers: ApiTypes.UserMetaDto[];
     latestUpdatedProblems: ApiTypes.GetHomepageResponseProblemDto[];
+    reviewSummary?: ApiTypes.GetHomepageResponseReviewSummaryDto;
   }
   export interface GetHomepageResponseProblemDto {
     meta: ApiTypes.ProblemMetaDto;
     title: string;
     submission: ApiTypes.SubmissionBasicMetaDto;
+  }
+  export interface GetHomepageResponseReviewSummaryDto {
+    pendingCount: number;
+    overdueCount: number;
+    items: ApiTypes.ProblemReviewMetaDto[];
   }
   export interface GetHomepageSettingsResponseDto {
     error?: "PERMISSION_DENIED";
@@ -872,6 +878,40 @@ declare namespace ApiTypes {
     locales: ("en_US" | "zh_CN" | "ja_JP")[];
     submissionCount?: number;
     acceptedSubmissionCount?: number;
+  }
+  export interface CurrentProblemReviewDto {
+    reviewNumber: number;
+    totalReviewCount: number;
+    availableAt: string; // date-time
+    dueAt: string; // date-time
+    overdue: boolean;
+    overdueDays: number;
+  }
+  export interface GetProblemReviewRequestDto {
+    problemId: number;
+  }
+  export interface GetProblemReviewResponseDto {
+    review?: ApiTypes.CurrentProblemReviewDto;
+  }
+  export interface ProblemReviewMetaDto {
+    problem: ApiTypes.ProblemMetaDto;
+    title: string;
+    reviewNumber: number;
+    totalReviewCount: number;
+    availableAt: string; // date-time
+    dueAt: string; // date-time
+    overdue: boolean;
+    overdueDays: number;
+  }
+  export interface QueryProblemReviewsRequestDto {
+    locale: "en_US" | "zh_CN" | "ja_JP";
+    skipCount: number;
+    takeCount: number;
+  }
+  export interface QueryProblemReviewsResponseDto {
+    count: number;
+    overdueCount: number;
+    result: ApiTypes.ProblemReviewMetaDto[];
   }
   export interface ProblemPermissionsDto {
     userPermissions: ApiTypes.ProblemUserPermissionDto[];

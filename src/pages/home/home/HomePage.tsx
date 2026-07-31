@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Header, Icon, List, Placeholder, Progress, Segment, Table } from "semantic-ui-react";
+import { Grid, Header, Icon, Label, List, Placeholder, Progress, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import Countdown from "react-countdown";
 
@@ -14,6 +14,7 @@ import { getDiscussionDisplayTitle, getDiscussionUrl } from "@/pages/discussion/
 import formatDateTime from "@/utils/formatDateTime";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import TrainingProgressBar from "@/pages/training/common/TrainingProgressBar";
+import { getProblemDisplayName, getProblemUrl } from "@/pages/problem/utils";
 
 async function fetchData() {
   const homepageResult = await api.homepage.getHomepage({
@@ -329,6 +330,77 @@ let HomePage: React.FC<HomePageProps> = props => {
       </>
     );
 
+  const getReviewCard = () =>
+    props.reviewSummary && (
+      <>
+        <Header
+          className={style.header}
+          as="h4"
+          block
+          icon="repeat"
+          content={
+            <>
+              {_(".review.header")}
+              <Label circular size="mini" className={style.reviewCount}>
+                {props.reviewSummary.pendingCount}
+              </Label>
+            </>
+          }
+          attached="top"
+        />
+        <Segment className={style.segment} attached="bottom" placeholder={props.reviewSummary.items.length === 0}>
+          {props.reviewSummary.items.length === 0 ? (
+            <Header icon>
+              <Icon name="check circle outline" />
+              {_(".review.no_reviews")}
+            </Header>
+          ) : (
+            <>
+              <List divided relaxed className={style.reviewList}>
+                {props.reviewSummary.items.map(review => (
+                  <List.Item key={review.problem.id}>
+                    <List.Content>
+                      <List.Header>
+                        <Link href={`${getProblemUrl(review.problem)}?review=true`}>
+                          <EmojiRenderer>{getProblemDisplayName(review.problem, review.title, _)}</EmojiRenderer>
+                        </Link>
+                      </List.Header>
+                      <List.Description className={style.reviewDescription}>
+                        <span>
+                          {_(".review.round", {
+                            current: review.reviewNumber,
+                            total: review.totalReviewCount
+                          })}
+                        </span>
+                        {review.overdue ? (
+                          <Label size="mini" color="red">
+                            {_(".review.overdue", { days: review.overdueDays })}
+                          </Label>
+                        ) : (
+                          <span title={formatDateTime(review.dueAt)[1]}>
+                            {_(".review.due_at", { time: formatDateTime(review.dueAt)[1] })}
+                          </span>
+                        )}
+                      </List.Description>
+                    </List.Content>
+                  </List.Item>
+                ))}
+              </List>
+              {props.reviewSummary.pendingCount > props.reviewSummary.items.length && (
+                <div className={style.reviewMore}>
+                  <Link href="/reviews">
+                    {_(".review.view_all", {
+                      count: props.reviewSummary.pendingCount
+                    })}
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
+        </Segment>
+      </>
+    );
+
   const isNarrowScreen = useScreenWidthWithin(0, 1024);
 
   return (
@@ -340,6 +412,7 @@ let HomePage: React.FC<HomePageProps> = props => {
           {getAnnnouncements()}
           {getHitokoto()}
           {getCountdown()}
+          {getReviewCard()}
           {getFriendLinks()}
         </>
       ) : (
@@ -352,6 +425,7 @@ let HomePage: React.FC<HomePageProps> = props => {
           <Grid.Column width={5}>
             {getHitokoto()}
             {getCountdown()}
+            {getReviewCard()}
             {getFriendLinks()}
           </Grid.Column>
         </Grid>

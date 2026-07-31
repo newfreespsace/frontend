@@ -20,6 +20,12 @@ return {
     submissions: "提出",
     accepted: "正解"
   },
+  review: {
+    header: "{current}/{total} 回目の復習",
+    deadline: "期限：{time}",
+    overdue: "{days} 日超過",
+    instructions: "問題をもう一度自力で解いてください。新しい提出が通ると、この復習は自動的に完了します。"
+  },
   action: {
     submit: "提出",
     back_to_contest: "コンテストへ戻る",
