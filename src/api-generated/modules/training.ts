@@ -26,6 +26,10 @@ export const setCurrentTraining = createPostApi<ApiTypes.SetCurrentTrainingDto, 
   "training/setCurrentTraining",
   false
 );
+export const queryTrainingRanklist = createPostApi<
+  ApiTypes.QueryTrainingRanklistDto,
+  ApiTypes.QueryTrainingRanklistResponseDto
+>("training/queryTrainingRanklist", false);
 export const queryChapterSetByTrainingId = createPostApi<ApiTypes.QueryChapterByTrainingIdDto, void>(
   "training/chapter/queryChapterSetByTrainingId",
   false

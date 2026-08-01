@@ -1168,6 +1168,24 @@ declare namespace ApiTypes {
     problemCount: number;
     acceptedProblemCount: number;
   }
+  export interface QueryTrainingRanklistDto {
+    trainingId: number;
+    skipCount: number;
+    takeCount: number;
+  }
+  export interface TrainingRanklistItemDto {
+    rank: number;
+    user: ApiTypes.UserMetaDto;
+    acceptedProblemCount: number;
+    lastSubmissionTime: string;
+  }
+  export interface QueryTrainingRanklistResponseDto {
+    error?: "TAKE_TOO_MANY";
+    trainingId?: number;
+    problemCount?: number;
+    count?: number;
+    result?: ApiTypes.TrainingRanklistItemDto[];
+  }
   export interface QueryUserMigrationInfoRequestDto {
     email?: string;
     oldUsername?: string;

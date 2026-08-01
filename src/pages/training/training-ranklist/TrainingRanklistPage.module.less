@@ -1,0 +1,66 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 30px;
+
+  :global(.ui.header) {
+    margin-bottom: 8px !important;
+  }
+
+  :global(.ui.button) {
+    flex-shrink: 0;
+    margin-right: 0 !important;
+  }
+}
+
+.trainingTitle {
+  opacity: 0.68;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.ranklist {
+  min-width: 680px;
+}
+
+.rank {
+  width: 90px;
+  white-space: nowrap;
+}
+
+.medal {
+  font-size: 1.65em;
+  line-height: 1;
+}
+
+.time {
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 42px 16px;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-foreground-transparent);
+  text-align: center;
+
+  i {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 2.4em;
+  }
+}
+
+.pagination {
+  margin-top: 24px;
+  text-align: center;
+}
+
+@media only screen and (max-width: 767px) {
+  .header {
+    flex-direction: column;
+  }
+}

@@ -3,6 +3,7 @@ import { mount, lazy } from "navi";
 export default {
   t: mount({
     "/:trainingId": mount({
+      "/ranklist": lazy(() => import("./training-ranklist/TrainingRanklistPage")),
       "/:chapterId": mount({
         "/:sectionId": mount({
           "/ranklist": lazy(() => import("./section-ranklist/SectionRanklistPage")),

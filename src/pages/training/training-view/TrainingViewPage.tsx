@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, Icon, Message, MessageHeader, Segment, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Message, MessageHeader, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "../common/TrainingPage.module.less";
@@ -165,7 +165,13 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
         <div className={style.headerTitle}>
           <Header as="h1">{training.title}</Header>
         </div>
-        {canManageTraining && <div className={style.headerActions}>{manageModal}</div>}
+        <div className={style.headerActions}>
+          <Button as={Link} href={`/t/${training.id}/ranklist`}>
+            <Icon name="trophy" />
+            {_(".training_ranklist")}
+          </Button>
+          {manageModal}
+        </div>
       </div>
 
       {training.description && (
