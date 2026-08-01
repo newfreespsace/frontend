@@ -2,7 +2,7 @@ import MarkdownIt from "markdown-it";
 import { v4 as uuid } from "uuid";
 
 import MarkdownItMath from "markdown-it-math-loose";
-import MarkdownItMergeCells from "markdown-it-merge-cells/src";
+// import MarkdownItMergeCells from "markdown-it-merge-cells/src";
 import MarkdownItMentions from "markdown-it-mentions";
 import MarkdownItTaskLists from "@hackmd/markdown-it-task-lists";
 
@@ -83,7 +83,7 @@ export function renderMarkdown(
     inlineRenderer: (code: string) => addMathPlaceholder(code, false),
     blockRenderer: (code: string) => addMathPlaceholder(code, true)
   });
-  renderer.use(MarkdownItMergeCells);
+  // renderer.use(MarkdownItMergeCells);
   renderer.use(MarkdownItMentions, {
     parseURL: (username: string) => `/u/${username}`
   });
