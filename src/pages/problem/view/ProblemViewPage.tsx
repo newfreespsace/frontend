@@ -54,6 +54,7 @@ import { downloadProblemFile, downloadProblemFilesAsArchive } from "../files/Pro
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import formatDateTime from "@/utils/formatDateTime";
+import { markSubmissionForCelebration } from "@/utils/submissionCelebration";
 
 export function useProblemViewMarkdownContentPatcher(
   problemId: number,
@@ -453,6 +454,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       toast.error(_(`.error.${response.error}`));
     } else {
       setModified(false);
+      markSubmissionForCelebration(response.submissionId);
       navigation.navigate(
         inContest ? `/c/${props.contest.id}/s/${response.submissionId}` : `/s/${response.submissionId}`
       );

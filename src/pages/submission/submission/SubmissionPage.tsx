@@ -23,6 +23,7 @@ import { SubmissionProgressMessageMetaOnly, SubmissionProgressType } from "../co
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
+import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -206,6 +207,21 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   const [progress, setProgress] = useState(props.progress);
   const [progressMeta, setProgressMeta] = useState(parseProgress(props.progress, props.meta));
+
+  useEffect(() => {
+    if (progressMeta.pending) return;
+
+    // Consume the marker for every final result. A later rejudge to Accepted
+    // must not celebrate a submission that originally finished otherwise.
+    const shouldCelebrate = consumeSubmissionCelebration(props.meta.id);
+    if (
+      shouldCelebrate &&
+      progressMeta.status === SubmissionStatus.Accepted &&
+      props.meta.submitter.id === appState.currentUser?.id
+    ) {
+      fireAcceptedSubmissionConfetti().catch(error => console.error("Failed to show submission confetti", error));
+    }
+  }, [progressMeta.pending, progressMeta.status, props.meta.id, props.meta.submitter.id]);
 
   // Subscribe to submission progress with the key
   const subscriptionKey = props.progressSubscriptionKey;
