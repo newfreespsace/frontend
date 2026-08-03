@@ -1783,6 +1783,7 @@ declare namespace ApiTypes {
     loginIpLocation: string;
     userAgent: string;
     loginTime: number;
+    expiresAt: number;
     lastAccessTime: number;
   }
 }

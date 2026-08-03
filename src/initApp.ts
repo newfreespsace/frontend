@@ -15,6 +15,8 @@ const SESSION_SWR_INFO_VALID_FOR = 7 * 24 * 60 * 60 * 1000;
 
 function applySessionInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {
   runInAction(() => {
+    if (!sessionInfo.userMeta && appState.token) appState.token = null;
+
     appState.currentUser = sessionInfo.userMeta;
     appState.currentUserJoinedGroupsCount = sessionInfo.joinedGroupsCount;
     appState.currentUserPrivileges = sessionInfo.userPrivileges || [];
