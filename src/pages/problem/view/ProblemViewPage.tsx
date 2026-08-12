@@ -779,30 +779,33 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                     position="top left"
                   />
                 )}
-              <Menu.Item
-                name={_(".action.submission")}
-                icon="list"
-                as={Link}
-                href={{
-                  pathname: "/s",
-                  query: inContest
-                    ? {
-                        contestId: props.contest.id.toString(),
-                        contestProblemIndex: props.contestPid.toString(),
-                        ...(appState.activeGroupContests.some(activeContest => activeContest.id === props.contest.id) &&
-                        appState.currentUser
-                          ? { submitter: appState.currentUser.username }
-                          : {})
-                      }
-                    : props.idType === "id"
-                    ? {
-                        problemId: props.problem.meta.id.toString()
-                      }
-                    : {
-                        problemDisplayId: props.problem.meta.displayId.toString()
-                      }
-                }}
-              />
+              {!props.review && (
+                <Menu.Item
+                  name={_(".action.submission")}
+                  icon="list"
+                  as={Link}
+                  href={{
+                    pathname: "/s",
+                    query: inContest
+                      ? {
+                          contestId: props.contest.id.toString(),
+                          contestProblemIndex: props.contestPid.toString(),
+                          ...(appState.activeGroupContests.some(
+                            activeContest => activeContest.id === props.contest.id
+                          ) && appState.currentUser
+                            ? { submitter: appState.currentUser.username }
+                            : {})
+                        }
+                      : props.idType === "id"
+                      ? {
+                          problemId: props.problem.meta.id.toString()
+                        }
+                      : {
+                          problemDisplayId: props.problem.meta.displayId.toString()
+                        }
+                  }}
+                />
+              )}
 
               {inContest && props.problem.additionalFiles?.length > 0 && (
                 <Menu.Item
@@ -822,7 +825,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {!inContest && ProblemTypeView.enableStatistics() && (
+              {!props.review && !inContest && ProblemTypeView.enableStatistics() && (
                 <Menu.Item
                   name={_(".action.statistics")}
                   icon="sort content ascending"
@@ -831,7 +834,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {!inContest && props.problem.canViewDiscussion && (
+              {!props.review && !inContest && props.problem.canViewDiscussion && (
                 <Menu.Item
                   as={Link}
                   href={{
