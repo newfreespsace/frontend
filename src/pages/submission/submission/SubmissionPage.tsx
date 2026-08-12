@@ -23,7 +23,8 @@ import { SubmissionProgressMessageMetaOnly, SubmissionProgressType } from "../co
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
-import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
+import { consumeSubmissionCelebration } from "@/utils/submissionCelebration";
+import SubmissionKoEffect from "@/components/SubmissionKoEffect";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -57,6 +58,7 @@ export interface SubmissionProgress<TestcaseResult extends TestcaseResultCommon 
   // Only valid when finished
   status?: SubmissionStatus;
   score?: number;
+  isFirstAccepted?: boolean;
 
   compile?: {
     compileTaskHash: string;
@@ -207,21 +209,38 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   const [progress, setProgress] = useState(props.progress);
   const [progressMeta, setProgressMeta] = useState(parseProgress(props.progress, props.meta));
+  const [showKoEffect, setShowKoEffect] = useState(false);
 
   useEffect(() => {
     if (progressMeta.pending) return;
 
-    // Consume the marker for every final result. A later rejudge to Accepted
-    // must not celebrate a submission that originally finished otherwise.
+    const isOwnNonContestSubmission = !props.meta.contestId && props.meta.submitter.id === appState.currentUser?.id;
+
+    // Accepted results wait for the server's first-AC decision before consuming the
+    // one-shot marker. Other final results can discard it immediately.
+    if (
+      progressMeta.status === SubmissionStatus.Accepted &&
+      isOwnNonContestSubmission &&
+      progress?.isFirstAccepted == null
+    )
+      return;
+
     const shouldCelebrate = consumeSubmissionCelebration(props.meta.id);
     if (
       shouldCelebrate &&
       progressMeta.status === SubmissionStatus.Accepted &&
-      props.meta.submitter.id === appState.currentUser?.id
-    ) {
-      fireAcceptedSubmissionConfetti().catch(error => console.error("Failed to show submission confetti", error));
-    }
-  }, [progressMeta.pending, progressMeta.status, props.meta.id, props.meta.submitter.id]);
+      isOwnNonContestSubmission &&
+      progress?.isFirstAccepted
+    )
+      setShowKoEffect(true);
+  }, [
+    progressMeta.pending,
+    progressMeta.status,
+    progress?.isFirstAccepted,
+    props.meta.id,
+    props.meta.contestId,
+    props.meta.submitter.id
+  ]);
 
   // Subscribe to submission progress with the key
   const subscriptionKey = props.progressSubscriptionKey;
@@ -919,6 +938,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   return (
     <>
+      {showKoEffect && <SubmissionKoEffect onFinished={() => setShowKoEffect(false)} />}
       {!isMobile && (
         <Table textAlign="center" basic="very" unstackable fixed={isWideScreen} compact={isWideScreen ? false : "very"}>
           <Table.Header>

@@ -454,7 +454,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
       toast.error(_(`.error.${response.error}`));
     } else {
       setModified(false);
-      markSubmissionForCelebration(response.submissionId);
+      if (!inContest) markSubmissionForCelebration(response.submissionId);
       navigation.navigate(
         inContest ? `/c/${props.contest.id}/s/${response.submissionId}` : `/s/${response.submissionId}`
       );

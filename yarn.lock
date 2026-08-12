@@ -1851,11 +1851,6 @@
   resolved "https://registry.npmmirror.com/@types/blueimp-md5/-/blueimp-md5-2.18.0.tgz#a5c44fa0a61f5840e95a7965eafcec2c30d6c4df"
   integrity sha512-f4A+++lGZGJvVSgeyMkqA7BEf2BVQli6F+qEykKb49c5ieWQBkfpn6CP5c1IZr2Yi2Ofl6Fj+v0e1fN18Z8Cnw==
 
-"@types/canvas-confetti@^1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@types/canvas-confetti/-/canvas-confetti-1.9.0.tgz#d1077752e046413c9881fbb2ba34a70ebe3c1773"
-  integrity sha512-aBGj/dULrimR1XDZLtG9JwxX1b4HPRF6CX9Yfwh3NvstZEm1ZL7RBnel4keCPSqs1ANRu1u2Aoz9R+VmtjYuTg==
-
 "@types/chart.js@^2.9.37":
   version "2.9.37"
   resolved "https://registry.yarnpkg.com/@types/chart.js/-/chart.js-2.9.37.tgz#8af70862b154fedf938b5b87debdb3a70f6e3208"
@@ -2498,11 +2493,6 @@ caniuse-lite@^1.0.30001782:
   version "1.0.30001793"
   resolved "https://registry.npmmirror.com/caniuse-lite/-/caniuse-lite-1.0.30001793.tgz#238887ddf5fcfc8c36d872394d0a78a517312a72"
   integrity sha512-iwSsYWaCOoh26cV8NwNRViHlrfUvYsHDfRVcbtmw0Kg6PJIZZXwMkj1442FYLBGkeUf1juAsU3DTfxW579mrPA==
-
-canvas-confetti@^1.9.4:
-  version "1.9.4"
-  resolved "https://registry.yarnpkg.com/canvas-confetti/-/canvas-confetti-1.9.4.tgz#4412a5daa96afd0b4d70ecd66b65ce8db3022b2b"
-  integrity sha512-yxQbJkAVrFXWNbTUjPqjF7G+g6pDotOUHGbkZq2NELZUMDpiJ85rIEazVb8GTaAptNW2miJAXbs1BtioA251Pw==
 
 chalk-template@0.4.0:
   version "0.4.0"
