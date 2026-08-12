@@ -586,6 +586,15 @@ declare namespace ApiTypes {
   export interface GetTrainingRequestDto {
     id: number;
   }
+  export interface GetInactiveUserListRequestDto {
+    skipCount: number;
+    takeCount: number;
+  }
+  export interface GetInactiveUserListResponseDto {
+    error?: "PERMISSION_DENIED" | "TAKE_TOO_MANY";
+    users?: ApiTypes.InactiveUserDto[];
+    count?: number;
+  }
   export interface GetUserDetailRequestDto {
     userId?: number;
     username?: string;
@@ -771,7 +780,7 @@ declare namespace ApiTypes {
     password: string;
   }
   export interface LoginResponseDto {
-    error?: "ALREADY_LOGGEDIN" | "NO_SUCH_USER" | "WRONG_PASSWORD" | "USER_NOT_MIGRATED";
+    error?: "ALREADY_LOGGEDIN" | "NO_SUCH_USER" | "WRONG_PASSWORD" | "ACCOUNT_INACTIVE" | "USER_NOT_MIGRATED";
     token?: string;
     username?: string;
   }
@@ -783,7 +792,13 @@ declare namespace ApiTypes {
     newPassword: string;
   }
   export interface MigrateUserResponseDto {
-    error?: "ALREADY_LOGGEDIN" | "NO_SUCH_USER" | "WRONG_PASSWORD" | "ALREADY_MIGRATED" | "DUPLICATE_USERNAME";
+    error?:
+      | "ALREADY_LOGGEDIN"
+      | "NO_SUCH_USER"
+      | "WRONG_PASSWORD"
+      | "ACCOUNT_INACTIVE"
+      | "ALREADY_MIGRATED"
+      | "DUPLICATE_USERNAME";
     token?: string;
   }
   namespace Parameters {
@@ -1210,6 +1225,7 @@ declare namespace ApiTypes {
       | "DUPLICATE_EMAIL"
       | "INVALID_EMAIL_VERIFICATION_CODE";
     token?: string;
+    pendingActivation?: boolean;
   }
   export interface RejudgeSubmissionRequestDto {
     submissionId: number;
@@ -1284,6 +1300,7 @@ declare namespace ApiTypes {
   export interface ResetPasswordResponseDto {
     error?: "ALREADY_LOGGEDIN" | "NO_SUCH_USER" | "INVALID_EMAIL_VERIFICATION_CODE";
     token?: string;
+    pendingActivation?: boolean;
   }
   namespace Responses {
     export type $200 = ApiTypes.SectionMetaDto[];
@@ -1486,6 +1503,14 @@ declare namespace ApiTypes {
   }
   export interface SetSubmissionPublicResponseDto {
     error?: "NO_SUCH_SUBMISSION" | "PERMISSION_DENIED";
+  }
+  export interface SetUserActiveStatusRequestDto {
+    userId: number;
+    isActive: boolean;
+  }
+  export interface SetUserActiveStatusResponseDto {
+    error?: "PERMISSION_DENIED" | "NO_SUCH_USER" | "CANNOT_DEACTIVATE_SELF";
+    meta?: ApiTypes.UserMetaDto;
   }
   export interface SetUserPrivilegesRequestDto {
     userId: number;
@@ -1735,6 +1760,13 @@ declare namespace ApiTypes {
     qq: string;
     github: string;
   }
+  export interface InactiveUserDto {
+    id: number;
+    username: string;
+    nickname: string;
+    email: string;
+    registrationTime: string; // date-time
+  }
   export interface UserMetaDto {
     id: number;
     username: string;
@@ -1743,6 +1775,7 @@ declare namespace ApiTypes {
     bio: string;
     avatar: ApiTypes.UserAvatarDto;
     isAdmin: boolean;
+    isActive: boolean;
     acceptedProblemCount: number;
     submissionCount: number;
     rating: number;

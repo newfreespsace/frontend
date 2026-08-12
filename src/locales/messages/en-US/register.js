@@ -40,5 +40,6 @@ return {
     FAILED_TO_SEND: "Failed to send mail: {errorMessage}",
     RATE_LIMITED: "Your operations are too frequent. Please try again later."
   },
-  success: "Welcome, {username}!"
+  success: "Welcome, {username}!",
+  success_pending_activation: "Registered successfully, {username}! Your account is awaiting administrator activation."
 };

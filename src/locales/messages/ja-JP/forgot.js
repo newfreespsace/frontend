@@ -9,6 +9,7 @@ return {
   retype_password: "パスワードの再入力",
   submit: "[TBT] Submit",
   success: "[TBT] Password reset",
+  success_pending_activation: "[TBT] Password reset. Your account is still awaiting administrator activation.",
   errors: {
     ALREADY_LOGGEDIN: "すでにログインしています。",
     NO_SUCH_USER: "ユーザは存在しません。",

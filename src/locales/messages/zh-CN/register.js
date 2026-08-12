@@ -39,5 +39,6 @@ return {
     FAILED_TO_SEND: "发送邮件失败：{errorMessage}",
     RATE_LIMITED: "您的操作过于频繁，请稍后再试。"
   },
-  success: "注册成功，{username}！"
+  success: "注册成功，{username}！",
+  success_pending_activation: "注册成功，{username}！账号正在等待管理员激活。"
 };

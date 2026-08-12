@@ -14,6 +14,7 @@ return {
   empty_password: "Please enter your password",
   no_such_user: "No such user",
   wrong_password: "Wrong password",
+  account_inactive: "Your account is not active. Please contact an administrator.",
   welcome: "Welcome back, {username}!",
   errors: {
     NO_SUCH_USER: "No such user.",

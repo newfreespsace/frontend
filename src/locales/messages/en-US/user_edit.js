@@ -14,6 +14,7 @@ return {
     NO_SUCH_USER: "No such user.",
     DUPLICATE_USERNAME: "Username already taken.",
     DUPLICATE_EMAIL: "Email already used.",
+    CANNOT_DEACTIVATE_SELF: "Administrators cannot deactivate their own accounts.",
     FAILED: "Unknown error.",
     FAILED_TO_SEND: "Failed to send mail: {errorMessage}",
     RATE_LIMITED: "Your operations are too frequent. Please try again later."
@@ -183,6 +184,17 @@ return {
   },
   privilege: {
     title: "Privileges",
+    account_status: {
+      header: "Account status",
+      active: "Active",
+      inactive: "Inactive",
+      notes: "Inactive accounts cannot log in. Deactivating an account immediately ends all of its sessions.",
+      cannot_deactivate_self: "To prevent lockout, administrators cannot deactivate their own accounts.",
+      confirm_deactivate:
+        "Deactivate {username}? The user will be logged out immediately and cannot log in until reactivated.",
+      activated_success: "User {username} has been activated.",
+      deactivated_success: "User {username} has been deactivated and logged out."
+    },
     header: "Privileges",
     privileges: {
       EditHomepage: {

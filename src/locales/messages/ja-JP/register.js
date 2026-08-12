@@ -38,5 +38,7 @@ return {
     FAILED_TO_SEND: "[TBT] Failed to send mail: {errorMessage}",
     RATE_LIMITED: "[TBT] Your operations are too frequent. Please try again later."
   },
-  success: "新規登録ができました，{username} さん！"
+  success: "新規登録ができました，{username} さん！",
+  success_pending_activation:
+    "[TBT] Registered successfully, {username}! Your account is awaiting administrator activation."
 };

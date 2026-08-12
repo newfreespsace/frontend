@@ -1,5 +1,6 @@
 return {
   "auth.login_failed.wrong_password": "[TBT] Login failed: wrong password",
+  "auth.login_failed.account_inactive": "[TBT] Login failed: account inactive",
   "auth.login": "[TBT] Login",
   "auth.logout": "[TBT] Logout",
   "auth.register": "[TBT] Register",
@@ -43,6 +44,8 @@ return {
   "submission.set_non_public": "[TBT] Set submission [firstObject] nonpublic",
 
   "user.set_privileges": "[TBT] Set privileges of user [firstObject]",
+  "user.activate": "[TBT] Activate user [firstObject]",
+  "user.deactivate": "[TBT] Deactivate user [firstObject]",
   "user.change_username": "[TBT] Change username",
   "user.change_others_username": "[TBT] Change username of user [firstObject]",
   "user.change_email": "[TBT] Change email (privileged)",

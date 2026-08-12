@@ -38,6 +38,24 @@
     text-overflow: ellipsis;
   }
 
+  .columnNickname {
+    width: 180px;
+  }
+
+  .columnEmail {
+    width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .columnRegistrationTime {
+    width: 160px;
+  }
+
+  .columnAction {
+    width: 110px;
+  }
+
   > * {
     max-width: 100%;
     overflow: hidden;
@@ -104,6 +122,11 @@
   }
 
   .columnBio {
+    display: none !important;
+  }
+
+  .columnEmail,
+  .columnRegistrationTime {
     display: none !important;
   }
 

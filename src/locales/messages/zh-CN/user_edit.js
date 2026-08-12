@@ -14,6 +14,7 @@ return {
     NO_SUCH_USER: "无此用户。",
     DUPLICATE_USERNAME: "用户名已被使用。",
     DUPLICATE_EMAIL: "邮箱已被使用。",
+    CANNOT_DEACTIVATE_SELF: "管理员不能停用自己的账号。",
     FAILED: "未知错误。",
     FAILED_TO_SEND: "发送邮件失败：{errorMessage}",
     RATE_LIMITED: "您的操作过于频繁，请稍后再试。"
@@ -180,6 +181,16 @@ return {
   },
   privilege: {
     title: "特权",
+    account_status: {
+      header: "账号状态",
+      active: "已激活",
+      inactive: "未激活",
+      notes: "未激活账号无法登录；停用账号会立即结束该用户的所有会话。",
+      cannot_deactivate_self: "为避免管理员被锁定，不能停用自己的账号。",
+      confirm_deactivate: "确认停用用户 {username}？该用户会立即下线，并且在重新激活前无法登录。",
+      activated_success: "用户 {username} 已激活。",
+      deactivated_success: "用户 {username} 已停用并下线。"
+    },
     header: "特权",
     privileges: {
       EditHomepage: {

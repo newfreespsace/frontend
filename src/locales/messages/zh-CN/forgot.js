@@ -9,6 +9,7 @@ return {
   retype_password: "确认密码",
   submit: "提交",
   success: "密码已重置",
+  success_pending_activation: "密码已重置，账号仍在等待管理员激活。",
   errors: {
     ALREADY_LOGGEDIN: "你已经登陆过。",
     NO_SUCH_USER: "无此用户。",

@@ -14,6 +14,7 @@ return {
   empty_password: "请输入密码",
   no_such_user: "用户不存在",
   wrong_password: "密码错误",
+  account_inactive: "账号尚未激活，请联系管理员。",
   welcome: "欢迎回来，{username}！",
   errors: {
     NO_SUCH_USER: "无此用户。",

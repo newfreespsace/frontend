@@ -15,6 +15,10 @@ export const setUserPrivileges = createPostApi<
   ApiTypes.SetUserPrivilegesRequestDto,
   ApiTypes.SetUserPrivilegesResponseDto
 >("user/setUserPrivileges", false);
+export const setUserActiveStatus = createPostApi<
+  ApiTypes.SetUserActiveStatusRequestDto,
+  ApiTypes.SetUserActiveStatusResponseDto
+>("user/setUserActiveStatus", false);
 export const updateUserProfile = createPostApi<
   ApiTypes.UpdateUserProfileRequestDto,
   ApiTypes.UpdateUserProfileResponseDto
@@ -23,6 +27,10 @@ export const getUserList = createPostApi<ApiTypes.GetUserListRequestDto, ApiType
   "user/getUserList",
   false
 );
+export const getInactiveUserList = createPostApi<
+  ApiTypes.GetInactiveUserListRequestDto,
+  ApiTypes.GetInactiveUserListResponseDto
+>("user/getInactiveUserList", false);
 export const getUserDetail = createPostApi<ApiTypes.GetUserDetailRequestDto, ApiTypes.GetUserDetailResponseDto>(
   "user/getUserDetail",
   false

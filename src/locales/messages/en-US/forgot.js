@@ -9,6 +9,7 @@ return {
   retype_password: "Retype Password",
   submit: "Submit",
   success: "Password reset",
+  success_pending_activation: "Password reset. Your account is still awaiting administrator activation.",
   errors: {
     ALREADY_LOGGEDIN: "You have already logged in.",
     NO_SUCH_USER: "No such user.",

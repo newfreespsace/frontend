@@ -14,6 +14,7 @@ return {
   empty_password: "パスワードを入力してください",
   no_such_user: "ユーザは存在しません。",
   wrong_password: "パスワードが間違っています",
+  account_inactive: "[TBT] Your account is not active. Please contact an administrator.",
   welcome: "お帰りなさい，{username} さん！",
   errors: {
     NO_SUCH_USER: "ユーザは存在しません。",

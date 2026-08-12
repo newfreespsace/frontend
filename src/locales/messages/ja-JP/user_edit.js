@@ -14,6 +14,7 @@ return {
     NO_SUCH_USER: "ユーザが存在しません。",
     DUPLICATE_USERNAME: "このユーザ名はすでに使用されています。",
     DUPLICATE_EMAIL: "このメールアドレスはすでに使用されています。",
+    CANNOT_DEACTIVATE_SELF: "[TBT] Administrators cannot deactivate their own accounts.",
     FAILED: "[TBT] Unknown error.",
     FAILED_TO_SEND: "[TBT] Failed to send mail: {errorMessage}",
     RATE_LIMITED: "[TBT] Your operations are too frequent. Please try again later."
@@ -185,6 +186,17 @@ return {
     // "Permission" is granted easily to anyone by a manager/admin or problem's owner to view or edit a problem
     // "Privilege" is granted to a managers by the admin to take control of a part of the app.
     title: "[TBT] Privileges",
+    account_status: {
+      header: "[TBT] Account status",
+      active: "[TBT] Active",
+      inactive: "[TBT] Inactive",
+      notes: "[TBT] Inactive accounts cannot log in. Deactivating an account immediately ends all of its sessions.",
+      cannot_deactivate_self: "[TBT] To prevent lockout, administrators cannot deactivate their own accounts.",
+      confirm_deactivate:
+        "[TBT] Deactivate {username}? The user will be logged out immediately and cannot log in until reactivated.",
+      activated_success: "[TBT] User {username} has been activated.",
+      deactivated_success: "[TBT] User {username} has been deactivated and logged out."
+    },
     header: "[TBT] Privileges",
     privileges: {
       EditHomepage: {

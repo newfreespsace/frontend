@@ -23,7 +23,6 @@ import {
   isValidPassword,
   stripInvalidCharactersInEmailVerificationCode
 } from "@/utils/validators";
-import { refreshSession } from "@/initApp";
 import PseudoLink from "@/components/PseudoLink";
 import { onEnterPress } from "@/utils/onEnterPress";
 
@@ -204,16 +203,8 @@ let RegisterPage: React.FC = () => {
         }
       } else {
         // Register success
-        appState.token = response.token;
-
-        {
-          setSuccessMessage(_(".success", { username }));
-
-          setTimeout(async () => {
-            await refreshSession();
-            redirect();
-          }, 1000);
-        }
+        setSuccessMessage(_(".success_pending_activation", { username }));
+        setTimeout(() => navigateTo("login"), 1800);
 
         return;
       }

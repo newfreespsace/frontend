@@ -1,5 +1,6 @@
 return {
   "auth.login_failed.wrong_password": "Login failed: wrong password",
+  "auth.login_failed.account_inactive": "Login failed: account inactive",
   "auth.login": "Login",
   "auth.logout": "Logout",
   "auth.register": "Register",
@@ -43,6 +44,8 @@ return {
   "submission.set_non_public": "Set submission [firstObject] nonpublic",
 
   "user.set_privileges": "Set privileges of user [firstObject]",
+  "user.activate": "Activate user [firstObject]",
+  "user.deactivate": "Deactivate user [firstObject]",
   "user.change_username": "Change username",
   "user.change_others_username": "Change username of user [firstObject]",
   "user.change_email": "Change email (privileged)",

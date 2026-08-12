@@ -42,6 +42,34 @@ const PrevilegeView: React.FC<PrevilegeViewProps> = props => {
   }, [appState.locale, props.meta]);
 
   const [, setModified] = useConfirmNavigation();
+  const isAdmin = appState.currentUser.isAdmin;
+  const isCurrentUser = props.meta.id === appState.currentUser.id;
+
+  const [isActive, setIsActive] = useState(props.meta.isActive);
+  const [statusPending, setStatusPending] = useState(false);
+
+  async function onActiveStatusChange(active: boolean) {
+    if (statusPending || active === isActive) return;
+    if (!active && !window.confirm(_(".account_status.confirm_deactivate", { username: props.meta.username }))) return;
+
+    setStatusPending(true);
+    const { requestError, response } = await api.user.setUserActiveStatus({
+      userId: props.meta.id,
+      isActive: active
+    });
+
+    if (requestError) toast.error(requestError(_));
+    else if (response.error) toast.error(_(`user_edit.errors.${response.error}`));
+    else {
+      setIsActive(response.meta.isActive);
+      toast.success(
+        active
+          ? _(".account_status.activated_success", { username: props.meta.username })
+          : _(".account_status.deactivated_success", { username: props.meta.username })
+      );
+    }
+    setStatusPending(false);
+  }
 
   const [pending, onSubmit] = useAsyncCallbackPending(async () => {
     const { requestError, response } = await api.user.setUserPrivileges({
@@ -65,10 +93,22 @@ const PrevilegeView: React.FC<PrevilegeViewProps> = props => {
     setModified(true);
   }
 
-  const isAdmin = appState.currentUser.isAdmin;
-
   return (
     <>
+      <Header className={style.sectionHeader} size="large" content={_(".account_status.header")} />
+      <div className={style.privilegeRow}>
+        <Checkbox
+          toggle
+          readOnly={!isAdmin || statusPending || (isCurrentUser && isActive)}
+          disabled={statusPending || (isCurrentUser && isActive)}
+          label={isActive ? _(".account_status.active") : _(".account_status.inactive")}
+          checked={isActive}
+          onChange={(e, { checked }) => onActiveStatusChange(checked)}
+        />
+        <div className={style.notes}>
+          {isCurrentUser ? _(".account_status.cannot_deactivate_self") : _(".account_status.notes")}
+        </div>
+      </div>
       <Header className={style.sectionHeader} size="large" content={_(".header")} />
       {Object.values(Privilege).map(privilege => (
         <div key={privilege} className={style.privilegeRow}>

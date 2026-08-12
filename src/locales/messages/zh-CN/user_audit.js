@@ -1,5 +1,6 @@
 return {
   "auth.login_failed.wrong_password": "登录失败：密码错误",
+  "auth.login_failed.account_inactive": "登录失败：账号未激活",
   "auth.login": "登录",
   "auth.logout": "注销",
   "auth.register": "注册",
@@ -43,6 +44,8 @@ return {
   "submission.set_non_public": "将提交记录 [firstObject] 设为非公开",
 
   "user.set_privileges": "设置用户 [firstObject] 的特权",
+  "user.activate": "激活用户 [firstObject]",
+  "user.deactivate": "停用用户 [firstObject]",
   "user.change_username": "修改用户名",
   "user.change_others_username": "修改用户 [firstObject] 的用户名",
   "user.change_email": "修改邮箱（特权）",

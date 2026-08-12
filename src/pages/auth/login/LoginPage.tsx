@@ -138,6 +138,9 @@ let LoginPage: React.FC = () => {
         refPasswordInput.current.focus();
         refPasswordInput.current.select();
         break;
+      case "ACCOUNT_INACTIVE":
+        setError("usernameOrEmail", _(".account_inactive"));
+        break;
       default:
         toast.error(_(`.errors.${error}`));
     }

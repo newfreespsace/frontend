@@ -120,6 +120,12 @@ let ForgetPage: React.FC = () => {
         }
       } else {
         // Reset password success
+        if (response.pendingActivation) {
+          setSuccessMessage(_(".success_pending_activation"));
+          setTimeout(() => navigation.navigate("/login"), 1800);
+          return;
+        }
+
         appState.token = response.token;
 
         {
