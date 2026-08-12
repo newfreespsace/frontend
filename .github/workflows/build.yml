@@ -8,21 +8,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out
-      uses: actions/checkout@v2
-    - name: Set up Node
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-    - name: Install dependencies
-      run: yarn --frozen-lockfile
-    - name: Build
-      run: yarn build
-      env:
-        NODE_OPTIONS: --max_old_space_size=8192
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        path: dist
-    - name: Check style
-      run: yarn check-style
+      - name: Check out
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 16.x
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+        env:
+          NODE_OPTIONS: --max_old_space_size=8192
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          path: dist
+      - name: Check style
+        run: yarn check-style
