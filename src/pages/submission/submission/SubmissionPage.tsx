@@ -23,8 +23,7 @@ import { SubmissionProgressMessageMetaOnly, SubmissionProgressType } from "../co
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
-import { consumeSubmissionCelebration } from "@/utils/submissionCelebration";
-import SubmissionKoEffect from "@/components/SubmissionKoEffect";
+import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -209,7 +208,6 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   const [progress, setProgress] = useState(props.progress);
   const [progressMeta, setProgressMeta] = useState(parseProgress(props.progress, props.meta));
-  const [showKoEffect, setShowKoEffect] = useState(false);
 
   useEffect(() => {
     if (progressMeta.pending) return;
@@ -231,8 +229,9 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
       progressMeta.status === SubmissionStatus.Accepted &&
       isOwnNonContestSubmission &&
       progress?.isFirstAccepted
-    )
-      setShowKoEffect(true);
+    ) {
+      fireAcceptedSubmissionConfetti().catch(error => console.error("Failed to show submission confetti", error));
+    }
   }, [
     progressMeta.pending,
     progressMeta.status,
@@ -938,7 +937,6 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   return (
     <>
-      {showKoEffect && <SubmissionKoEffect onFinished={() => setShowKoEffect(false)} />}
       {!isMobile && (
         <Table textAlign="center" basic="very" unstackable fixed={isWideScreen} compact={isWideScreen ? false : "very"}>
           <Table.Header>
