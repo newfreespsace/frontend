@@ -177,6 +177,7 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    pointsPerProblem: number;
   }
   export interface DeleteByIdRequestDto {
     id: number;
@@ -567,6 +568,13 @@ declare namespace ApiTypes {
   export interface GetSitePreferenceResponseDto {
     error?: "PERMISSION_DENIED";
     preference?: ApiTypes.PreferenceConfig;
+  }
+  export interface GetTrainingPointRecalculationRequestDto {
+    taskId?: number;
+  }
+  export interface GetTrainingPointRecalculationResponseDto {
+    error?: "PERMISSION_DENIED" | "NOT_FOUND";
+    task?: ApiTypes.TrainingPointRecalculationTaskDto;
   }
   export interface GetSubmissionDetailRequestDto {
     submissionId: string;
@@ -1180,6 +1188,7 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    pointsPerProblem: number;
     problemCount: number;
     acceptedProblemCount: number;
   }
@@ -1628,6 +1637,7 @@ declare namespace ApiTypes {
     title: string;
     description?: string;
     sortOrder: number;
+    pointsPerProblem: number;
     problemCount: number;
     acceptedProblemCount: number;
     chapters?: ApiTypes.ChapterMetaDto[];
@@ -1712,6 +1722,35 @@ declare namespace ApiTypes {
     title?: string;
     description?: string;
     sortOrder?: number;
+    pointsPerProblem?: number;
+  }
+  export interface StartTrainingPointRecalculationRequestDto {
+    dryRun: boolean;
+  }
+  export interface StartTrainingPointRecalculationResponseDto {
+    error?: "PERMISSION_DENIED" | "ALREADY_RUNNING";
+    task?: ApiTypes.TrainingPointRecalculationTaskDto;
+  }
+  export interface TrainingPointRecalculationSummaryDto {
+    affectedUserCount: number;
+    currentRecordCount: number;
+    expectedRecordCount: number;
+    addedRecordCount: number;
+    updatedRecordCount: number;
+    deletedRecordCount: number;
+    beforeTotalPoints: number;
+    afterTotalPoints: number;
+    validationPassed: boolean;
+  }
+  export interface TrainingPointRecalculationTaskDto {
+    id: number;
+    dryRun: boolean;
+    status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED";
+    summary?: ApiTypes.TrainingPointRecalculationSummaryDto;
+    error?: string;
+    createdAt: string;
+    startedAt?: string;
+    finishedAt?: string;
   }
   export interface UpdateUserPasswordRequestDto {
     userId: number;

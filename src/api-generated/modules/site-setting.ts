@@ -9,3 +9,11 @@ export const updatePreference = createPostApi<
   ApiTypes.UpdateSitePreferenceRequestDto,
   ApiTypes.UpdateSitePreferenceResponseDto
 >("site-setting/preference", false);
+export const startTrainingPointRecalculation = createPostApi<
+  ApiTypes.StartTrainingPointRecalculationRequestDto,
+  ApiTypes.StartTrainingPointRecalculationResponseDto
+>("site-setting/training-points/recalculate", false);
+export const getTrainingPointRecalculation = createPostApi<
+  ApiTypes.GetTrainingPointRecalculationRequestDto,
+  ApiTypes.GetTrainingPointRecalculationResponseDto
+>("site-setting/training-points/recalculation-status", false);

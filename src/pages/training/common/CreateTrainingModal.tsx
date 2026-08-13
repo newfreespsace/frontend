@@ -16,6 +16,7 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [pointsPerProblem, setPointsPerProblem] = useState(0);
 
   const [pending, onSubmit] = useAsyncCallbackPending(async () => {
     const normalizedTitle = title.trim();
@@ -27,13 +28,15 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
     const { requestError, response } = await api.training.createTraining({
       title: normalizedTitle,
       description: description.trim() || undefined,
-      sortOrder: props.nextSortOrder
+      sortOrder: props.nextSortOrder,
+      pointsPerProblem
     });
     if (requestError) toast.error(requestError((key: string) => key));
     else {
       setOpen(false);
       setTitle("");
       setDescription("");
+      setPointsPerProblem(0);
       if (props.onCreated) await props.onCreated(response);
       else navigation.navigate(`/t/${response.id}`);
     }
@@ -59,6 +62,14 @@ const CreateTrainingModal: React.FC<CreateTrainingModalProps> = props => {
             label={_(".description")}
             value={description}
             onChange={(e, { value }) => setDescription(String(value))}
+          />
+          <Form.Input
+            type="number"
+            min={0}
+            step={1}
+            label={_(".points_per_problem")}
+            value={pointsPerProblem}
+            onChange={e => setPointsPerProblem(Math.max(0, Math.floor(Number(e.currentTarget.value) || 0)))}
           />
         </Form>
       </Modal.Content>
