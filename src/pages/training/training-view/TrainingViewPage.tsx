@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Header, Icon, Label, Segment, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Message, MessageHeader, Segment, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "../common/TrainingPage.module.less";
@@ -16,7 +16,6 @@ import RenameTitleModal from "../common/RenameTitleModal";
 import TrainingManageModal from "../common/TrainingManageModal";
 import TrainingProgressBar from "../common/TrainingProgressBar";
 import toast from "@/utils/toast";
-import TrainingPointsModal from "../common/TrainingPointsModal";
 
 interface TrainingViewData {
   training: ApiTypes.TrainingMetaDto;
@@ -96,11 +95,6 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
         }));
     }
   );
-  const [pointsPending, onUpdatePoints] = useAsyncCallbackPending(async (pointsPerProblem: number) => {
-    const { requestError, response } = await api.training.updateTraining({ id: training.id, pointsPerProblem });
-    if (requestError) toast.error(requestError((key: string) => key));
-    else setTraining(currentTraining => ({ ...currentTraining, pointsPerProblem: response.pointsPerProblem }));
-  });
 
   const manageModal = canManageTraining && (
     <TrainingManageModal
@@ -114,11 +108,6 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
             initialDescription={training.description}
             pending={renamePending}
             onSubmit={onRenameTraining}
-          />
-          <TrainingPointsModal
-            initialPoints={training.pointsPerProblem}
-            pending={pointsPending}
-            onSubmit={onUpdatePoints}
           />
           <CreateChapterModal
             trainingId={training.id}
@@ -175,10 +164,6 @@ let TrainingViewPage: React.FC<TrainingViewPageProps> = props => {
       <div className={style.header}>
         <div className={style.headerTitle}>
           <Header as="h1">{training.title}</Header>
-          <Label basic color={training.pointsPerProblem > 0 ? "yellow" : undefined}>
-            <Icon name="star" />
-            {_(".points_per_problem_value", { points: training.pointsPerProblem })}
-          </Label>
         </div>
         <div className={style.headerActions}>
           <Button as={Link} href={`/t/${training.id}/ranklist`}>

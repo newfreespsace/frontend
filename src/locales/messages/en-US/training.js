@@ -14,11 +14,6 @@ return {
   progress: "Progress",
   title_field: "Title",
   description: "Description",
-  points_per_problem: "Points per problem",
-  points_per_problem_value: "{points} points per problem",
-  points_per_problem_hint:
-    "Set to 0 to disable points for this training plan. A change automatically recalculates affected users.",
-  edit_points: "Set points",
   name: "Name",
   cancel: "Cancel",
   create: "Create",
