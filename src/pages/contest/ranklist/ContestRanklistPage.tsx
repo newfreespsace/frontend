@@ -272,7 +272,7 @@ const ProblemScoreCell: React.FC<ProblemScoreCellProps> = props => {
 };
 
 export default defineRoute(async request => {
-  const ranklistScope = request.path.endsWith("/post-ranklist") ? "combined" : "official";
+  const ranklistScope = request.mountpath.endsWith("/post-ranklist") ? "combined" : "official";
   return <ContestRanklistPage response={await fetchData(Number(request.params.id), ranklistScope)} />;
 });
 
