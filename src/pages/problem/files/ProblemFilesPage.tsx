@@ -45,8 +45,9 @@ import { EmojiRenderer } from "@/components/EmojiRenderer";
 if (!window.WritableStream || true) {
   (streamsaver as any).WritableStream = (await import("web-streams-polyfill/ponyfill/es6")).WritableStream;
 }
-if (window.apiEndpoint.toLowerCase().startsWith("https://")) {
-  (streamsaver as any).mitm = `${window.apiEndpoint}api/cors/streamsaver/mitm.html`;
+const apiEndpointUrl = new URL(window.apiEndpoint || "/", window.location.origin);
+if (apiEndpointUrl.protocol === "https:") {
+  (streamsaver as any).mitm = new URL("api/cors/streamsaver/mitm.html", apiEndpointUrl).href;
 }
 
 function showRemainingTestdataDownloads(response: ApiTypes.DownloadProblemFilesResponseDto, _: Localizer) {
