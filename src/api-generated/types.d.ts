@@ -324,6 +324,7 @@ declare namespace ApiTypes {
     contest?: ApiTypes.ContestMetaDto;
     pid?: number;
     problem?: ApiTypes.GetProblemResponseDto;
+    problems?: ApiTypes.ContestProblemDto[];
     permissions: {
       manageContest?: boolean;
       running?: boolean;

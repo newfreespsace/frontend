@@ -89,6 +89,15 @@ return {
   referenced_sections: {
     title: "引用该题目的训练小节"
   },
+  contest_navigation: {
+    title: "比赛题目",
+    current: "当前题目",
+    accepted: "已通过",
+    submitted: "已提交",
+    attempted: "已提交，未通过",
+    not_submitted: "未提交",
+    problem_label: "题目 {label}：{title} — {status} {current}"
+  },
   sample: {
     input: "输入",
     output: "输出",

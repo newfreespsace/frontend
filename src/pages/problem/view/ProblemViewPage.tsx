@@ -55,6 +55,7 @@ import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import formatDateTime from "@/utils/formatDateTime";
 import { markSubmissionForCelebration } from "@/utils/submissionCelebration";
+import ContestProblemNavigation from "./common/ContestProblemNavigation";
 
 export function useProblemViewMarkdownContentPatcher(
   problemId: number,
@@ -145,6 +146,7 @@ interface ProblemViewPageProps {
   review?: ApiTypes.CurrentProblemReviewDto;
 
   contest?: ApiTypes.ContestMetaDto;
+  contestProblems?: ApiTypes.ContestProblemDto[];
   contestPid?: number;
   contestPermissions?: ApiTypes.GetContestProblemResponseDto["permissions"];
 }
@@ -758,6 +760,14 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
         )}
         <div className={style.rightContainer}>
           <div className={style.actionMenusWrapper}>
+            {inContest && (
+              <ContestProblemNavigation
+                contest={props.contest}
+                problems={props.contestProblems}
+                currentPid={props.contestPid}
+                hideSubmissionResults={props.contest.type === "noi" && props.contestPermissions?.running}
+              />
+            )}
             <Menu pointing secondary vertical className={style.actionMenu}>
               {contestCanSubmit &&
                 props.problem.submittable &&
@@ -1037,6 +1047,7 @@ export default {
         review={review}
         ProblemTypeView={ProblemTypeView}
         contest={response.contest}
+        contestProblems={response.problems}
         contestPid={response.pid}
         contestPermissions={response.permissions}
       />

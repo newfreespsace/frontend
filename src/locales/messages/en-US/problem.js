@@ -91,6 +91,15 @@ return {
   referenced_sections: {
     title: "Referenced by training sections"
   },
+  contest_navigation: {
+    title: "Contest problems",
+    current: "current problem",
+    accepted: "accepted",
+    submitted: "submitted",
+    attempted: "submitted, not accepted",
+    not_submitted: "not submitted",
+    problem_label: "Problem {label}: {title} — {status} {current}"
+  },
   sample: {
     input: "Input",
     output: "Output",

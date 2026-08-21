@@ -92,6 +92,15 @@ return {
   referenced_sections: {
     title: "[TBT] Referenced by training sections"
   },
+  contest_navigation: {
+    title: "コンテスト問題",
+    current: "現在の問題",
+    accepted: "正解済み",
+    submitted: "提出済み",
+    attempted: "提出済み、未正解",
+    not_submitted: "未提出",
+    problem_label: "問題 {label}：{title} — {status} {current}"
+  },
   sample: {
     input: "入力",
     output: "出力",

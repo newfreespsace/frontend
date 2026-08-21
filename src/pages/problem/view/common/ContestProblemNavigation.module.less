@@ -1,0 +1,125 @@
+.container {
+  width: 260px;
+  margin-bottom: 28px;
+  padding: 18px;
+  border: 1px solid var(--theme-border);
+  border-radius: 5px;
+  background: var(--theme-background);
+  box-shadow: 0 1px 2px var(--theme-shadow);
+}
+
+.title {
+  display: block;
+  margin-bottom: 15px;
+  color: var(--theme-foreground) !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+
+  &:hover {
+    color: var(--theme-hyperlink-hover) !important;
+  }
+}
+
+.problemList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 8px;
+}
+
+.problemLink {
+  position: relative;
+  display: flex;
+  min-width: 42px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--theme-border);
+  border-radius: 5px;
+  background: var(--theme-background);
+  color: var(--theme-hyperlink) !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: var(--theme-border-hover);
+    background: var(--theme-menu-item-hover-background);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-hyperlink);
+    outline-offset: 2px;
+  }
+}
+
+.accepted,
+.accepted:hover {
+  border-color: var(--theme-status-accepted);
+  background: var(--theme-status-accepted);
+  color: #fff !important;
+}
+
+.submitted,
+.submitted:hover {
+  border-color: var(--theme-status-pending);
+  color: var(--theme-status-pending) !important;
+}
+
+.submitted {
+  background: var(--theme-background);
+}
+
+.submitted:hover {
+  background: var(--theme-menu-item-hover-background);
+}
+
+.attempted,
+.attempted:hover {
+  border-color: var(--theme-status-wrong-answer);
+  background: var(--theme-status-wrong-answer);
+  color: #fff !important;
+}
+
+.current,
+.current:hover {
+  border-color: var(--theme-action-menu-item-important-background);
+  background: var(--theme-action-menu-item-important-background);
+  color: var(--theme-action-menu-item-important-foreground) !important;
+}
+
+.submissionIndicator {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--theme-background);
+  border-radius: 50%;
+}
+
+.indicatorAccepted {
+  background: var(--theme-status-accepted);
+}
+
+.indicatorSubmitted {
+  background: var(--theme-status-pending);
+}
+
+.indicatorAttempted {
+  background: var(--theme-status-wrong-answer);
+}
+
+@media only screen and (max-width: 1023px) and (min-width: 768px) {
+  .container {
+    width: 190px;
+    padding: 14px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .container {
+    width: 100%;
+  }
+}
