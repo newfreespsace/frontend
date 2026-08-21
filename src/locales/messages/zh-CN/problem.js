@@ -94,7 +94,6 @@ return {
     current: "当前题目",
     accepted: "已通过",
     submitted: "已提交",
-    attempted: "已提交，未通过",
     not_submitted: "未提交",
     problem_label: "题目 {label}：{title} — {status} {current}"
   },

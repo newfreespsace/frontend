@@ -96,7 +96,6 @@ return {
     current: "current problem",
     accepted: "accepted",
     submitted: "submitted",
-    attempted: "submitted, not accepted",
     not_submitted: "not submitted",
     problem_label: "Problem {label}: {title} — {status} {current}"
   },

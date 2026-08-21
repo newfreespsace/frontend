@@ -38,16 +38,12 @@ const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props 
           const label = getProblemLabel(index);
           const current = pid === props.currentPid;
           const submitted = problem.submissionId != null;
-          const resultHidden = submitted && (props.hideSubmissionResults || problem.status === "Submitted");
           const accepted =
-            submitted && !resultHidden && (problem.accepted || problem.score === 100 || problem.status === "Accepted");
-          const submissionState = accepted
-            ? "accepted"
-            : resultHidden
-            ? "submitted"
-            : submitted
-            ? "attempted"
-            : "not_submitted";
+            submitted &&
+            !props.hideSubmissionResults &&
+            problem.status !== "Submitted" &&
+            (problem.accepted || problem.score === 100 || problem.status === "Accepted");
+          const submissionState = accepted ? "accepted" : submitted ? "submitted" : "not_submitted";
           const accessibleLabel = _(".contest_navigation.problem_label", {
             label,
             title: problem.title,
@@ -58,17 +54,7 @@ const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props 
           return (
             <Link
               key={problem.meta.id}
-              className={
-                style.problemLink +
-                (accepted
-                  ? ` ${style.accepted}`
-                  : resultHidden
-                  ? ` ${style.submitted}`
-                  : submitted
-                  ? ` ${style.attempted}`
-                  : "") +
-                (current ? ` ${style.current}` : "")
-              }
+              className={style.problemLink + (current ? ` ${style.current}` : "")}
               href={`/c/${props.contest.id}/p/${pid}`}
               aria-label={accessibleLabel}
               aria-current={current ? "page" : undefined}
@@ -78,11 +64,7 @@ const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props 
               {submitted && (
                 <span
                   className={`${style.submissionIndicator} ${
-                    accepted
-                      ? style.indicatorAccepted
-                      : resultHidden
-                      ? style.indicatorSubmitted
-                      : style.indicatorAttempted
+                    accepted ? style.indicatorAccepted : style.indicatorSubmitted
                   }`}
                   aria-hidden="true"
                 />

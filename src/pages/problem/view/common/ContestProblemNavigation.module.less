@@ -24,15 +24,15 @@
 
 .problemList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  grid-template-columns: repeat(auto-fill, 40px);
   gap: 8px;
 }
 
 .problemLink {
   position: relative;
   display: flex;
-  min-width: 42px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--theme-border);
@@ -54,49 +54,33 @@
   }
 }
 
-.accepted,
-.accepted:hover {
-  border-color: var(--theme-status-accepted);
-  background: var(--theme-status-accepted);
-  color: #fff !important;
-}
-
-.submitted,
-.submitted:hover {
-  border-color: var(--theme-status-pending);
-  color: var(--theme-status-pending) !important;
-}
-
-.submitted {
-  background: var(--theme-background);
-}
-
-.submitted:hover {
-  background: var(--theme-menu-item-hover-background);
-}
-
-.attempted,
-.attempted:hover {
-  border-color: var(--theme-status-wrong-answer);
-  background: var(--theme-status-wrong-answer);
-  color: #fff !important;
-}
-
 .current,
 .current:hover {
-  border-color: var(--theme-action-menu-item-important-background);
-  background: var(--theme-action-menu-item-important-background);
-  color: var(--theme-action-menu-item-important-foreground) !important;
+  border-color: var(--theme-border);
+  background: rgba(33, 133, 208, 0.12);
+  color: var(--theme-hyperlink) !important;
 }
 
 .submissionIndicator {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--theme-background);
+  right: -4px;
+  bottom: -4px;
+  display: flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--theme-background);
   border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+
+  &::before {
+    content: "✓";
+    transform: translateY(-0.5px);
+  }
 }
 
 .indicatorAccepted {
@@ -104,11 +88,7 @@
 }
 
 .indicatorSubmitted {
-  background: var(--theme-status-pending);
-}
-
-.indicatorAttempted {
-  background: var(--theme-status-wrong-answer);
+  background: #b8b8b8;
 }
 
 @media only screen and (max-width: 1023px) and (min-width: 768px) {

@@ -97,7 +97,6 @@ return {
     current: "現在の問題",
     accepted: "正解済み",
     submitted: "提出済み",
-    attempted: "提出済み、未正解",
     not_submitted: "未提出",
     problem_label: "問題 {label}：{title} — {status} {current}"
   },
