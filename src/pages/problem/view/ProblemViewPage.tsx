@@ -569,13 +569,13 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
           </Header>
 
           <div className={style.labels}>
-            {!props.problem.meta.isPublic && (
+            {!inContest && !props.problem.meta.isPublic && (
               <Label size={isMobile ? "small" : null} color="red" basic>
                 <Icon name="eye slash" />
                 {_(`.meta_labels.non_public`)}
               </Label>
             )}
-            {!props.problem.meta.displayId && (
+            {!inContest && !props.problem.meta.displayId && (
               <Label size={isMobile ? "small" : null} color="brown" basic>
                 <Icon name="hashtag" />
                 {_(`.meta_labels.no_display_id`)}
@@ -586,7 +586,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               {_(`.type.${props.problem.meta.type}`)}
             </Label>
             <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />
-            {props.problem.tagsOfLocale.length > 0 && (
+            {!inContest && props.problem.tagsOfLocale.length > 0 && (
               <>
                 <Label
                   size={isMobile ? "small" : null}
