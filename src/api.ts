@@ -35,7 +35,7 @@ async function request<T>(
     };
   }
 
-  if (![200, 201].includes(response.status)) {
+  if (response.status < 200 || response.status >= 300) {
     try {
       console.log("response.data:", response.data);
     } catch (e) {
@@ -60,9 +60,7 @@ async function request<T>(
     };
   }
 
-  return {
-    response: typeof response.data === "string" ? JSON.parse(response.data) : response.data
-  };
+  return response.data === "" ? {} : { response: response.data };
 }
 
 import * as api from "./api-generated";

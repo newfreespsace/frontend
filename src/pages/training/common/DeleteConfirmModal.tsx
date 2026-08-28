@@ -17,8 +17,11 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = props => {
   const [open, setOpen] = useState(false);
 
   async function onConfirm() {
-    await props.onConfirm();
-    setOpen(false);
+    try {
+      await props.onConfirm();
+    } finally {
+      setOpen(false);
+    }
   }
 
   return (
