@@ -40,6 +40,23 @@ let ProblemReviewPage: React.FC<ProblemReviewPageProps> = props => {
     appState.enterNewPage(_(".title"), "home");
   }, [appState.locale]);
 
+  if (!props.queryResult.enabled) {
+    return (
+      <>
+        <Header as="h1" icon="repeat" content={_(".title")} />
+        <Segment placeholder>
+          <Header icon>
+            <Icon name="pause circle outline" />
+            {_(".disabled")}
+          </Header>
+          {appState.currentUser && (
+            <Link href={`/u/${appState.currentUser.username}/edit/preference`}>{_(".open_preferences")}</Link>
+          )}
+        </Segment>
+      </>
+    );
+  }
+
   return (
     <>
       <Header as="h1" icon="repeat" content={_(".title")} />

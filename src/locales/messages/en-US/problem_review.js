@@ -1,4 +1,6 @@
 return {
+  disabled: "Problem reviews are disabled",
+  open_preferences: "Enable in preferences",
   title: "Problems to Review",
   pending_count: "{count} problems are due for review",
   overdue_count: "{count} overdue",

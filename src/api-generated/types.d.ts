@@ -935,6 +935,7 @@ declare namespace ApiTypes {
     takeCount: number;
   }
   export interface QueryProblemReviewsResponseDto {
+    enabled: boolean;
     count: number;
     overdueCount: number;
     result: ApiTypes.ProblemReviewMetaDto[];
@@ -1791,7 +1792,16 @@ declare namespace ApiTypes {
     disableByDefault?: boolean;
     options?: string;
   }
+  export interface UserPreferenceProblemReviewDto {
+    enabled: boolean;
+    schedule: ApiTypes.UserPreferenceProblemReviewScheduleItemDto[];
+  }
+  export interface UserPreferenceProblemReviewScheduleItemDto {
+    availableAfterDays: number;
+    overdueAfterDays: number;
+  }
   export interface UserPreferenceDto {
+    problemReview?: ApiTypes.UserPreferenceProblemReviewDto;
     locale?: ApiTypes.UserPreferenceLocaleDto;
     theme?: string;
     font?: ApiTypes.UserPreferenceFontDto;

@@ -1,4 +1,6 @@
 return {
+  disabled: "問題の復習は無効です",
+  open_preferences: "個人設定で有効にする",
   title: "復習する問題",
   pending_count: "{count} 問が復習待ちです",
   overdue_count: "{count} 問が期限超過です",

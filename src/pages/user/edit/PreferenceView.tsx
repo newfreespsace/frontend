@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Form, Header, Checkbox, TextArea, Button, Select, Flag, Icon, Input } from "semantic-ui-react";
+import { Form, Header, Checkbox, TextArea, Button, Select, Flag, Icon, Input, Message } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { set as setMobX } from "mobx";
 
@@ -19,6 +19,7 @@ import CodeLanguageAndOptions from "@/components/CodeLanguageAndOptions";
 import { availableCodeFonts, availableContentFonts } from "@/misc/fonts";
 import { makeToBeLocalizedText } from "@/locales";
 import { themeList } from "@/themes";
+import { defaultProblemReviewSchedule, isValidProblemReviewSchedule } from "@/pages/problem-review/preferences";
 
 export async function fetchData(username: string) {
   const { requestError, response } = await api.user.getUserPreference({ username });
@@ -52,6 +53,19 @@ const PreferenceView: React.FC<PreferenceViewProps> = props => {
   }, [appState.locale, props.meta]);
 
   const [modified, setModified] = useConfirmNavigation();
+
+  const [problemReviewEnabled, setProblemReviewEnabled] = useState(props.preference.problemReview?.enabled === true);
+  const [problemReviewSchedule, setProblemReviewSchedule] = useState(
+    props.preference.problemReview?.schedule ?? defaultProblemReviewSchedule.map(item => ({ ...item }))
+  );
+  const validProblemReviewSchedule = isValidProblemReviewSchedule(problemReviewSchedule);
+
+  const updateReviewDays = (index: number, field: "availableAfterDays" | "overdueAfterDays", value: string) => {
+    setModified(true);
+    setProblemReviewSchedule(schedule =>
+      schedule.map((item, i) => (i === index ? { ...item, [field]: value === "" ? NaN : Number(value) } : item))
+    );
+  };
 
   const [systemLocale, setSystemLocale] = useState<Locale>((props.preference.locale?.system || null) as Locale);
   const [contentLocale, setContentLocale] = useState<Locale>((props.preference.locale?.content || null) as Locale);
@@ -95,7 +109,12 @@ const PreferenceView: React.FC<PreferenceViewProps> = props => {
   }, [theme]);
 
   const [pending, onSubmit] = useAsyncCallbackPending(async () => {
+    if (!validProblemReviewSchedule) return;
     const preference: ApiTypes.UserPreferenceDto = {
+      problemReview: {
+        enabled: problemReviewEnabled,
+        schedule: problemReviewSchedule
+      },
       locale: {
         system: systemLocale,
         content: contentLocale,
@@ -165,6 +184,73 @@ return 1234567890;`;
 
   return (
     <>
+      <Header className={style.sectionHeader} size="large" content={_(".problem_review.header")} />
+      <Checkbox
+        className={style.checkbox}
+        toggle
+        disabled={pending}
+        checked={problemReviewEnabled}
+        label={_(".problem_review.enabled")}
+        onChange={(e, { checked }) => (setModified(true), setProblemReviewEnabled(checked))}
+      />
+      <div className={style.notes}>{_(".problem_review.enabled_notes")}</div>
+      <Header className={style.header} size="tiny" content={_(".problem_review.count")} />
+      <Select
+        className={style.notFullWidth}
+        fluid
+        disabled={pending}
+        value={problemReviewSchedule.length}
+        options={Array.from({ length: 10 }, (_, i) => ({ key: i + 1, value: i + 1, text: String(i + 1) }))}
+        onChange={(e, { value }) => {
+          setModified(true);
+          setProblemReviewSchedule(schedule =>
+            Array.from({ length: Number(value) }, (_, index) => ({
+              ...(schedule[index] ?? defaultProblemReviewSchedule[index] ?? defaultProblemReviewSchedule[3])
+            }))
+          );
+        }}
+      />
+      <div className={style.notes}>{_(".problem_review.timing_notes")}</div>
+      <Form className={style.notFullWidth}>
+        {problemReviewSchedule.map((item, index) => (
+          <React.Fragment key={index}>
+            <Header className={style.header} size="tiny" content={_(".problem_review.round", { number: index + 1 })} />
+            <Form.Group widths="equal">
+              <Form.Input
+                label={_(".problem_review.available_days")}
+                type="number"
+                min={1}
+                max={364}
+                step={1}
+                disabled={pending}
+                value={Number.isNaN(item.availableAfterDays) ? "" : item.availableAfterDays}
+                onChange={(e, { value }) => updateReviewDays(index, "availableAfterDays", value)}
+              />
+              <Form.Input
+                label={_(".problem_review.overdue_days")}
+                type="number"
+                min={2}
+                max={365}
+                step={1}
+                disabled={pending}
+                value={Number.isNaN(item.overdueAfterDays) ? "" : item.overdueAfterDays}
+                onChange={(e, { value }) => updateReviewDays(index, "overdueAfterDays", value)}
+              />
+            </Form.Group>
+          </React.Fragment>
+        ))}
+      </Form>
+      {!validProblemReviewSchedule && <Message negative content={_(".problem_review.invalid_schedule")} />}
+      <Button
+        type="button"
+        disabled={pending}
+        content={_(".problem_review.restore_defaults")}
+        onClick={() => {
+          setModified(true);
+          setProblemReviewSchedule(defaultProblemReviewSchedule.map(item => ({ ...item })));
+        }}
+      />
+      <div className={style.notes}>{_(".problem_review.changes_notes")}</div>
       <Header className={style.sectionHeader} size="large" content={_(".locale.header")} />
       <Header className={style.header} size="tiny" content={_(".locale.system")} />
       <Select
@@ -447,7 +533,7 @@ return 1234567890;`;
       <Button
         className={style.submit}
         loading={pending}
-        disabled={!formatPreviewSuccess}
+        disabled={!formatPreviewSuccess || !validProblemReviewSchedule}
         primary
         content={_(".submit")}
         onClick={onSubmit}

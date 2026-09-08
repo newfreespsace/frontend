@@ -68,6 +68,23 @@ return {
     success: "Profile updated successfully."
   },
   preference: {
+    problem_review: {
+      header: "Problem review",
+      enabled: "Enable problem reviews",
+      enabled_notes:
+        "Off by default. After enabling and saving, newly solved problems enter the review plan; previously solved problems are not imported. Disabling preserves progress and stops creating or advancing plans. Re-enabling does not shift dates, so reviews may be overdue.",
+      count: "Number of reviews",
+      round: "Round {number}",
+      available_days: "Days before review opens",
+      overdue_days: "Days before review is overdue",
+      timing_notes:
+        "The first round is measured from the first accepted solution; later rounds are measured from the previous review completion. Exclude the completion day and wait the specified number of full calendar days, then start at midnight in the server time zone. For example, completing on September 5 with a 1-day interval opens the review at 00:00 on September 7.",
+      invalid_schedule:
+        "Set 1–10 rounds with whole-number intervals of 1–365 days. Each overdue interval must be greater than its opening interval.",
+      restore_defaults: "Restore default 4-round schedule",
+      changes_notes:
+        "Saving immediately recalculates unfinished plans and preserves completed rounds. Plans that have reached the new total are marked complete. Increasing the total does not reopen completed plans."
+    },
     title: "Preference",
     locale: {
       header: "Language",

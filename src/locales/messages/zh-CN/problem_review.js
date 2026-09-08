@@ -1,4 +1,6 @@
 return {
+  disabled: "题目复习功能未启用",
+  open_preferences: "前往偏好设置开启",
   title: "待复习题目",
   pending_count: "当前共有 {count} 道题待复习",
   overdue_count: "其中 {count} 道已逾期",
