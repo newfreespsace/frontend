@@ -6,6 +6,7 @@
     "@babel/plugin-transform-class-properties": "7.29.7",
     "@esbuild-plugins/node-modules-polyfill": "^0.1.4",
     "@esm-bundle/markdown-it": "^13.0.1",
+    "@excalidraw/excalidraw": "0.18.1",
     "@fontsource/dm-mono": "^4.5.8",
     "@fontsource/fira-code": "^4.5.10",
     "@fontsource/inconsolata": "^4.5.6",
@@ -68,6 +69,7 @@
     "dayjs": "1.11.21",
     "dtsgenerator": "2.7.0",
     "esbuild-plugin-browserslist": "^0.4.13",
+    "fake-indexeddb": "6.2.4",
     "flat": "^5.0.2",
     "fomantic-ui-css": "2.9.4",
     "fs-extra": "^10.1.0",
@@ -78,6 +80,7 @@
     "husky": "^8.0.1",
     "immutability-helper": "^3.1.1",
     "js-yaml": "4.2.0",
+    "jsdom": "20.0.3",
     "jsondiffpatch": "^0.4.1",
     "less": "4.6.4",
     "lodash": "^4.17.21",
@@ -129,7 +132,7 @@
     "twemoji": "^14.0.2",
     "typeface-lato": "^1.1.13",
     "typeface-saira": "^1.1.13",
-    "typescript": "~4.7.4",
+    "typescript": "5.9.3",
     "ua-parser-js": "^1.0.2",
     "use-debounce": "^8.0.3",
     "uuid": "^8.3.2",
@@ -144,7 +147,9 @@
     "vite-plugin-purgecss": "0.2.13",
     "wastyle": "^0.0.5",
     "web-streams-polyfill": "^3.2.1",
-    "xss": "1.0.15"
+    "xss": "1.0.15",
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.7"
   },
   "scripts": {
     "start": "vite",
@@ -152,7 +157,8 @@
     "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,ts,tsx}\"",
     "check-style": "prettier --ignore-path .prettierignore --check \"**/*.{js,ts,tsx}\"",
     "generate-api": "node scripts/generate-api.js $API_HOST/docs-json && prettier --write \"src/api-generated/**/*.ts\"",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "test:whiteboard": "node --test tests/whiteboard.test.cjs"
   },
   "resolutions": {
     "@babel/core": "7.29.7",

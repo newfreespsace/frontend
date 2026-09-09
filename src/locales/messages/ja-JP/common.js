@@ -1,5 +1,6 @@
 return {
   navbar: {
+    draw: "ホワイトボード",
     home: "ホーム",
     problem_set: "問題",
     contests: "コンテスト",

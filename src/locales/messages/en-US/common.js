@@ -1,5 +1,6 @@
 return {
   navbar: {
+    draw: "Whiteboard",
     home: "Home",
     problem_set: "Problem Set",
     contests: "Contests",

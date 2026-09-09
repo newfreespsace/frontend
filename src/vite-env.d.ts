@@ -4,6 +4,7 @@
 // Extending Window object
 
 interface Window {
+  EXCALIDRAW_ASSET_PATH: string;
   publicPath: string;
   apiEndpoint: string;
   appLogo: string;

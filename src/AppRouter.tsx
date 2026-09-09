@@ -171,6 +171,7 @@ const AppRouter: React.FC = () => {
             mount({
               "/": getRoute(() => import("./pages/home"), "home"),
               "/homepage-settings": getRoute(() => import("./pages/home"), "homeSettings"),
+              "/draw": lazy(() => import("./pages/draw")),
               "/reviews": lazy(() => import("./pages/problem-review/ProblemReviewPage")),
               "/login": lazy(() => import("./pages/auth/login")),
               "/register": lazy(() => import("./pages/auth/register")),

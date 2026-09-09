@@ -1,5 +1,6 @@
 return {
   navbar: {
+    draw: "画板",
     home: "首页",
     problem_set: "题库",
     contests: "比赛",

@@ -10,6 +10,8 @@ import { ViteEjsPlugin as ejs } from "vite-plugin-ejs";
 import { prismjsPlugin as prismjs } from "vite-plugin-prismjs";
 import minifyHtml from "vite-plugin-html-minifier-terser";
 import svgo from "./vite/svgo";
+import excalidrawFonts from "./vite/excalidrawFonts";
+import excalidrawLegacy from "./vite/excalidrawLegacy";
 import publicPath from "vite-plugin-public-path";
 import { viteExternalsPlugin as externals } from "vite-plugin-externals";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -175,6 +177,8 @@ export default defineConfig({
     }
   },
   plugins: [
+    excalidrawFonts(),
+    excalidrawLegacy(),
     react({
       babel: {
         plugins: [["@babel/plugin-proposal-decorators", { legacy: true }], ["@babel/plugin-transform-class-properties"]]
