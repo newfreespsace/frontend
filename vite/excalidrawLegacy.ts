@@ -14,6 +14,10 @@ export default function excalidrawLegacy(): Plugin {
         const result = await transformAsync(code, {
           babelrc: false,
           configFile: false,
+          // Vite's SystemJS wrapper regex can reach execute() when Babel's
+          // automatic compact mode puts chunks larger than 500 KB on one line.
+          // Preserve line breaks here; Vite still minifies the final output.
+          compact: false,
           sourceMaps: true,
           filename: chunk.fileName,
           presets: [

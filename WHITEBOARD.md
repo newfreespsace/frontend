@@ -36,11 +36,16 @@ Vite 会从固定版本依赖的 `dist/prod/fonts` 自动复制字体到 `public
 
 Excalidraw 及其 CSS 由 `/draw` 路由动态加载。为处理其依赖的新类型语法，前端 TypeScript 升级为 5.9.3；后端编译器保持原配置。`vite/excalidrawLegacy.ts` 在现有旧浏览器构建的 regenerator 转换前降低表达式语法，避免 TemplateLiteral/SpreadElement 构建错误。
 
+该预处理必须保留 `compact: false`：Babel 默认会将超过 500,000 字符的分块紧凑输出为单行，导致 Vite 5 的 SystemJS 包装正则误给内层 `execute()` 添加参数，遮蔽模块导出函数和上下文，使兼容版首页白屏。此设置只保留中间代码的换行，最终产物仍由 Vite 压缩。
+
 ## 验证
 
 ```sh
 # frontend/: React 保存流程及 IndexedDB 测试
 npm run test:whiteboard
+
+# frontend/: 大分块经过实际 Vite 构建后的 SystemJS 运行回归测试
+npm run test:legacy
 
 # backend/: 构建、权限、版本冲突、DTO 和保存数据测试
 npm run test:whiteboard

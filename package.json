@@ -158,7 +158,8 @@
     "check-style": "prettier --ignore-path .prettierignore --check \"**/*.{js,ts,tsx}\"",
     "generate-api": "node scripts/generate-api.js $API_HOST/docs-json && prettier --write \"src/api-generated/**/*.ts\"",
     "postinstall": "patch-package",
-    "test:whiteboard": "node --test tests/whiteboard.test.cjs"
+    "test:whiteboard": "node --test tests/whiteboard.test.cjs",
+    "test:legacy": "node --test tests/legacy-build.test.cjs"
   },
   "resolutions": {
     "@babel/core": "7.29.7",
