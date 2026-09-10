@@ -1,13 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { v4 as uuid } from "uuid";
-import { Excalidraw, MainMenu, exportToBlob, exportToSvg, serializeAsJSON, restore } from "@excalidraw/excalidraw";
+import {
+  Excalidraw,
+  MainMenu,
+  exportToBlob,
+  exportToSvg,
+  serializeAsJSON,
+  restore,
+  useHandleLibrary
+} from "@excalidraw/excalidraw";
 
 import "@excalidraw/excalidraw/index.css";
 
 import { appState } from "@/appState";
 import { useConfirmNavigation } from "@/utils/hooks";
-import { BoardError, BoardMeta, boardsApi } from "./api";
+import { BoardError, BoardMeta, boardsApi, createLibraryApi } from "./api";
+import { AccountLibrarySync } from "./librarySync";
 import { Draft, deleteDraft, listDrafts, putDraft } from "./storage";
 import style from "./DrawPage.module.less";
 import AutoHideMenu from "./AutoHideMenu";
@@ -43,10 +52,37 @@ function download(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-const DrawPage: React.FC = observer(() => {
+const AccountDrawPage: React.FC = observer(() => {
   const userId = appState.currentUser.id;
   const draft = useRef<Draft>(null);
   const api = useRef<ExcalidrawImperativeAPI>(null);
+  const [editorApi, setEditorApi] = useState<ExcalidrawImperativeAPI>(null);
+  const [assetStatus, setAssetStatus] = useState("正在加载账号素材库…");
+  const [assetError, setAssetError] = useState("");
+  const library = useMemo(
+    () =>
+      new AccountLibrarySync(userId, createLibraryApi(userId), (status, error) => {
+        setAssetStatus(status);
+        setAssetError(error || "");
+      }),
+    [userId]
+  );
+  const bindEditor = useCallback((value: ExcalidrawImperativeAPI) => {
+    api.current = value;
+    setEditorApi(value);
+  }, []);
+  useEffect(() => {
+    library.start();
+    const online = () => {
+      void library.sync().catch(() => {});
+    };
+    window.addEventListener("online", online);
+    return () => {
+      library.stop();
+      window.removeEventListener("online", online);
+    };
+  }, [library]);
+  useHandleLibrary({ excalidrawAPI: editorApi, adapter: library.adapter });
   const localTimer = useRef<ReturnType<typeof setTimeout>>();
   const cloudTimer = useRef<ReturnType<typeof setTimeout>>();
   const cloudTask = useRef<Promise<void>>(null);
@@ -350,6 +386,7 @@ const DrawPage: React.FC = observer(() => {
           <div className={style.status} aria-live="polite">
             <span>{localStatus}</span>
             <span>{cloudStatus}</span>
+            <span>{assetStatus}</span>
           </div>
         </div>
         <div className={style.actions}>
@@ -394,6 +431,12 @@ const DrawPage: React.FC = observer(() => {
           />
         </div>
       </AutoHideMenu>
+      {assetError && (
+        <div className={style.notice} role="alert">
+          <span>{assetError}</span>
+          <button onClick={() => void library.sync().catch(() => {})}>重试素材库同步</button>
+        </div>
+      )}
       {(error || localError) && (
         <div className={style.notice} role="alert">
           <span>{localError || error}</span>
@@ -411,9 +454,7 @@ const DrawPage: React.FC = observer(() => {
             initialData={initialData}
             langCode="zh-CN"
             theme={appState.theme === "far" ? "dark" : "light"}
-            excalidrawAPI={value => {
-              api.current = value;
-            }}
+            excalidrawAPI={bindEditor}
             onChange={(elements, state, files) => {
               // Ignore initialization and purely transient selection/cursor changes after serialization.
               const scene = serializeAsJSON(elements, state, files, "local");
@@ -532,4 +573,6 @@ const DrawPage: React.FC = observer(() => {
   );
 });
 
+// Remount all editor/library state when the authenticated account changes.
+const DrawPage: React.FC = observer(() => <AccountDrawPage key={appState.currentUser.id} />);
 export default DrawPage;

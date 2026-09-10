@@ -26,17 +26,19 @@ const scene = (text = "test") => ({
   files: { picture: { dataURL: "data:image/png;base64,aGVsbG8=" } }
 });
 const mocks = {
+  axios: "exports.post = (...args) => globalThis.__whiteboardTest.axios(...args);",
   "@/appState": "exports.appState = globalThis.__whiteboardTest.appState;",
   "@/utils/hooks":
     "exports.useConfirmNavigation = () => [false, value => { globalThis.__whiteboardTest.confirm = value; }];",
   "mobx-react": "exports.observer = component => component;",
   "board-api":
-    "exports.boardsApi = globalThis.__whiteboardTest.api; exports.BoardError = globalThis.__whiteboardTest.BoardError;",
+    "exports.boardsApi = globalThis.__whiteboardTest.api; exports.BoardError = globalThis.__whiteboardTest.BoardError; exports.createLibraryApi = () => ({get: async () => ({libraryItems:[]}), save: async () => ({libraryItems:[]})});",
   "@excalidraw/excalidraw": `
     const React = require('react');
     exports.Excalidraw = props => { globalThis.__whiteboardTest.editor = props; return React.createElement('div', {'data-editor':true}, props.children); };
     const Item = () => null; exports.MainMenu = Object.assign(Item,{Item,Separator:Item,DefaultItems:new Proxy({},{get:()=>Item})});
     exports.restore = data => data;
+    exports.useHandleLibrary = opts => { globalThis.__whiteboardTest.libraryOptions = opts; };
     exports.serializeAsJSON = (elements,appState,files) => JSON.stringify({type:'excalidraw',version:2,elements,appState,files});
   `
 };
@@ -77,6 +79,39 @@ async function compile(entry, mock = false) {
 before(async () => {
   global.indexedDB = new IDBFactory();
   storage = await compile("../src/pages/draw/storage.ts");
+});
+
+test("library API keeps an in-flight request tied to its original account and rejects old queued saves", async () => {
+  const requests = [];
+  let respond;
+  state.appState.token = "account-one";
+  state.axios = (...args) => {
+    requests.push(args);
+    return new Promise(resolve => {
+      respond = resolve;
+    });
+  };
+  const { createLibraryApi } = await compile("../src/pages/draw/api.ts", true);
+  const remote = createLibraryApi(state.appState.currentUser.id);
+  const pending = remote.save([]);
+  state.appState.currentUser = { id: state.appState.currentUser.id + 1 };
+  state.appState.token = "account-two";
+  assert.equal(requests[0][2].headers.Authorization, "Bearer account-one");
+  await assert.rejects(remote.save([]), error => error.status === 401);
+  assert.equal(requests.length, 1);
+  respond({ status: 200, data: { libraryItems: [] } });
+  await pending;
+});
+
+test("switching accounts remounts the editor and its account library adapter", async () => {
+  const previous = state.libraryOptions.adapter;
+  state.appState.currentUser = { id: state.appState.currentUser.id + 1 };
+  await act(async () => {
+    root.render(React.createElement(Page));
+    await sleep(50);
+  });
+  assert.notEqual(state.libraryOptions.adapter, previous);
+  assert.deepEqual(state.editor.initialData.elements, []);
 });
 beforeEach(async () => {
   state = global.__whiteboardTest = {
