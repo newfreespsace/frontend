@@ -1002,6 +1002,12 @@ declare namespace ApiTypes {
   export interface QueryChapterByTrainingIdDto {
     trainingId: number;
   }
+  export interface QueryContestsByProblemIdDto {
+    problemId: number;
+  }
+  export interface QueryContestsByProblemIdResponseDto {
+    references: ApiTypes.ProblemReferencedContestDto[];
+  }
   export interface QueryContestsRequestDto {
     skipCount: number;
     takeCount: number;
@@ -1094,6 +1100,10 @@ declare namespace ApiTypes {
     manageTags?: boolean;
     filterByOwner?: boolean;
     filterNonpublic?: boolean;
+  }
+  export interface ProblemReferencedContestDto {
+    contestId: number;
+    contestTitle: string;
   }
   export interface ProblemReferencedSectionDto {
     trainingId: number;

@@ -8,6 +8,10 @@ export const queryContests = createPostApi<ApiTypes.QueryContestsRequestDto, Api
   "contest/queryContests",
   false
 );
+export const queryContestsByProblemId = createPostApi<
+  ApiTypes.QueryContestsByProblemIdDto,
+  ApiTypes.QueryContestsByProblemIdResponseDto
+>("contest/queryContestsByProblemId", false);
 export const getContest = createPostApi<ApiTypes.GetContestRequestDto, ApiTypes.GetContestResponseDto>(
   "contest/getContest",
   false

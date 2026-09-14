@@ -90,6 +90,9 @@ return {
   referenced_sections: {
     title: "引用该题目的训练小节"
   },
+  referenced_contests: {
+    title: "引用该题目的比赛"
+  },
   contest_navigation: {
     title: "比赛题目",
     current: "当前题目",

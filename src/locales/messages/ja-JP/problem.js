@@ -93,6 +93,9 @@ return {
   referenced_sections: {
     title: "[TBT] Referenced by training sections"
   },
+  referenced_contests: {
+    title: "[TBT] Referenced by contests"
+  },
   contest_navigation: {
     title: "コンテスト問題",
     current: "現在の問題",

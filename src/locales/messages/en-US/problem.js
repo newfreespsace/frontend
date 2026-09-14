@@ -92,6 +92,9 @@ return {
   referenced_sections: {
     title: "Referenced by training sections"
   },
+  referenced_contests: {
+    title: "Referenced by contests"
+  },
   contest_navigation: {
     title: "Contest problems",
     current: "current problem",

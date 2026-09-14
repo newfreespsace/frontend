@@ -221,6 +221,26 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   }, [inContest, props.problem.meta.id]);
   // End referenced training sections
 
+  // Begin referenced contests
+  const [referencedContests, setReferencedContests] = useState<ApiTypes.ProblemReferencedContestDto[]>([]);
+  useEffect(() => {
+    if (inContest) return;
+
+    let cancelled = false;
+    api.contest
+      .queryContestsByProblemId({
+        problemId: props.problem.meta.id
+      })
+      .then(({ requestError, response }) => {
+        if (!cancelled && !requestError) setReferencedContests(response.references);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inContest, props.problem.meta.id]);
+  // End referenced contests
+
   // Begin copy sample
   const [lastCopiedSample, setLastCopiedSample] = useState<{ id: number; type: "input" | "output" }>({
     id: null,
@@ -484,18 +504,36 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   ) : null;
 
   const referencedSectionList = !inContest && referencedSections.length > 0 && (
-    <Menu pointing secondary vertical className={`${style.actionMenu} ${style.referencedSectionsMenu}`}>
-      <Menu.Item className={style.referencedSectionsTitle} disabled>
+    <Menu pointing secondary vertical className={`${style.actionMenu} ${style.referencesMenu}`}>
+      <Menu.Item className={style.referencesTitle} disabled>
         {_(".referenced_sections.title")}
       </Menu.Item>
       {referencedSections.map(reference => (
         <Menu.Item
           as={Link}
           key={`${reference.trainingId}-${reference.chapterId}-${reference.sectionId}`}
-          className={style.referencedSection}
+          className={style.referenceItem}
           href={`/t/${reference.trainingId}/${reference.chapterId}/${reference.sectionId}`}
         >
           <span>{reference.sectionTitle}</span>
+        </Menu.Item>
+      ))}
+    </Menu>
+  );
+
+  const referencedContestList = !inContest && referencedContests.length > 0 && (
+    <Menu pointing secondary vertical className={`${style.actionMenu} ${style.referencesMenu}`}>
+      <Menu.Item className={style.referencesTitle} disabled>
+        {_(".referenced_contests.title")}
+      </Menu.Item>
+      {referencedContests.map(reference => (
+        <Menu.Item
+          as={Link}
+          key={reference.contestId}
+          className={style.referenceItem}
+          href={`/c/${reference.contestId}`}
+        >
+          <span>{reference.contestTitle}</span>
         </Menu.Item>
       ))}
     </Menu>
@@ -981,6 +1019,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               </>
             )}
             {referencedSectionList}
+            {referencedContestList}
           </div>
         </div>
       </div>
