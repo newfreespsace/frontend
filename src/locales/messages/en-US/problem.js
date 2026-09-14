@@ -35,6 +35,7 @@ return {
     discussion: "Discussion",
     files: "Files",
     additional_files: "Additional Files",
+    go_to_problem_set: "Go to Problem Set",
     edit: "Edit",
     judge_settings: "Judge Settings",
     permission_manage: "Permissions",

@@ -35,6 +35,7 @@ return {
     discussion: "ディスカッション",
     files: "ファイル",
     additional_files: "他のファイル",
+    go_to_problem_set: "問題集へ移動",
     edit: "編集",
     judge_settings: "ジャッジ設定",
     permission_manage: "権限管理",

@@ -35,6 +35,7 @@ return {
     discussion: "讨论",
     files: "文件",
     additional_files: "附加文件",
+    go_to_problem_set: "转到题库",
     edit: "编辑",
     judge_settings: "评测设置",
     permission_manage: "权限管理",

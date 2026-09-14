@@ -826,6 +826,15 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
+              {inContest && appState.currentUser?.isAdmin && (
+                <Menu.Item
+                  name={_(".action.go_to_problem_set")}
+                  icon="book"
+                  as={Link}
+                  href={getProblemUrl(props.problem.meta)}
+                />
+              )}
+
               {inContest && ProblemTypeView.enableStatistics() && (
                 <Menu.Item
                   name={_(".action.back_to_contest")}
