@@ -30,7 +30,22 @@ let LoginPage: React.FC = () => {
 
   const navigation = useNavigationChecked();
   const redirect = () => {
-    navigation.navigate(currentRoute.url.query.loginRedirectUrl || "/");
+    const target = currentRoute.url.query.loginRedirectUrl;
+    if (target) {
+      try {
+        const url = new URL(target, window.location.origin);
+        const isGuide =
+          url.hostname === "guide.nsoj.top" ||
+          (window.location.hostname === "localhost" && url.hostname === "localhost" && url.protocol === "http:");
+        if (url.origin !== window.location.origin && isGuide) {
+          window.location.assign(url.href);
+          return;
+        }
+      } catch {
+        // Fall back to an internal navigation below.
+      }
+    }
+    navigation.navigate(target?.startsWith("/") && !target.startsWith("//") ? target : "/");
   };
 
   const navigateTo = useLoginOrRegisterNavigation();

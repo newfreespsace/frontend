@@ -108,6 +108,8 @@ function withLoginRequired(routes: Matcher<any, any>): Matcher<any, any> {
       return redirect("/login", { exact: false });
     }
 
+    if (request.path === "/login" && request.query.loginRedirectUrl) return routes;
+
     if (request.path === "/login" || request.path === "/register" || request.path === "/forgot") {
       return redirect("/", { exact: false });
     }

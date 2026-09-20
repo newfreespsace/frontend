@@ -18,6 +18,7 @@ async function request<T>(
   let response: any;
   try {
     response = await axios(window.apiEndpoint + "api/" + path, {
+      withCredentials: true,
       method: method,
       params: params,
       data: body && JSON.stringify(body),
