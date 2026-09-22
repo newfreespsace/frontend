@@ -7,7 +7,7 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer, useNavigationChecked } from "@/utils/hooks";
 import MarkdownContent from "@/markdown/MarkdownContent";
 import CreateSectionModal from "../common/CreateSectionModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
@@ -22,6 +22,7 @@ interface ChapterViewData {
   training: ApiTypes.TrainingMetaDto;
   chapter: ApiTypes.ChapterMetaDto;
   sections: ApiTypes.SectionMetaDto[];
+  trainings: ApiTypes.TrainingMetaDto[];
 }
 
 async function fetchData(trainingId: number, chapterId: number): Promise<ChapterViewData> {
@@ -37,10 +38,19 @@ async function fetchData(trainingId: number, chapterId: number): Promise<Chapter
   if (sectionsResult.requestError)
     throw new RouteError(sectionsResult.requestError, { showRefresh: true, showBack: true });
 
+  let trainings = [trainingResult.response];
+  if (appState.currentUserHasPrivilege("ManageProblem")) {
+    const trainingsResult = await api.training.queryTrainingSet(undefined);
+    if (trainingsResult.requestError)
+      throw new RouteError(trainingsResult.requestError, { showRefresh: true, showBack: true });
+    trainings = trainingsResult.response.result;
+  }
+
   return {
     training: trainingResult.response,
     chapter: chapterResult.response,
-    sections: ((sectionsResult.response as unknown) || []) as ApiTypes.SectionMetaDto[]
+    sections: ((sectionsResult.response as unknown) || []) as ApiTypes.SectionMetaDto[],
+    trainings
   };
 }
 
@@ -48,6 +58,7 @@ interface ChapterViewPageProps extends ChapterViewData {}
 
 let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
   const _ = useLocalizer("training");
+  const navigation = useNavigationChecked();
   const [chapter, setChapter] = useState(props.chapter);
   const [sections, setSections] = useState(props.sections);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -91,15 +102,28 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
   }
 
   const [renamePending, onRenameChapter] = useAsyncCallbackPending(
-    async ({ title, description }: { title: string; description: string }) => {
-      const { requestError, response } = await api.training.updateChapter({ id: chapter.id, title, description });
-      if (requestError) toast.error(requestError((key: string) => key));
-      else
+    async ({ title, description, parentId }: { title: string; description: string; parentId?: number }) => {
+      const trainingId = parentId ?? chapter.trainingId;
+      const { requestError, response } = await api.training.updateChapter({
+        id: chapter.id,
+        title,
+        description,
+        trainingId
+      });
+      if (requestError) {
+        toast.error(requestError((key: string) => key));
+        return false;
+      }
+      if (response.trainingId !== chapter.trainingId) {
+        navigation.navigate(`/t/${response.trainingId}/${response.id}`);
+      } else {
         setChapter(currentChapter => ({
           ...currentChapter,
           title: response.title,
           description: response.description
         }));
+      }
+      return true;
     }
   );
 
@@ -113,6 +137,15 @@ let ChapterViewPage: React.FC<ChapterViewPageProps> = props => {
             label={_(".chapter")}
             initialTitle={chapter.title}
             initialDescription={chapter.description}
+            parentField={{
+              label: _(".parent_training"),
+              initialValue: chapter.trainingId,
+              options: props.trainings.map(training => ({
+                key: training.id,
+                value: training.id,
+                text: training.title
+              }))
+            }}
             pending={renamePending}
             onSubmit={onRenameChapter}
           />

@@ -7,7 +7,7 @@ import style from "../common/TrainingPage.module.less";
 import api from "@/api";
 import { appState } from "@/appState";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { Link, useAsyncCallbackPending, useLocalizer, useScreenWidthWithin } from "@/utils/hooks";
+import { Link, useAsyncCallbackPending, useLocalizer, useNavigationChecked, useScreenWidthWithin } from "@/utils/hooks";
 import MarkdownContent from "@/markdown/MarkdownContent";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { StatusIcon } from "@/components/StatusText";
@@ -25,6 +25,12 @@ interface SectionViewData {
   training: ApiTypes.TrainingMetaDto;
   chapter: ApiTypes.ChapterMetaDto;
   section: ApiTypes.GetSectionByIdResponseDto;
+  chapterOptions: {
+    trainingId: number;
+    trainingTitle: string;
+    chapterId: number;
+    chapterTitle: string;
+  }[];
 }
 
 const sectionProblemCategories: ApiTypes.SectionProblemDto["category"][] = ["Example", "Exercise"];
@@ -66,10 +72,43 @@ async function fetchData(trainingId: number, chapterId: number, sectionId: numbe
   if (chapterResult.requestError)
     throw new RouteError(chapterResult.requestError, { showRefresh: true, showBack: true });
 
+  let chapterOptions = [
+    {
+      trainingId: trainingResult.response.id,
+      trainingTitle: trainingResult.response.title,
+      chapterId: chapterResult.response.id,
+      chapterTitle: chapterResult.response.title
+    }
+  ];
+  if (appState.currentUserHasPrivilege("ManageProblem")) {
+    const trainingsResult = await api.training.queryTrainingSet(undefined);
+    if (trainingsResult.requestError)
+      throw new RouteError(trainingsResult.requestError, { showRefresh: true, showBack: true });
+
+    const chapterResults = await Promise.all(
+      trainingsResult.response.result.map(training =>
+        api.training.queryChapterSetByTrainingId({ trainingId: training.id })
+      )
+    );
+    const failedChapterResult = chapterResults.find(result => result.requestError);
+    if (failedChapterResult?.requestError)
+      throw new RouteError(failedChapterResult.requestError, { showRefresh: true, showBack: true });
+
+    chapterOptions = trainingsResult.response.result.flatMap((training, index) =>
+      (((chapterResults[index].response as unknown) || []) as ApiTypes.ChapterMetaDto[]).map(chapter => ({
+        trainingId: training.id,
+        trainingTitle: training.title,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title
+      }))
+    );
+  }
+
   return {
     training: trainingResult.response,
     chapter: chapterResult.response,
-    section: await fetchSection(sectionId)
+    section: await fetchSection(sectionId),
+    chapterOptions
   };
 }
 
@@ -78,6 +117,7 @@ interface SectionViewPageProps extends SectionViewData {}
 let SectionViewPage: React.FC<SectionViewPageProps> = props => {
   const _p = useLocalizer("problem_set");
   const _ = useLocalizer("training");
+  const navigation = useNavigationChecked();
   const [section, setSection] = useState(props.section);
   const isVeryNarrowScreen = useScreenWidthWithin(0, 640);
   const canManageTraining = appState.currentUserHasPrivilege("ManageProblem");
@@ -143,15 +183,34 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
   }
 
   const [renamePending, onRenameSection] = useAsyncCallbackPending(
-    async ({ title, description }: { title: string; description: string }) => {
-      const { requestError, response } = await api.training.updateSection({ id: section.id, title, description });
-      if (requestError) toast.error(requestError((key: string) => key));
-      else
+    async ({ title, description, parentId }: { title: string; description: string; parentId?: number }) => {
+      const chapterId = parentId ?? section.chapterId;
+      const targetChapter = props.chapterOptions.find(chapter => chapter.chapterId === chapterId);
+      if (!targetChapter) {
+        toast.error(_(".save_failed"));
+        return false;
+      }
+
+      const { requestError, response } = await api.training.updateSection({
+        id: section.id,
+        title,
+        description,
+        chapterId
+      });
+      if (requestError) {
+        toast.error(requestError((key: string) => key));
+        return false;
+      }
+      if (response.chapterId !== section.chapterId) {
+        navigation.navigate(`/t/${targetChapter.trainingId}/${response.chapterId}/${response.id}`);
+      } else {
         setSection(currentSection => ({
           ...currentSection,
           title: response.title,
           description: response.description
         }));
+      }
+      return true;
     }
   );
 
@@ -351,6 +410,15 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
             label={_(".section")}
             initialTitle={section.title}
             initialDescription={section.description}
+            parentField={{
+              label: _(".parent_chapter"),
+              initialValue: section.chapterId,
+              options: props.chapterOptions.map(chapter => ({
+                key: chapter.chapterId,
+                value: chapter.chapterId,
+                text: `${chapter.trainingTitle} / ${chapter.chapterTitle}`
+              }))
+            }}
             pending={renamePending}
             onSubmit={onRenameSection}
           />

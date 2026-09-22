@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Form, Icon, Modal } from "semantic-ui-react";
+import { Button, DropdownItemProps, Form, Icon, Modal } from "semantic-ui-react";
 
 import { useAsyncCallbackPending, useLocalizer } from "@/utils/hooks";
 import toast from "@/utils/toast";
@@ -9,8 +9,13 @@ interface RenameTitleModalProps {
   label: string;
   initialTitle: string;
   initialDescription?: string;
+  parentField?: {
+    label: string;
+    initialValue: number;
+    options: DropdownItemProps[];
+  };
   pending?: boolean;
-  onSubmit: (values: { title: string; description: string }) => Promise<void>;
+  onSubmit: (values: { title: string; description: string; parentId?: number }) => Promise<boolean | void>;
 }
 
 const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
@@ -18,6 +23,7 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(props.initialTitle);
   const [description, setDescription] = useState(props.initialDescription || "");
+  const [parentId, setParentId] = useState(props.parentField?.initialValue);
 
   const [internalPending, onSubmit] = useAsyncCallbackPending(async () => {
     const normalizedTitle = title.trim();
@@ -25,17 +31,19 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
       toast.error(_(".input_item_name", { item: props.label }));
       return;
     }
-    await props.onSubmit({
+    const saved = await props.onSubmit({
       title: normalizedTitle,
-      description: description.trim()
+      description: description.trim(),
+      parentId
     });
-    setOpen(false);
+    if (saved !== false) setOpen(false);
   });
   const pending = props.pending || internalPending;
 
   function onOpen() {
     setTitle(props.initialTitle);
     setDescription(props.initialDescription || "");
+    setParentId(props.parentField?.initialValue);
     setOpen(true);
   }
 
@@ -55,6 +63,16 @@ const RenameTitleModal: React.FC<RenameTitleModalProps> = props => {
       <Modal.Content>
         <Form onSubmit={onSubmit}>
           <Form.Input label={_(".title_field")} value={title} onChange={e => setTitle(e.currentTarget.value)} />
+          {props.parentField && (
+            <Form.Select
+              search
+              required
+              label={props.parentField.label}
+              value={parentId}
+              options={props.parentField.options}
+              onChange={(event, data) => setParentId(Number(data.value))}
+            />
+          )}
           <Form.TextArea
             label={_(".description")}
             value={description}

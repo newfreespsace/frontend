@@ -14,6 +14,8 @@ return {
   progress: "進捗",
   title_field: "タイトル",
   description: "説明",
+  parent_training: "所属トレーニングプラン",
+  parent_chapter: "所属する章",
   name: "名前",
   cancel: "キャンセル",
   create: "作成",

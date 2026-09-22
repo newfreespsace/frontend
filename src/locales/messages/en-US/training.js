@@ -14,6 +14,8 @@ return {
   progress: "Progress",
   title_field: "Title",
   description: "Description",
+  parent_training: "Training plan",
+  parent_chapter: "Chapter",
   name: "Name",
   cancel: "Cancel",
   create: "Create",

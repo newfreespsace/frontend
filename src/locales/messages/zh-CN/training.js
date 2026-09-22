@@ -14,6 +14,8 @@ return {
   progress: "进度",
   title_field: "标题",
   description: "描述",
+  parent_training: "所属训练计划",
+  parent_chapter: "所属章节",
   name: "名称",
   cancel: "取消",
   create: "创建",
