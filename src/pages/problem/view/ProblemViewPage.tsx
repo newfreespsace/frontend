@@ -57,6 +57,7 @@ import formatDateTime from "@/utils/formatDateTime";
 import { markSubmissionForCelebration } from "@/utils/submissionCelebration";
 import ContestProblemNavigation from "./common/ContestProblemNavigation";
 import ProblemDifficulty from "./ProblemDifficulty";
+import ProblemDifficultyRatings from "./ProblemDifficultyRatings";
 
 export function useProblemViewMarkdownContentPatcher(
   problemId: number,
@@ -119,6 +120,7 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     judgeInfo: true,
     judgeInfoToBePreprocessed: true,
     statistics: true,
+    hasDifficultyRatings: true,
     discussionCount: true,
     canViewDiscussion: true,
     permissionOfCurrentUser: true,
@@ -164,6 +166,10 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
     ? { contestId: props.contest.id, contestProblemIndex: props.contestPid }
     : undefined;
   const [contestNow, setContestNow] = useState(Date.now());
+  const [hasDifficultyRatings, setHasDifficultyRatings] = useState(!!props.problem.hasDifficultyRatings);
+  useEffect(() => {
+    setHasDifficultyRatings(!!props.problem.hasDifficultyRatings);
+  }, [props.problem.meta.id, props.problem.hasDifficultyRatings]);
   const postContestOpensAt = props.contestPermissions?.postContestOpensAt
     ? new Date(props.contestPermissions.postContestOpensAt).getTime()
     : Infinity;
@@ -630,6 +636,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 problemId={props.problem.meta.id}
                 initialDifficulty={props.problem.meta.difficulty}
                 size={isMobile ? "small" : undefined}
+                onRated={() => setHasDifficultyRatings(true)}
               />
             )}
             <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />
@@ -898,6 +905,10 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   as={Link}
                   href={getProblemUrl(props.problem.meta, { subRoute: "statistics/fastest" })}
                 />
+              )}
+
+              {!props.review && !inContest && hasDifficultyRatings && (
+                <ProblemDifficultyRatings problemId={props.problem.meta.id} />
               )}
 
               {!props.review && !inContest && props.problem.canViewDiscussion && (

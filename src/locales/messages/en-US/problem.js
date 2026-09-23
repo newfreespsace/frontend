@@ -28,8 +28,15 @@ return {
     saving: "Saving…",
     saved: "Saved",
     unrated: "Unrated",
-    need_accepted: "Solve this problem to rate it",
-    rating_suspended: "Your previous rating is paused until you solve this problem again"
+    need_accepted: "Solve this problem and at least 200 problems in total to rate it; admins are exempt",
+    rating_suspended: "Your previous rating is paused until you meet the rating requirements again",
+    ratings_title: "Difficulty ratings",
+    user: "User",
+    rating: "Difficulty",
+    updated_at: "Last updated",
+    admin_vote: "Admin ×3",
+    not_counted: "Not counted",
+    no_ratings: "No ratings yet"
   },
   review: {
     header: "Review {current} of {total}",
@@ -43,6 +50,7 @@ return {
     login_to_submit: "Login to submit",
     submission: "Submissions",
     statistics: "Statistics",
+    difficulty_ratings: "Difficulty ratings",
     discussion: "Discussion",
     files: "Files",
     additional_files: "Additional Files",

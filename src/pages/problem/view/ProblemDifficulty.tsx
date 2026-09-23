@@ -23,7 +23,12 @@ export function DifficultyBadge(props: { difficulty?: number; size?: "small"; cl
   );
 }
 
-export default function ProblemDifficulty(props: { problemId: number; initialDifficulty?: number; size?: "small" }) {
+export default function ProblemDifficulty(props: {
+  problemId: number;
+  initialDifficulty?: number;
+  size?: "small";
+  onRated?: () => void;
+}) {
   const _ = useLocalizer("problem");
   const [open, setOpen] = useState(false);
   const [difficulty, setDifficulty] = useState(props.initialDifficulty);
@@ -64,6 +69,7 @@ export default function ProblemDifficulty(props: { problemId: number; initialDif
       setRating(response.rating);
       setDraft(response.rating.score ?? 1);
       setDifficulty(response.rating.difficulty);
+      props.onRated?.();
     }
     setSaving(false);
   }
@@ -79,7 +85,8 @@ export default function ProblemDifficulty(props: { problemId: number; initialDif
           rating={draft}
           clearable={false}
           disabled={!rating.canRate || saving}
-          aria-label={_(".difficulty.open")}
+          aria-label={_(rating.canRate ? ".difficulty.open" : ".difficulty.need_accepted")}
+          title={!rating.canRate ? _(".difficulty.need_accepted") : undefined}
           className={`${style.stars} ${style[`level${preview ?? draft}`]}`}
           onMouseOver={event => {
             if (!rating.canRate || saving) return;

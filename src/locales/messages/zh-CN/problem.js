@@ -28,8 +28,15 @@ return {
     saving: "正在保存…",
     saved: "已保存",
     unrated: "未评分",
-    need_accepted: "通过此题后可以评分",
-    rating_suspended: "当前未通过此题，原评分暂不计入难度；重新通过后将恢复"
+    need_accepted: "通过此题且累计通过至少 200 道题后可以评分；管理员不受此限制",
+    rating_suspended: "未满足评分条件时，原评分暂不计入难度；满足条件后将恢复",
+    ratings_title: "评分记录",
+    user: "用户",
+    rating: "难度",
+    updated_at: "最后修改时间",
+    admin_vote: "管理员 ×3",
+    not_counted: "暂不计入",
+    no_ratings: "暂无评分记录"
   },
   review: {
     header: "正在进行第 {current}/{total} 次复习",
@@ -43,6 +50,7 @@ return {
     login_to_submit: "请登录后提交",
     submission: "提交记录",
     statistics: "统计",
+    difficulty_ratings: "评分记录",
     discussion: "讨论",
     files: "文件",
     additional_files: "附加文件",

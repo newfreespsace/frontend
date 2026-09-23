@@ -28,8 +28,15 @@ return {
     saving: "保存中…",
     saved: "保存しました",
     unrated: "未評価",
-    need_accepted: "この問題を正解すると評価できます",
-    rating_suspended: "現在の評価は正解するまで集計から除外されます"
+    need_accepted: "この問題を含めて200問以上正解すると評価できます（管理者を除く）",
+    rating_suspended: "評価条件を満たすまで、以前の評価は集計から除外されます",
+    ratings_title: "難易度の評価履歴",
+    user: "ユーザー",
+    rating: "難易度",
+    updated_at: "最終更新日時",
+    admin_vote: "管理者 ×3",
+    not_counted: "集計対象外",
+    no_ratings: "評価はまだありません"
   },
   review: {
     header: "{current}/{total} 回目の復習",
@@ -43,6 +50,7 @@ return {
     login_to_submit: "ログインして提出してください",
     submission: "提出一覧",
     statistics: "統計",
+    difficulty_ratings: "評価履歴",
     discussion: "ディスカッション",
     files: "ファイル",
     additional_files: "他のファイル",
