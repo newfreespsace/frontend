@@ -12,6 +12,7 @@ import MarkdownContent from "@/markdown/MarkdownContent";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { StatusIcon } from "@/components/StatusText";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
+import { DifficultyBadge } from "@/pages/problem/view/ProblemDifficulty";
 import { sortTags } from "@/pages/problem/problemTag";
 import AddProblemModal from "../common/AddProblemModal";
 import DeleteConfirmModal from "../common/DeleteConfirmModal";
@@ -279,6 +280,11 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                       {getProblemIdString(problem.meta, { hideHashTagOnDisplayId: true })}
                     </span>
                     {" " + getProblemDisplayName(null, problem.title, _p)}
+                    <DifficultyBadge
+                      difficulty={problem.meta.difficulty}
+                      size="small"
+                      className={style.inlineDifficulty}
+                    />
                   </Table.Cell>
                   <Table.Cell>
                     <Dropdown
@@ -335,6 +341,7 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                 {appState.currentUser && <Table.HeaderCell width={1}>{_p(".column_status")}</Table.HeaderCell>}
                 <Table.HeaderCell width={1}>#</Table.HeaderCell>
                 <Table.HeaderCell className={style.tableTitle}>{_(".problem")}</Table.HeaderCell>
+                {!isVeryNarrowScreen && <Table.HeaderCell width={2}>{_p(".column_difficulty")}</Table.HeaderCell>}
                 <Table.HeaderCell width={1}>{_p(".column_submission_count")}</Table.HeaderCell>
                 {!isVeryNarrowScreen && <Table.HeaderCell width={1}>{_p(".column_accepted_rate")}</Table.HeaderCell>}
               </Table.Row>
@@ -360,6 +367,11 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                     <EmojiRenderer>
                       <Link href={getProblemUrl(problem.meta)}>{getProblemDisplayName(null, problem.title, _p)}</Link>
                     </EmojiRenderer>
+                    {isVeryNarrowScreen && (
+                      <span className={style.inlineDifficulty}>
+                        <DifficultyBadge difficulty={problem.meta.difficulty} size="small" />
+                      </span>
+                    )}
                     {!problem.meta.isPublic && (
                       <Label
                         className={style.labelNonPublic}
@@ -378,6 +390,11 @@ let SectionViewPage: React.FC<SectionViewPageProps> = props => {
                       ))}
                     </div>
                   </Table.Cell>
+                  {!isVeryNarrowScreen && (
+                    <Table.Cell>
+                      <DifficultyBadge difficulty={problem.meta.difficulty} size="small" />
+                    </Table.Cell>
+                  )}
                   <Table.Cell>{problem.meta.submissionCount}</Table.Cell>
                   {!isVeryNarrowScreen && (
                     <Table.Cell>
