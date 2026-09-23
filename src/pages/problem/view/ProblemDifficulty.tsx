@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label, Loader, Popup, Rating } from "semantic-ui-react";
 
 import style from "./ProblemDifficulty.module.less";
 
+import { appState } from "@/appState";
 import { useLocalizer } from "@/utils/hooks";
 import toast from "@/utils/toast";
 import {
@@ -33,10 +34,29 @@ export default function ProblemDifficulty(props: {
   const [open, setOpen] = useState(false);
   const [difficulty, setDifficulty] = useState(props.initialDifficulty);
   const [rating, setRating] = useState<DifficultyRating>(null);
+  const [ratingUserId, setRatingUserId] = useState<number>(null);
   const [draft, setDraft] = useState(1);
   const [preview, setPreview] = useState<number>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const currentUserId = appState.currentUser?.id;
+
+  useEffect(() => {
+    setRating(null);
+    setRatingUserId(null);
+    if (!currentUserId) return;
+    let cancelled = false;
+    getProblemDifficultyRating({ problemId: props.problemId }).then(({ requestError, response }) => {
+      if (cancelled || requestError || response.error) return;
+      setRating(response.rating);
+      setRatingUserId(currentUserId);
+      setDraft(response.rating.score ?? 1);
+      setDifficulty(response.rating.difficulty);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [props.problemId, currentUserId]);
 
   async function loadRating() {
     setLoading(true);
@@ -49,8 +69,10 @@ export default function ProblemDifficulty(props: {
       setOpen(false);
     } else {
       setRating(response.rating);
+      setRatingUserId(currentUserId);
       setDraft(response.rating.score ?? 1);
       setDifficulty(response.rating.difficulty);
+      if (!response.rating.canRate) setOpen(false);
     }
     setLoading(false);
   }
@@ -104,6 +126,9 @@ export default function ProblemDifficulty(props: {
       )}
     </div>
   );
+
+  if (!currentUserId || ratingUserId !== currentUserId || !rating?.canRate)
+    return <DifficultyBadge difficulty={difficulty} size={props.size} />;
 
   return (
     <Popup
