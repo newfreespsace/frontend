@@ -56,6 +56,7 @@ import { EmojiRenderer } from "@/components/EmojiRenderer";
 import formatDateTime from "@/utils/formatDateTime";
 import { markSubmissionForCelebration } from "@/utils/submissionCelebration";
 import ContestProblemNavigation from "./common/ContestProblemNavigation";
+import ProblemDifficulty from "./ProblemDifficulty";
 
 export function useProblemViewMarkdownContentPatcher(
   problemId: number,
@@ -623,6 +624,13 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               <Icon name="book" />
               {_(`.type.${props.problem.meta.type}`)}
             </Label>
+            {!inContest && (
+              <ProblemDifficulty
+                key={props.problem.meta.id}
+                problemId={props.problem.meta.id}
+                initialDifficulty={props.problem.meta.difficulty}
+              />
+            )}
             <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />
             {!inContest && props.problem.tagsOfLocale.length > 0 && (
               <>

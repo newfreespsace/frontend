@@ -25,6 +25,7 @@ return {
   },
   column_status: "[TBT] Status",
   column_title: "問題",
+  column_difficulty: "難易度",
   column_submission_count: "提出",
   column_accepted_rate: "正答率",
   non_public: "非公開",

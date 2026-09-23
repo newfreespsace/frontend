@@ -25,6 +25,7 @@ return {
   },
   column_status: "状态",
   column_title: "题目",
+  column_difficulty: "难度",
   column_submission_count: "提交",
   column_accepted_rate: "通过率",
   non_public: "未公开",

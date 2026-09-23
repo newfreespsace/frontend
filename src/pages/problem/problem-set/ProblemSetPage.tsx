@@ -18,6 +18,7 @@ import ProblemSearch from "@/components/ProblemSearch";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "../utils";
 import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
+import { DifficultyBadge } from "../view/ProblemDifficulty";
 
 // Parsed from querystring, without pagination
 interface ProblemSetPageSearchQuery {
@@ -479,6 +480,7 @@ let ProblemSetPage: React.FC<ProblemSetPageProps> = props => {
               {appState.currentUser && <Table.HeaderCell width={1}>{_(".column_status")}</Table.HeaderCell>}
               <Table.HeaderCell width={1}>#</Table.HeaderCell>
               <Table.HeaderCell textAlign="left">{_(".column_title")}</Table.HeaderCell>
+              {!isVeryNarrowScreen && <Table.HeaderCell width={2}>{_(".column_difficulty")}</Table.HeaderCell>}
               <Table.HeaderCell width={1}>{_(".column_submission_count")}</Table.HeaderCell>
               {!isVeryNarrowScreen && <Table.HeaderCell width={1}>{_(".column_accepted_rate")}</Table.HeaderCell>}
             </Table.Row>
@@ -502,6 +504,11 @@ let ProblemSetPage: React.FC<ProblemSetPageProps> = props => {
                   <EmojiRenderer>
                     <Link href={getProblemUrl(problem.meta)}>{getProblemDisplayName(null, problem.title, _)}</Link>
                   </EmojiRenderer>
+                  {isVeryNarrowScreen && (
+                    <div className={style.mobileDifficulty}>
+                      <DifficultyBadge difficulty={problem.meta.difficulty} />
+                    </div>
+                  )}
                   {!problem.meta.isPublic && (
                     <Label
                       className={style.labelNonPublic}
@@ -520,6 +527,11 @@ let ProblemSetPage: React.FC<ProblemSetPageProps> = props => {
                     {problem.tags.map(tag => getTagLabel(tag))}
                   </div>
                 </Table.Cell>
+                {!isVeryNarrowScreen && (
+                  <Table.Cell>
+                    <DifficultyBadge difficulty={problem.meta.difficulty} />
+                  </Table.Cell>
+                )}
                 <Table.Cell>{problem.meta.submissionCount}</Table.Cell>
                 {!isVeryNarrowScreen && (
                   <Table.Cell>

@@ -25,6 +25,7 @@ return {
   },
   column_status: "Status",
   column_title: "Problem",
+  column_difficulty: "Difficulty",
   column_submission_count: "Submissions",
   column_accepted_rate: "Acceptance",
   non_public: "Non-Public",

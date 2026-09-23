@@ -20,6 +20,20 @@ return {
     submissions: "Subs.",
     accepted: "AC."
   },
+  difficulty: {
+    title: "Rate difficulty",
+    open: "View and rate problem difficulty",
+    current: "Current difficulty",
+    my_rating: "My difficulty rating",
+    choose: "Choose a difficulty",
+    unrated: "Unrated",
+    submit: "Submit rating",
+    update: "Update rating",
+    remove: "Remove rating",
+    need_accepted: "Solve this problem to rate it",
+    rating_suspended: "Your previous rating is paused until you solve this problem again",
+    admin_weight: "Admin ratings count 3 times; other ratings count once"
+  },
   review: {
     header: "Review {current} of {total}",
     deadline: "Deadline: {time}",
