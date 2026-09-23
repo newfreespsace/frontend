@@ -629,6 +629,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 key={props.problem.meta.id}
                 problemId={props.problem.meta.id}
                 initialDifficulty={props.problem.meta.difficulty}
+                size={isMobile ? "small" : undefined}
               />
             )}
             <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />

@@ -506,7 +506,7 @@ let ProblemSetPage: React.FC<ProblemSetPageProps> = props => {
                   </EmojiRenderer>
                   {isVeryNarrowScreen && (
                     <div className={style.mobileDifficulty}>
-                      <DifficultyBadge difficulty={problem.meta.difficulty} />
+                      <DifficultyBadge difficulty={problem.meta.difficulty} size="small" />
                     </div>
                   )}
                   {!problem.meta.isPublic && (
@@ -529,7 +529,7 @@ let ProblemSetPage: React.FC<ProblemSetPageProps> = props => {
                 </Table.Cell>
                 {!isVeryNarrowScreen && (
                   <Table.Cell>
-                    <DifficultyBadge difficulty={problem.meta.difficulty} />
+                    <DifficultyBadge difficulty={problem.meta.difficulty} size="small" />
                   </Table.Cell>
                 )}
                 <Table.Cell>{problem.meta.submissionCount}</Table.Cell>

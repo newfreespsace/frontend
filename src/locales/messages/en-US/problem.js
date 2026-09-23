@@ -21,18 +21,15 @@ return {
     accepted: "AC."
   },
   difficulty: {
-    title: "Rate difficulty",
     open: "View and rate problem difficulty",
-    current: "Current difficulty",
-    my_rating: "My difficulty rating",
-    choose: "Choose a difficulty",
+    rate: "Rate this problem",
+    auto_save: "Click a star to save automatically",
+    adjust: "Click a star to change your rating",
+    saving: "Saving…",
+    saved: "Saved",
     unrated: "Unrated",
-    submit: "Submit rating",
-    update: "Update rating",
-    remove: "Remove rating",
     need_accepted: "Solve this problem to rate it",
-    rating_suspended: "Your previous rating is paused until you solve this problem again",
-    admin_weight: "Admin ratings count 3 times; other ratings count once"
+    rating_suspended: "Your previous rating is paused until you solve this problem again"
   },
   review: {
     header: "Review {current} of {total}",

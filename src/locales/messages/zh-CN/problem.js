@@ -21,18 +21,15 @@ return {
     accepted: "通过"
   },
   difficulty: {
-    title: "难度评分",
     open: "查看并评价题目难度",
-    current: "当前难度",
-    my_rating: "我的难度评分",
-    choose: "请选择难度",
+    rate: "给这道题评分",
+    auto_save: "点击星星后自动保存",
+    adjust: "点击星星可修改评分",
+    saving: "正在保存…",
+    saved: "已保存",
     unrated: "未评分",
-    submit: "提交评分",
-    update: "更新评分",
-    remove: "撤销评分",
     need_accepted: "通过此题后可以评分",
-    rating_suspended: "当前未通过此题，原评分暂不计入难度；重新通过后将恢复",
-    admin_weight: "管理员评分权重为 3，普通用户为 1"
+    rating_suspended: "当前未通过此题，原评分暂不计入难度；重新通过后将恢复"
   },
   review: {
     header: "正在进行第 {current}/{total} 次复习",

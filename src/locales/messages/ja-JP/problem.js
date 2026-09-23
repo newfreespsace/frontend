@@ -21,18 +21,15 @@ return {
     accepted: "正解"
   },
   difficulty: {
-    title: "難易度を評価",
     open: "問題の難易度を表示・評価",
-    current: "現在の難易度",
-    my_rating: "自分の評価",
-    choose: "難易度を選択",
+    rate: "この問題を評価",
+    auto_save: "星をクリックすると自動保存",
+    adjust: "星をクリックして評価を変更",
+    saving: "保存中…",
+    saved: "保存しました",
     unrated: "未評価",
-    submit: "評価を送信",
-    update: "評価を更新",
-    remove: "評価を取り消す",
     need_accepted: "この問題を正解すると評価できます",
-    rating_suspended: "現在の評価は正解するまで集計から除外されます",
-    admin_weight: "管理者の評価は3倍、一般ユーザーは1倍で計算します"
+    rating_suspended: "現在の評価は正解するまで集計から除外されます"
   },
   review: {
     header: "{current}/{total} 回目の復習",
