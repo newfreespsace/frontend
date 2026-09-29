@@ -328,18 +328,25 @@ function safeStringify(object) {
     var refreshSession = (token) => {
       var getSessionToken = () => {
         try {
-          var appState = JSON.parse(localStorage["appState"]);
-          if (appState.logout) {
-            appState.logout = false;
-            localStorage["appState"] = JSON.stringify(appState);
-          } else
-            return appState.token;
+          var storedToken = localStorage.getItem("nsoj-auth-token");
+          if (storedToken !== null) return storedToken;
+
+          var appState = JSON.parse(localStorage.getItem("appState") || "{}");
+          var legacyToken = appState && !appState.logout && typeof appState.token === "string" ? appState.token : "";
+          localStorage.setItem("nsoj-auth-token", legacyToken);
+          if (appState && typeof appState === "object") {
+            delete appState.token;
+            delete appState.logout;
+            localStorage.setItem("appState", JSON.stringify(appState));
+          }
+          return legacyToken;
         } catch (e) {
-          return null;
+          return "";
         }
       };
 
-      if (!token) token = getSessionToken() || "";
+      if (typeof token !== "string") token = getSessionToken();
+      window.initialSessionToken = token;
       var script = document.createElement("script");
       script.async = true;
       script.onerror = handleLoadingError;

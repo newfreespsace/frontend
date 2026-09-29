@@ -6,7 +6,7 @@ import { observer } from "mobx-react";
 
 import style from "../common.module.less";
 
-import { appState } from "@/appState";
+import { appState, setAuthToken } from "@/appState";
 
 import api from "@/api";
 import {
@@ -229,7 +229,7 @@ let LoginPage: React.FC = () => {
 
         if (token) {
           // Login success
-          appState.token = token;
+          setAuthToken(token);
 
           {
             setSuccess(_(".welcome", { username: refNewUsername.current || response.username }));

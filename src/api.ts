@@ -1,6 +1,7 @@
 import axios from "axios";
 
-import { appState } from "./appState";
+import { appState, setAuthToken } from "./appState";
+import { getAuthToken } from "./authToken";
 import { makeToBeLocalizedText, ToBeLocalizedText } from "./locales";
 
 export interface ApiResponse<T> {
@@ -16,6 +17,7 @@ async function request<T>(
   recaptchaToken?: string
 ): Promise<ApiResponse<T>> {
   let response: any;
+  const requestToken = appState.token;
   try {
     response = await axios(window.apiEndpoint + "api/" + path, {
       withCredentials: true,
@@ -24,7 +26,7 @@ async function request<T>(
       data: body && JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
-        Authorization: appState.token && `Bearer ${appState.token}`,
+        Authorization: requestToken && `Bearer ${requestToken}`,
         ...(recaptchaToken ? { "X-Recaptcha-Token": recaptchaToken } : {})
       },
       validateStatus: () => true
@@ -43,9 +45,13 @@ async function request<T>(
       console.log("response:", response);
     }
 
-    if (response.status === 401 && response.data?.message === "login required" && appState.token) {
-      appState.token = null;
-      appState.logout = true;
+    if (
+      response.status === 401 &&
+      response.data?.message === "login required" &&
+      requestToken &&
+      getAuthToken() === requestToken
+    ) {
+      setAuthToken("");
       location.reload();
     }
 

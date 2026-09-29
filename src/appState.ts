@@ -6,6 +6,7 @@ import { Locale } from "./interfaces/Locale";
 import { NavButtonName } from "./layouts/AppLayout";
 
 import { defaultLightTheme, defaultDarkTheme, themeList } from "./themes";
+import { getAuthToken, storeAuthToken } from "./authToken";
 
 function getBrowserLocale(): Locale {
   const supportedLocales: string[] = Object.values(Locale);
@@ -125,13 +126,8 @@ export class AppState {
 
   /* Begin session info */
 
-  @persist
   @observable
   token: string = "";
-
-  @persist
-  @observable
-  logout = false;
 
   @observable
   currentUser: ApiTypes.UserMetaDto = null;
@@ -176,4 +172,18 @@ const hydrate = create({
 export const appState = new AppState();
 (window as any)._appState = appState;
 
-export const initAppStateStore = async () => await hydrate("appState", appState);
+export const initAppStateStore = async () => {
+  await hydrate("appState", appState);
+  runInAction(() => (appState.token = getAuthToken()));
+};
+
+export function setAuthToken(token: string): void {
+  storeAuthToken(token);
+  runInAction(() => (appState.token = token || ""));
+}
+
+export function syncAuthToken(): string {
+  const token = getAuthToken();
+  runInAction(() => (appState.token = token));
+  return token;
+}

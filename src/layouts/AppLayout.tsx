@@ -12,7 +12,7 @@ import GlobalProgressBar from "@/components/GlobalProgressBar";
 
 import { Locale } from "@/interfaces/Locale";
 import localeMeta from "@/locales/meta";
-import { appState } from "@/appState";
+import { appState, setAuthToken } from "@/appState";
 import {
   useLocalizer,
   useLoginOrRegisterNavigation,
@@ -77,8 +77,7 @@ let AppLayout: React.FC = props => {
     if (requestError) {
       toast.error(requestError(_));
     } else {
-      appState.token = null;
-      appState.logout = true;
+      setAuthToken("");
       location.reload();
     }
   }

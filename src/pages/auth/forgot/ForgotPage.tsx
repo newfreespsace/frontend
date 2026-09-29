@@ -6,7 +6,7 @@ import { observer } from "mobx-react";
 
 import style from "../common.module.less";
 
-import { appState } from "@/appState";
+import { appState, setAuthToken } from "@/appState";
 
 import api from "@/api";
 import { useLocalizer, useFieldCheck, useRecaptcha, useNavigationChecked } from "@/utils/hooks";
@@ -126,7 +126,7 @@ let ForgetPage: React.FC = () => {
           return;
         }
 
-        appState.token = response.token;
+        setAuthToken(response.token);
 
         {
           setSuccessMessage(_(".success"));

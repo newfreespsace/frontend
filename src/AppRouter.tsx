@@ -9,6 +9,7 @@ import AppLayout from "./layouts/AppLayout";
 import ErrorPage, { ErrorPageProps } from "./pages/error/ErrorPage";
 import getRoute from "./utils/getRoute";
 import { appState } from "./appState";
+import { refreshSessionIfChanged } from "./initApp";
 import { loadLocaleData, makeToBeLocalizedText, ToBeLocalizedText } from "./locales";
 import localeMeta from "./locales/meta";
 
@@ -100,7 +101,8 @@ function isAnonymousAllowedPath(pathname: string): boolean {
 }
 
 function withLoginRequired(routes: Matcher<any, any>): Matcher<any, any> {
-  return map(request => {
+  return map(async request => {
+    await refreshSessionIfChanged();
     const loggedIn = Boolean(appState.currentUser);
 
     if (!loggedIn) {

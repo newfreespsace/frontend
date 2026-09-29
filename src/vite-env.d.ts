@@ -22,6 +22,7 @@ interface Window {
   sessionInfo: ApiTypes.GetSessionInfoResponseDto;
   getSessionInfoCallback: (sessionInfo: ApiTypes.GetSessionInfoResponseDto) => void;
   refreshSession: (tokan: string) => void;
+  initialSessionToken: string;
 
   // Monaco Editor's window.require
   require: any;

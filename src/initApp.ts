@@ -1,4 +1,6 @@
-import { appState, initAppStateStore } from "@/appState";
+import { appState, initAppStateStore, setAuthToken, syncAuthToken } from "@/appState";
+import { getAuthToken } from "@/authToken";
+import api from "@/api";
 import { loadGoogleAnalytics, loadPlausible } from "@/misc/analytics";
 import { runInAction } from "mobx";
 
@@ -15,8 +17,6 @@ const SESSION_SWR_INFO_VALID_FOR = 7 * 24 * 60 * 60 * 1000;
 
 function applySessionInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {
   runInAction(() => {
-    if (!sessionInfo.userMeta && appState.token) appState.token = null;
-
     appState.currentUser = sessionInfo.userMeta;
     appState.currentUserJoinedGroupsCount = sessionInfo.joinedGroupsCount;
     appState.currentUserPrivileges = sessionInfo.userPrivileges || [];
@@ -41,6 +41,7 @@ function saveSessionSwrInfo(sessionInfo: ApiTypes.GetSessionInfoResponseDto) {
 
 // Wait for getSessionInfo JSONP API returns
 async function waitForSessionInitialization() {
+  const requestedToken = window.initialSessionToken;
   const sessionInfo =
     window.sessionInfo ||
     (await new Promise(resolve => {
@@ -51,6 +52,13 @@ async function waitForSessionInitialization() {
     }));
 
   delete window.sessionInfo;
+  if (getAuthToken() !== requestedToken) {
+    syncAuthToken();
+    await refreshSession();
+    return;
+  }
+
+  if (!sessionInfo.userMeta && requestedToken) setAuthToken("");
   applySessionInfo(sessionInfo);
   saveSessionSwrInfo(sessionInfo);
   console.log("session refreshed");
@@ -66,6 +74,7 @@ function firstSessionInitialization() {
   let usingCachedSessionInfo = false;
   if (
     sessionSwrInfo?.version === SESSION_SWR_INFO_VERSION &&
+    sessionSwrInfo.token === appState.token &&
     Date.now() - sessionSwrInfo.date <= SESSION_SWR_INFO_VALID_FOR
   ) {
     console.log("session stale");
@@ -86,6 +95,16 @@ export default async function initApp() {
 }
 
 export const refreshSession = async () => {
-  window.refreshSession(appState.token);
-  await waitForSessionInitialization();
+  const token = syncAuthToken();
+  const { requestError, response } = await api.auth.getSessionInfo({ token });
+  if (requestError) throw new Error("Failed to refresh session");
+  if (getAuthToken() !== token) return;
+
+  if (!response.userMeta && token) setAuthToken("");
+  applySessionInfo(response);
+  saveSessionSwrInfo(response);
+};
+
+export const refreshSessionIfChanged = async () => {
+  while (getAuthToken() !== appState.token) await refreshSession();
 };
