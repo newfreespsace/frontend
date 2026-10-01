@@ -1102,7 +1102,8 @@ export default {
   contest: defineRoute(async request => {
     const cid = Number(request.params.id);
     const pid = Number(request.params.pid);
-    const response = await fetchContestProblemData(cid, pid, appState.locale);
+    const requestedLocale: Locale = request.query["locale"] in Locale && (request.query["locale"] as Locale);
+    const response = await fetchContestProblemData(cid, pid, requestedLocale || appState.contentLocale);
     const review = request.query.review === "true" ? await fetchProblemReview(response.problem.meta.id) : null;
 
     const ProblemTypeView = await getProblemTypeView(response.problem.meta.type as ProblemType);
@@ -1110,7 +1111,7 @@ export default {
     return (
       <ProblemViewPage
         idType="id"
-        requestedLocale={appState.locale}
+        requestedLocale={requestedLocale}
         problem={response.problem}
         review={review}
         ProblemTypeView={ProblemTypeView}
