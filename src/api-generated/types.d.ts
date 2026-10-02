@@ -500,7 +500,6 @@ declare namespace ApiTypes {
     additionalFiles?: boolean;
     statistics?: boolean;
     discussionCount?: boolean;
-    canViewDiscussion?: boolean;
     permissionOfCurrentUser?: boolean;
     permissions?: boolean;
     lastSubmissionAndLastAcceptedSubmission?: boolean;
@@ -519,7 +518,6 @@ declare namespace ApiTypes {
     testData?: ApiTypes.ProblemFileDto[];
     additionalFiles?: ApiTypes.ProblemFileDto[];
     discussionCount?: number;
-    canViewDiscussion?: boolean;
     permissionOfCurrentUser?: ("View" | "Modify" | "ManagePermission" | "ManagePublicness" | "Delete")[];
     permissions?: ApiTypes.ProblemPermissionsDto;
     lastSubmission?: ApiTypes.ProblemLastSubmissionDto;

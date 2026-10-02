@@ -122,7 +122,6 @@ async function fetchData(idType: "id" | "displayId", id: number, locale: Locale)
     statistics: true,
     hasDifficultyRatings: true,
     discussionCount: true,
-    canViewDiscussion: true,
     permissionOfCurrentUser: true,
     additionalFiles: true,
     lastSubmissionAndLastAcceptedSubmission: false
@@ -911,7 +910,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 <ProblemDifficultyRatings problemId={props.problem.meta.id} />
               )}
 
-              {!props.review && !inContest && props.problem.canViewDiscussion && (
+              {!props.review && !inContest && (
                 <Menu.Item
                   as={Link}
                   href={{
