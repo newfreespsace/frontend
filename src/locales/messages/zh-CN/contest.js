@@ -1,6 +1,7 @@
 return {
   title: "比赛",
   ranklist: "排行榜",
+  ranklist_scroll: "左右滚动查看全部题目",
   learning_ranklist: "赛后排行榜",
   learning_ranklist_notice: "本榜统计赛时和赛后的全部提交，仅用于学习进度展示，不影响正式比赛成绩。",
   noi_learning_ranklist_notice:
@@ -18,8 +19,6 @@ return {
   score: "得分",
   accepted_count: "通过数量",
   penalty: "罚时",
-  first_solved: "首通过",
-  first_solved_notice: "标注“首通过”的高亮单元格表示本榜中最早提交并通过该题的选手；提交时间相同时按提交编号判定。",
   total_score: "总分",
   empty_ranklist: "暂无选手提交",
   type: {

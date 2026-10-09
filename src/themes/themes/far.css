@@ -28,7 +28,6 @@ body[data-theme=far] {
 
   --theme-table-header-background: #28292a;
   --theme-ranklist-first-solved-background: #193b29;
-  --theme-ranklist-first-solved-foreground: #85e5a1;
 
   --theme-toggle-lane-unchecked: rgba(255, 255, 255, 0.1);
   --theme-toggle-lane-unchecked-hover: rgba(255, 255, 255, 0.2);

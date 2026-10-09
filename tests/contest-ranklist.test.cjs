@@ -140,22 +140,24 @@ async function renderPage(rows, overrides = {}) {
   return new JSDOM(renderToStaticMarkup(element)).window.document;
 }
 
-test("ACM renders exactly one highlighted badge per solved problem and preserves submission links", async () => {
+test("ACM highlights the first solve without extra text and preserves submission links", async () => {
   const document = await renderPage([row(1, { 101: later }), row(2, { 101: earlier })]);
   const highlighted = document.querySelectorAll("td.firstSolved");
   assert.equal(highlighted.length, 1);
-  assert.equal(highlighted[0].querySelector(".firstSolvedBadge").textContent, ".first_solved");
   assert.equal(highlighted[0].querySelector("a").getAttribute("href"), "/c/1/s/10");
-  assert.equal(document.querySelectorAll(".firstSolvedBadge").length, 1);
-  assert.ok(document.querySelector(".firstSolvedLegend"));
+  assert.equal(highlighted[0].textContent, "+100:10:00");
+  assert.equal(document.querySelector(".firstSolvedBadge"), null);
+  assert.equal(document.querySelector(".firstSolvedLegend"), null);
+  assert.equal(document.body.textContent.includes(".first_solved"), false);
 });
 
-test("post-contest first-solve badges coexist with the post-contest result label", async () => {
+test("post-contest first-solve highlights preserve the post-contest result label", async () => {
   const document = await renderPage([row(1, { 101: accepted(30, later.acceptedTime, "post_contest") })], {
     ranklistScope: "combined"
   });
   const cell = document.querySelector("td.firstSolved");
-  assert.ok(cell.querySelector(".firstSolvedBadge"));
+  assert.ok(cell);
+  assert.equal(cell.querySelector(".firstSolvedBadge"), null);
   assert.equal(cell.querySelector(".label").textContent, ".post_contest_result");
 });
 
@@ -167,4 +169,24 @@ test("empty ACM boards and other contest types have no ACM badge or legend", asy
     assert.equal(document.querySelector(".firstSolvedBadge"), null);
     assert.equal(document.querySelector(".firstSolvedLegend"), null);
   }
+});
+
+test("a 60-problem ACM board retains every column and uses alphabetic labels after Z", async () => {
+  const manyProblems = Array.from({ length: 60 }, (_, index) => ({
+    meta: { id: 101 + index },
+    title: `Problem ${index + 1}`
+  }));
+  const document = await renderPage([row(1, { 101: earlier })], { problems: manyProblems });
+  const table = document.querySelector("table");
+  assert.ok(table.classList.contains("unstackable"));
+  const links = [...table.querySelectorAll("thead a")];
+  assert.equal(links.length, 60);
+  assert.deepEqual(
+    [25, 26, 51, 52, 59].map(index => links[index].textContent),
+    ["Z", "AA", "AZ", "BA", "BH"]
+  );
+  assert.equal(links[26].getAttribute("href"), "/c/1/p/27");
+  assert.equal(links[26].title, "Problem 27");
+  assert.equal(table.querySelectorAll("tbody tr:first-child td").length, 64);
+  assert.ok(document.querySelector("td.firstSolved"));
 });

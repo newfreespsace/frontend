@@ -1,6 +1,7 @@
 return {
   title: "コンテスト",
   ranklist: "順位表",
+  ranklist_scroll: "左右にスクロールしてすべての問題を表示",
   learning_ranklist: "コンテスト後の順位表",
   learning_ranklist_notice:
     "この表はコンテスト中と終了後のすべての提出を学習進捗として集計し、公式結果には影響しません。",
@@ -19,9 +20,6 @@ return {
   score: "スコア",
   accepted_count: "AC 数",
   penalty: "ペナルティ",
-  first_solved: "初通過",
-  first_solved_notice:
-    "「初通過」と表示されたセルは、この順位表で各問題の最も早い AC 提出を示します。提出時刻が同じ場合は提出番号で判定します。",
   total_score: "総スコア",
   empty_ranklist: "提出はまだありません",
   type: {

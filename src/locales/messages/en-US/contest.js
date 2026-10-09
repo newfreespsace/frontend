@@ -1,6 +1,7 @@
 return {
   title: "Contest",
   ranklist: "Ranklist",
+  ranklist_scroll: "Scroll horizontally to view all problems",
   learning_ranklist: "Post-contest Ranklist",
   learning_ranklist_notice:
     "This board includes all contest and post-contest submissions for learning progress only. It does not affect the official result.",
@@ -19,9 +20,6 @@ return {
   score: "Score",
   accepted_count: "Solved",
   penalty: "Penalty",
-  first_solved: "First to solve",
-  first_solved_notice:
-    "Highlighted cells marked “First to solve” identify the earliest accepted submission for each problem on this board. Submission IDs break ties in submission time.",
   total_score: "Total Score",
   empty_ranklist: "No submissions yet",
   type: {

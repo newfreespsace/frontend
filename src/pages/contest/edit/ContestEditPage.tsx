@@ -14,6 +14,7 @@ import ProblemSearch from "@/components/ProblemSearch";
 import UserSearch from "@/components/UserSearch";
 import UserLink from "@/components/UserLink";
 import GroupSearch from "@/components/GroupSearch";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 
 function toDatetimeLocal(value: string) {
   const date = value ? new Date(value) : new Date();
@@ -177,7 +178,7 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
             <List divided relaxed className={style.list}>
               {problems.map((problem, index) => (
                 <List.Item key={problem.meta.id} className={style.listItem}>
-                  {String.fromCharCode(65 + index)}. {problem.title}
+                  {getContestProblemLabel(index)}. {problem.title}
                   <Button
                     icon="trash"
                     size="mini"

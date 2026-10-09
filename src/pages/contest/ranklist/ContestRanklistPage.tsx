@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 
 import style from "./ContestRanklistPage.module.less";
 import { ContestRanklistScoreDetail, getScoreDetail, getSubmissionTime, getFirstSolvedRows } from "./ranklistScore";
+import RanklistScrollArea from "./RanklistScrollArea";
 
 import api from "@/api";
 import { appState } from "@/appState";
@@ -12,6 +13,7 @@ import ScoreText from "@/components/ScoreText";
 import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import UserLink from "@/components/UserLink";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 
 async function fetchData(
   contestId: number,
@@ -52,17 +54,17 @@ function getScoreScale(score: number, maxScore: number): number {
   return Math.max(0, Math.min(100, Math.floor((score / maxScore) * 100)));
 }
 
-function renderRank(rank: number): React.ReactNode {
+function renderRank(rank: number, compact: boolean): React.ReactNode {
   if (rank === 1)
     return (
-      <Label ribbon color="yellow">
+      <Label ribbon={!compact} color="yellow">
         {rank}
       </Label>
     );
-  if (rank === 2) return <Label ribbon>{rank}</Label>;
+  if (rank === 2) return <Label ribbon={!compact}>{rank}</Label>;
   if (rank === 3)
     return (
-      <Label ribbon className={style.bronze}>
+      <Label ribbon={!compact} className={style.bronze}>
         {rank}
       </Label>
     );
@@ -73,6 +75,7 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
   const _ = useLocalizer("contest");
   const { meta, problems, rows } = props.response;
   const combined = props.response.ranklistScope === "combined";
+  const acm = meta.type === "acm";
   const firstSolvedRows = getFirstSolvedRows(meta, problems, rows);
   const maxScore = rows[0]?.score || 0;
 
@@ -99,22 +102,43 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
           content={meta.type === "noi" ? _(".noi_learning_ranklist_notice") : _(".learning_ranklist_notice")}
         />
       )}
-      {meta.type === "acm" && rows.length > 0 && <p className={style.firstSolvedLegend}>{_(".first_solved_notice")}</p>}
-      <div className={style.tableWrap}>
-        <Table basic="very" textAlign="center" className={style.ranklist}>
+      <RanklistScrollArea
+        scrollLabel={_(".ranklist_scroll")}
+        tableLabel={_(combined ? ".learning_ranklist" : ".ranklist")}
+      >
+        <Table
+          basic="very"
+          unstackable
+          textAlign="center"
+          className={`${style.ranklist}${acm ? ` ${style.acmRanklist}` : ""}`}
+          style={acm ? ({ "--problem-count": problems.length } as React.CSSProperties) : undefined}
+        >
+          {acm && (
+            <colgroup>
+              <col className={style.rankColumn} />
+              <col className={style.userColumn} />
+              <col className={style.acceptedColumn} />
+              <col className={style.penaltyColumn} />
+              {problems.map(problem => (
+                <col key={problem.meta.id} className={style.problemColumn} />
+              ))}
+            </colgroup>
+          )}
           <Table.Header>
             <Table.Row>
-              <Table.HeaderCell>{_(".rank")}</Table.HeaderCell>
-              <Table.HeaderCell>{_(".user")}</Table.HeaderCell>
+              <Table.HeaderCell className={style.rank}>{_(".rank")}</Table.HeaderCell>
+              <Table.HeaderCell className={style.user}>{_(".user")}</Table.HeaderCell>
               {meta.type === "acm" && (
                 <>
-                  <Table.HeaderCell>{_(".accepted_count")}</Table.HeaderCell>
-                  <Table.HeaderCell>{_(".penalty")}</Table.HeaderCell>
+                  <Table.HeaderCell className={style.acceptedCount}>{_(".accepted_count")}</Table.HeaderCell>
+                  <Table.HeaderCell className={style.penalty}>{_(".penalty")}</Table.HeaderCell>
                 </>
               )}
               {problems.map((problem, index) => (
                 <Table.HeaderCell key={problem.meta.id}>
-                  <Link href={`/c/${meta.id}/p/${index + 1}`}>{String.fromCharCode(65 + index)}</Link>
+                  <Link href={`/c/${meta.id}/p/${index + 1}`} title={problem.title}>
+                    {getContestProblemLabel(index)}
+                  </Link>
                 </Table.HeaderCell>
               ))}
               {meta.type !== "acm" && <Table.HeaderCell>{_(".total_score")}</Table.HeaderCell>}
@@ -123,16 +147,18 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
           <Table.Body>
             {rows.map((row, rowIndex) => (
               <Table.Row key={row.user.id}>
-                <Table.Cell className={style.rank}>{renderRank(row.rank)}</Table.Cell>
-                <Table.Cell>
-                  <UserLink user={row.user} />
+                <Table.Cell className={style.rank}>{renderRank(row.rank, acm)}</Table.Cell>
+                <Table.Cell className={style.user}>
+                  <div className={acm ? style.userName : undefined} title={row.user.nickname || row.user.username}>
+                    <UserLink user={row.user} />
+                  </div>
                 </Table.Cell>
                 {meta.type === "acm" && (
                   <>
-                    <Table.Cell>
+                    <Table.Cell className={style.acceptedCount}>
                       <ScoreText score={getScoreScale(row.score, maxScore)}>{row.score}</ScoreText>
                     </Table.Cell>
-                    <Table.Cell>{formatDuration(row.timeSpent)}</Table.Cell>
+                    <Table.Cell className={style.penalty}>{formatDuration(row.timeSpent)}</Table.Cell>
                   </>
                 )}
                 {problems.map(problem => {
@@ -142,9 +168,6 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
                   return (
                     <Table.Cell key={problem.meta.id} className={cellClassName}>
                       <ProblemScoreCell contest={meta} detail={detail} combined={combined} />
-                      {meta.type === "acm" && firstSolved && (
-                        <div className={style.firstSolvedBadge}>{_(".first_solved")}</div>
-                      )}
                     </Table.Cell>
                   );
                 })}
@@ -158,7 +181,7 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
             ))}
           </Table.Body>
         </Table>
-      </div>
+      </RanklistScrollArea>
       {!rows.length && (
         <div className={style.empty}>
           <Icon name="file outline" />

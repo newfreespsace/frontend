@@ -1,0 +1,24 @@
+.container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.topScroll,
+.tableWrap {
+  overflow-x: auto;
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-hyperlink);
+    outline-offset: 2px;
+  }
+}
+
+.topScroll {
+  height: 18px;
+}
+
+.scrollHint {
+  margin-bottom: 4px;
+  color: var(--theme-foreground-transparent);
+  font-size: 0.85em;
+}

@@ -3,23 +3,13 @@ import React from "react";
 import style from "./ContestProblemNavigation.module.less";
 
 import { Link, useLocalizer } from "@/utils/hooks";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 
 interface ContestProblemNavigationProps {
   contest: ApiTypes.ContestMetaDto;
   problems: ApiTypes.ContestProblemDto[];
   currentPid: number;
   hideSubmissionResults?: boolean;
-}
-
-function getProblemLabel(index: number) {
-  let value = index + 1;
-  let label = "";
-  while (value > 0) {
-    value--;
-    label = String.fromCharCode(65 + (value % 26)) + label;
-    value = Math.floor(value / 26);
-  }
-  return label;
 }
 
 const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props => {
@@ -35,7 +25,7 @@ const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props 
       <div className={style.problemList}>
         {props.problems.map((problem, index) => {
           const pid = index + 1;
-          const label = getProblemLabel(index);
+          const label = getContestProblemLabel(index);
           const current = pid === props.currentPid;
           const submitted = problem.submissionId != null;
           const accepted =

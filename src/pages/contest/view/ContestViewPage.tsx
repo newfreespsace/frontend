@@ -25,6 +25,7 @@ import StatusText from "@/components/StatusText";
 import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import formatDateTime from "@/utils/formatDateTime";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 
 async function fetchData(contestId: number): Promise<ApiTypes.GetContestResponseDto> {
   const { requestError, response } = await api.contest.getContest({
@@ -187,7 +188,7 @@ let ContestViewPage: React.FC<ContestViewPageProps> = props => {
                       </Table.Cell>
                       <Table.Cell>
                         <Link href={`/c/${contest.id}/p/${index + 1}`}>
-                          {String.fromCharCode(65 + index)}. {problem.title}
+                          {getContestProblemLabel(index)}. {problem.title}
                         </Link>
                       </Table.Cell>
                       {props.contest.permissions.viewStatistics && (
