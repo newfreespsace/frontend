@@ -1,7 +1,6 @@
 return {
   title: "Contest",
   ranklist: "Ranklist",
-  ranklist_scroll: "Scroll horizontally to view all problems",
   learning_ranklist: "Post-contest Ranklist",
   learning_ranklist_notice:
     "This board includes all contest and post-contest submissions for learning progress only. It does not affect the official result.",

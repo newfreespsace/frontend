@@ -1,7 +1,6 @@
 return {
   title: "コンテスト",
   ranklist: "順位表",
-  ranklist_scroll: "左右にスクロールしてすべての問題を表示",
   learning_ranklist: "コンテスト後の順位表",
   learning_ranklist_notice:
     "この表はコンテスト中と終了後のすべての提出を学習進捗として集計し、公式結果には影響しません。",

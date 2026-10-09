@@ -1,7 +1,6 @@
 return {
   title: "比赛",
   ranklist: "排行榜",
-  ranklist_scroll: "左右滚动查看全部题目",
   learning_ranklist: "赛后排行榜",
   learning_ranklist_notice: "本榜统计赛时和赛后的全部提交，仅用于学习进度展示，不影响正式比赛成绩。",
   noi_learning_ranklist_notice:

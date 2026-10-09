@@ -23,7 +23,7 @@
   --penalty-width: 112px;
   --problem-width: 96px;
 
-  // Keep fixed column widths and sticky offsets aligned, even on short boards.
+  // Keep columns readable instead of squeezing all problems into the viewport.
   width: calc(
     var(--rank-width) + var(--user-width) + var(--accepted-width) + var(--penalty-width) + var(--problem-count) *
       var(--problem-width)
@@ -54,31 +54,7 @@
   .user,
   .acceptedCount,
   .penalty {
-    position: sticky;
-    z-index: 1;
-    background: var(--theme-background) !important;
     white-space: nowrap;
-  }
-
-  .rank {
-    left: 0;
-  }
-  .user {
-    left: var(--rank-width);
-  }
-  .acceptedCount {
-    left: calc(var(--rank-width) + var(--user-width));
-  }
-  .penalty {
-    left: calc(var(--rank-width) + var(--user-width) + var(--accepted-width));
-    box-shadow: 2px 0 3px -2px var(--theme-border-hover);
-  }
-
-  th.rank,
-  th.user,
-  th.acceptedCount,
-  th.penalty {
-    background: var(--theme-table-header-background) !important;
   }
 }
 
@@ -96,18 +72,6 @@
 
   .ranklist.acmRanklist {
     --user-width: 128px;
-
-    .rank,
-    .acceptedCount,
-    .penalty {
-      position: static;
-      box-shadow: none;
-    }
-
-    .user {
-      left: 0;
-      box-shadow: 2px 0 3px -2px var(--theme-border-hover);
-    }
   }
 }
 

@@ -102,10 +102,7 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
           content={meta.type === "noi" ? _(".noi_learning_ranklist_notice") : _(".learning_ranklist_notice")}
         />
       )}
-      <RanklistScrollArea
-        scrollLabel={_(".ranklist_scroll")}
-        tableLabel={_(combined ? ".learning_ranklist" : ".ranklist")}
-      >
+      <RanklistScrollArea tableLabel={_(combined ? ".learning_ranklist" : ".ranklist")}>
         <Table
           basic="very"
           unstackable
