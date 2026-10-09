@@ -54,7 +54,25 @@
   .user,
   .acceptedCount,
   .penalty {
+    position: sticky;
+    z-index: 1;
+    // Opaque cells keep scrolling problem results behind the fixed columns.
+    background: var(--theme-background) !important;
     white-space: nowrap;
+  }
+
+  .rank {
+    left: 0;
+  }
+  .user {
+    left: var(--rank-width);
+  }
+  .acceptedCount {
+    left: calc(var(--rank-width) + var(--user-width));
+  }
+  .penalty {
+    left: calc(var(--rank-width) + var(--user-width) + var(--accepted-width));
+    box-shadow: 3px 0 5px -3px var(--theme-border);
   }
 }
 
@@ -71,7 +89,18 @@
   }
 
   .ranklist.acmRanklist {
-    --user-width: 128px;
+    --rank-width: 40px;
+    --user-width: 88px;
+    --accepted-width: 72px;
+    --penalty-width: 88px;
+
+    .rank,
+    .user,
+    .acceptedCount,
+    .penalty {
+      padding-right: 0.5em;
+      padding-left: 0.5em;
+    }
   }
 }
 
