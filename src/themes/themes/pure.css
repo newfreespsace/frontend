@@ -27,6 +27,8 @@ body[data-theme=pure] {
   --theme-block-header-background: #F3F4F5;
 
   --theme-table-header-background: #f9fafb;
+  --theme-ranklist-first-solved-background: #e8f7ed;
+  --theme-ranklist-first-solved-foreground: #176b36;
 
   --theme-toggle-lane-unchecked: rgba(0, 0, 0, 0.05);
   --theme-toggle-lane-unchecked-hover: rgba(0, 0, 0, 0.15);

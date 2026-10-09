@@ -3,6 +3,7 @@ import { Button, Header, Icon, Label, Message, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "./ContestRanklistPage.module.less";
+import { ContestRanklistScoreDetail, getScoreDetail, getSubmissionTime, getFirstSolvedRows } from "./ranklistScore";
 
 import api from "@/api";
 import { appState } from "@/appState";
@@ -30,40 +31,6 @@ interface ContestRanklistPageProps {
   response: ApiTypes.GetContestRanklistResponseDto;
 }
 
-interface ContestRanklistScoreDetail {
-  score?: number;
-  submissionId?: number;
-  status?: string;
-  submissions?: Record<
-    string,
-    {
-      submissionId: number;
-      score?: number;
-      accepted?: boolean;
-      compiled?: boolean;
-      time: string;
-      status?: string;
-      contestPhase?: "official" | "post_contest";
-    }
-  >;
-  accepted?: boolean;
-  unacceptedCount?: number;
-  acceptedTime?: string;
-  weightedScore?: number;
-}
-
-function getScoreDetail(
-  row: ApiTypes.ContestRanklistRowDto,
-  problemId: number
-): ContestRanklistScoreDetail | undefined {
-  return (row.scoreDetails as Record<string, ContestRanklistScoreDetail>)[problemId];
-}
-
-function getSubmissionTime(detail: ContestRanklistScoreDetail | undefined): string | undefined {
-  if (!detail?.submissionId) return undefined;
-  return detail.submissions?.[detail.submissionId]?.time;
-}
-
 function getElapsedSeconds(startTime: string, time: string | undefined): number | undefined {
   if (!time) return undefined;
   const elapsed = Math.floor((new Date(time).getTime() - new Date(startTime).getTime()) / 1000);
@@ -83,31 +50,6 @@ function formatDuration(seconds: number | undefined): string {
 function getScoreScale(score: number, maxScore: number): number {
   if (!maxScore) return 0;
   return Math.max(0, Math.min(100, Math.floor((score / maxScore) * 100)));
-}
-
-function getFirstSolvedRows(
-  contest: ApiTypes.ContestMetaDto,
-  problems: ApiTypes.ContestProblemDto[],
-  rows: ApiTypes.ContestRanklistRowDto[]
-): Record<number, number> {
-  const result: Record<number, number> = {};
-  for (const problem of problems) {
-    let bestRowIndex = -1;
-    let bestTime = Infinity;
-    rows.forEach((row, rowIndex) => {
-      const detail = getScoreDetail(row, problem.meta.id);
-      const solved = contest.type === "acm" ? detail?.accepted : detail?.score === 100;
-      const time = new Date(
-        contest.type === "acm" ? detail?.acceptedTime || 0 : getSubmissionTime(detail) || 0
-      ).getTime();
-      if (solved && time && time < bestTime) {
-        bestTime = time;
-        bestRowIndex = rowIndex;
-      }
-    });
-    result[problem.meta.id] = bestRowIndex;
-  }
-  return result;
 }
 
 function renderRank(rank: number): React.ReactNode {
@@ -157,6 +99,7 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
           content={meta.type === "noi" ? _(".noi_learning_ranklist_notice") : _(".learning_ranklist_notice")}
         />
       )}
+      {meta.type === "acm" && rows.length > 0 && <p className={style.firstSolvedLegend}>{_(".first_solved_notice")}</p>}
       <div className={style.tableWrap}>
         <Table basic="very" textAlign="center" className={style.ranklist}>
           <Table.Header>
@@ -194,10 +137,14 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
                 )}
                 {problems.map(problem => {
                   const detail = getScoreDetail(row, problem.meta.id);
-                  const cellClassName = firstSolvedRows[problem.meta.id] === rowIndex ? style.firstSolved : undefined;
+                  const firstSolved = firstSolvedRows[problem.meta.id] === rowIndex;
+                  const cellClassName = firstSolved ? style.firstSolved : undefined;
                   return (
                     <Table.Cell key={problem.meta.id} className={cellClassName}>
                       <ProblemScoreCell contest={meta} detail={detail} combined={combined} />
+                      {meta.type === "acm" && firstSolved && (
+                        <div className={style.firstSolvedBadge}>{_(".first_solved")}</div>
+                      )}
                     </Table.Cell>
                   );
                 })}

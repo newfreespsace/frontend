@@ -29,8 +29,23 @@
   color: #fff !important;
 }
 
-.firstSolved {
-  background: rgb(244, 255, 245);
+.ranklist td.firstSolved {
+  // Override the global table background inheritance only for these cells.
+  background: var(--theme-ranklist-first-solved-background) !important;
+}
+
+.firstSolvedBadge {
+  margin-top: 5px;
+  color: var(--theme-ranklist-first-solved-foreground);
+  font-size: 0.8em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.firstSolvedLegend {
+  margin-bottom: 10px;
+  color: var(--theme-foreground-transparent);
+  font-size: 0.9em;
 }
 
 .submitTime {

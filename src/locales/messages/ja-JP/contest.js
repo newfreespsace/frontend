@@ -19,6 +19,9 @@ return {
   score: "スコア",
   accepted_count: "AC 数",
   penalty: "ペナルティ",
+  first_solved: "初通過",
+  first_solved_notice:
+    "「初通過」と表示されたセルは、この順位表で各問題の最も早い AC 提出を示します。提出時刻が同じ場合は提出番号で判定します。",
   total_score: "総スコア",
   empty_ranklist: "提出はまだありません",
   type: {

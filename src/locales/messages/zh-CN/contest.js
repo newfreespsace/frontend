@@ -18,6 +18,8 @@ return {
   score: "得分",
   accepted_count: "通过数量",
   penalty: "罚时",
+  first_solved: "首通过",
+  first_solved_notice: "标注“首通过”的高亮单元格表示本榜中最早提交并通过该题的选手；提交时间相同时按提交编号判定。",
   total_score: "总分",
   empty_ranklist: "暂无选手提交",
   type: {
