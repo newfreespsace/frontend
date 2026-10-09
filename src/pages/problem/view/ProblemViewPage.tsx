@@ -55,6 +55,7 @@ import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import formatDateTime from "@/utils/formatDateTime";
 import { markSubmissionForCelebration } from "@/utils/submissionCelebration";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 import ContestProblemNavigation from "./common/ContestProblemNavigation";
 import ProblemDifficulty from "./ProblemDifficulty";
 import ProblemDifficultyRatings from "./ProblemDifficultyRatings";
@@ -160,7 +161,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   const isMobile = useScreenWidthWithin(0, 768);
 
   const inContest = !!props.contest;
-  const contestProblemLabel = inContest ? String.fromCharCode(64 + props.contestPid) : null;
+  const contestProblemLabel = inContest ? getContestProblemLabel(props.contestPid - 1) : null;
   const contestDownloadContext = inContest
     ? { contestId: props.contest.id, contestProblemIndex: props.contestPid }
     : undefined;

@@ -23,12 +23,13 @@ const { getContestProblemLabel } = load(
 );
 
 test("problem labels stay consistent across alphabet boundaries", () => {
-  assert.deepEqual([0, 25, 26, 51, 52, 701, 702].map(getContestProblemLabel), [
+  assert.deepEqual([0, 25, 26, 51, 52, 99, 701, 702].map(getContestProblemLabel), [
     "A",
     "Z",
     "AA",
     "AZ",
     "BA",
+    "CV",
     "ZZ",
     "AAA"
   ]);

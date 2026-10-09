@@ -12,10 +12,11 @@ import ScoreText from "@/components/ScoreText";
 import { CodeLanguage } from "@/interfaces/CodeLanguage";
 import { getProblemDisplayName, getProblemIdString, getProblemUrl } from "@/pages/problem/utils";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
+import { getContestProblemLabel } from "@/utils/contestProblemLabel";
 
 function parseSubmissionMeta(submission: ApiTypes.SubmissionMetaDto, _: ReturnType<typeof useLocalizer>) {
   const inContest = !!submission.contestId && !!submission.contestProblemIndex;
-  const contestProblemLabel = inContest ? String.fromCharCode(64 + submission.contestProblemIndex) : null;
+  const contestProblemLabel = inContest ? getContestProblemLabel(submission.contestProblemIndex - 1) : null;
 
   return {
     submission,
