@@ -79,6 +79,7 @@ async function fetchData(query: SubmissionsQuery) {
 interface SubmissionsPageProps {
   query: SubmissionsQuery;
   queryResult: ApiTypes.QuerySubmissionResponseDto;
+  canViewGroupSubmissions: boolean;
 }
 
 let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
@@ -223,7 +224,7 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             onBlur={checkQueryProblemId}
             error={queryProblemIdError}
           />
-          {appState.currentUser?.isAdmin && (
+          {(appState.currentUser?.isAdmin || props.canViewGroupSubmissions) && (
             <Form.Input
               className={style.queryInputSubmitter}
               icon="user"
@@ -295,7 +296,7 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             onClick={() => onFilter(false)}
           />
 
-          {appState.currentUser?.isAdmin && (
+          {(appState.currentUser?.isAdmin || props.canViewGroupSubmissions) && (
             <Button
               className={(isWideScreen ? "labeled icon " : "") + style.mySubmissions}
               primary
@@ -393,7 +394,17 @@ SubmissionsPage = observer(SubmissionsPage);
 
 export default defineRoute(async request => {
   const query = normalizeQuery(request.query);
-  const queryResult = await fetchData(query);
+  const [queryResult, groupResult] = await Promise.all([
+    fetchData(query),
+    appState.currentUser && appState.activeGroupContests.length === 0 ? api.group.getGroupList() : null
+  ]);
 
-  return <SubmissionsPage key={uuid()} query={query} queryResult={queryResult} />;
+  return (
+    <SubmissionsPage
+      key={uuid()}
+      query={query}
+      queryResult={queryResult}
+      canViewGroupSubmissions={!!groupResult?.response?.groupsWithAdminPermission?.length}
+    />
+  );
 });

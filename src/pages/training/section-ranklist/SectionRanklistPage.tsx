@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Header, Icon, Label, Table } from "semantic-ui-react";
+import { Button, Dropdown, Header, Icon, Label, Table } from "semantic-ui-react";
 import { observer } from "mobx-react";
 
 import style from "./SectionRanklistPage.module.less";
@@ -18,6 +18,7 @@ interface SectionRanklistPageProps {
   trainingId: number;
   chapterId: number;
   section: ApiTypes.GetSectionByIdResponseDto;
+  managedGroups: ApiTypes.GroupMetaDto[];
 }
 
 async function fetchSection(sectionId: number): Promise<ApiTypes.GetSectionByIdResponseDto> {
@@ -79,6 +80,18 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
         {canManageTraining && (
           <GroupSearch className={style.groupSearch} placeholder={_(".search_group")} onResultSelect={queryRanklist} />
         )}
+        {!canManageTraining && props.managedGroups.length > 0 && (
+          <Dropdown
+            className={style.groupSearch}
+            selection
+            clearable
+            disabled={pending}
+            placeholder={_(".search_group")}
+            value={group?.id ?? ""}
+            options={props.managedGroups.map(item => ({ key: item.id, value: item.id, text: item.name }))}
+            onChange={(_event, { value }) => queryRanklist(props.managedGroups.find(item => item.id === value))}
+          />
+        )}
         {(group || ranklist) && (
           <div className={style.groupMeta}>
             {(ranklist?.groups || [group]).map(group => (
@@ -91,7 +104,7 @@ let SectionRanklistPage: React.FC<SectionRanklistPageProps> = props => {
             />
           </div>
         )}
-        {canManageTraining && group && (
+        {ranklist && (
           <Button
             className={style.refresh}
             size="mini"
@@ -188,5 +201,21 @@ export default defineRoute(async request => {
     throw new RouteError("Invalid section id" as any);
   }
 
-  return <SectionRanklistPage trainingId={trainingId} chapterId={chapterId} section={await fetchSection(sectionId)} />;
+  const [section, groupResult] = await Promise.all([
+    fetchSection(sectionId),
+    appState.currentUser ? api.group.getGroupList() : null
+  ]);
+  if (groupResult?.requestError) throw new RouteError(groupResult.requestError, { showRefresh: true, showBack: true });
+  const managedGroups = (groupResult?.response?.groups || []).filter(group =>
+    groupResult.response.groupsWithAdminPermission.includes(group.id)
+  );
+
+  return (
+    <SectionRanklistPage
+      trainingId={trainingId}
+      chapterId={chapterId}
+      section={section}
+      managedGroups={managedGroups}
+    />
+  );
 });
