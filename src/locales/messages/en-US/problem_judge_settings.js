@@ -6,6 +6,8 @@ return {
   submit: "Submit",
   no_submit_permission: "No Permission",
   submit_success: "Successfully submitted.",
+  preview_truncated:
+    "Large configuration: previewing the first 200 lines (up to 12000 characters). Open the source editor for the full configuration.",
   error: {
     NO_SUCH_PROBLEM: "No such problem.",
     PERMISSION_DENIED: "Permission denied.",
@@ -198,6 +200,7 @@ return {
     dependencies: "Subtasks dependent by this subtask"
   },
   file_selector: {
+    search_hint: "Showing the first 100 files. Type a filename to narrow the results.",
     no_matching_files: "No matching files.",
     file_not_found_warning: "File not found."
   },

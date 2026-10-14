@@ -6,6 +6,8 @@ return {
   submit: "保存する",
   no_submit_permission: "権限がありません",
   submit_success: "保存に成功しました。",
+  preview_truncated:
+    "設定が大きいため、先頭 200 行（最大 12000 文字）のみ表示しています。ソース編集で設定全体を確認・編集できます。",
   error: {
     NO_SUCH_PROBLEM: "問題が存在しません。",
     PERMISSION_DENIED: "権限がありません。",
@@ -203,6 +205,7 @@ return {
     dependencies: "このサブタスクに依存する"
   },
   file_selector: {
+    search_hint: "先頭 100 ファイルのみ表示しています。ファイル名で検索を絞り込んでください。",
     no_matching_files: "[TBT] No matching files.",
     file_not_found_warning: "[TBT] File not found."
   },

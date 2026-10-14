@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Dropdown, Grid, Header, Popup, Button, Form, Message } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import yaml from "js-yaml";
@@ -62,11 +62,14 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
     return cloned;
   }
 
-  const [judgeInfo, setJudgeInfo] = useState(parseJudgeInfo(props.problem.judgeInfo));
+  const [judgeInfo, setJudgeInfo] = useState(() => parseJudgeInfo(props.problem.judgeInfo));
+  const yamlSource = useMemo(() => yaml.dump(normalizeJudgeInfo(judgeInfo)), [judgeInfo]);
+  // Keep the full source for editing/saving, but bound syntax highlighting and DOM size.
+  const yamlPreview = useMemo(() => yamlSource.split("\n").slice(0, 200).join("\n").slice(0, 12000), [yamlSource]);
   const [submittable, setSubmittable] = useState(props.problem.submittable);
 
   // Unmount and remount the editor after each time the judge info is edited raw by source
-  const [editorUuid, setEditorUuid] = useState(uuid());
+  const [editorUuid, setEditorUuid] = useState(() => uuid());
 
   const [pending, setPending] = useState(false);
   const [modified, setModified] = useConfirmNavigation();
@@ -112,7 +115,7 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
     setPending(false);
   }
 
-  const [editRawEditorValue, setEditRawEditorValue] = useState(yaml.dump(normalizeJudgeInfo(judgeInfo)));
+  const [editRawEditorValue, setEditRawEditorValue] = useState("");
   const [editRowEditorModified, setEditRowEditorModified] = useConfirmNavigation();
   const [editRawEditorErrorMessage, setEditRawEditorErrorMessage] = useState("");
   function closeEditRawDialog() {
@@ -233,10 +236,11 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
                   onClick={onSubmit}
                 />
               </div>
+              {yamlPreview !== yamlSource && <Message info content={_(".preview_truncated")} />}
               <HighlightedCodeBox
                 className={style.yamlCodeBox}
                 segmentClassName={style.yamlSegment}
-                code={yaml.dump(normalizeJudgeInfo(judgeInfo))}
+                code={yamlPreview}
                 language="yaml"
               >
                 <Button
@@ -246,7 +250,7 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
                   content={_(".edit_raw.edit_raw")}
                   onClick={() => {
                     setEditRawEditorErrorMessage("");
-                    setEditRawEditorValue(yaml.dump(normalizeJudgeInfo(judgeInfo)));
+                    setEditRawEditorValue(yamlSource);
                     editRawDialog.open();
                   }}
                 />

@@ -12,6 +12,8 @@ import toast from "@/utils/toast";
 import { useLocalizer, useSocket, useScreenWidthWithin, useNavigationChecked } from "@/utils/hooks";
 import { SubmissionHeader, SubmissionItem, SubmissionItemExtraRows } from "../componments/SubmissionItem";
 import StatusText from "@/components/StatusText";
+import PaginatedList from "@/components/PaginatedList";
+import LazyAccordionContent from "@/components/LazyAccordionContent";
 import formatFileSize from "@/utils/formatFileSize";
 import downloadFile from "@/utils/downloadFile";
 import { SubmissionStatus } from "@/interfaces/SubmissionStatus";
@@ -207,7 +209,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   > = props.meta;
 
   const [progress, setProgress] = useState(props.progress);
-  const [progressMeta, setProgressMeta] = useState(parseProgress(props.progress, props.meta));
+  const [progressMeta, setProgressMeta] = useState(() => parseProgress(props.progress, props.meta));
 
   useEffect(() => {
     if (progressMeta.pending) return;
@@ -383,9 +385,12 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   const getTestcasesAccordionPanels = (
     testcases: TestcaseProgressReference[],
     isSample: boolean,
-    getAdditionalSections: GetAdditionalSectionsCallback
+    getAdditionalSections: GetAdditionalSectionsCallback,
+    start: number,
+    end: number
   ) =>
-    testcases.map((testcase, i) => {
+    testcases.slice(start, end).map((testcase, offset) => {
+      const i = start + offset;
       const testcaseResult = testcase.testcaseHash && progress.testcaseResult[testcase.testcaseHash];
       let status: string, expandable: boolean;
       if (testcase.waiting) {
@@ -495,57 +500,87 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
           );
         })(),
         content: !testcaseResult ? null : (
-          <Accordion.Content className={style.accordionContent}>
-            {testcaseResult.input && (
-              <OmittableAnsiCodeBox
-                title={
-                  <>
-                    <strong>{_(".testcase.input")}</strong>
-                    {testcaseResult.testcaseInfo.inputFile && (
-                      <span
-                        className={"monospace " + style.fileNameWrapper}
-                        onClick={() => onDownload(testcaseResult.testcaseInfo.inputFile)}
-                      >
-                        <EmojiRenderer>
-                          <span className={style.fileName}>{testcaseResult.testcaseInfo.inputFile}</span>
-                        </EmojiRenderer>
-                        <Icon name="download" />
-                      </span>
-                    )}
-                  </>
-                }
-                ansiMessage={testcaseResult.input}
-              />
+          <LazyAccordionContent
+            className={style.accordionContent}
+            renderContent={() => (
+              <>
+                {testcaseResult.input && (
+                  <OmittableAnsiCodeBox
+                    title={
+                      <>
+                        <strong>{_(".testcase.input")}</strong>
+                        {testcaseResult.testcaseInfo.inputFile && (
+                          <span
+                            className={"monospace " + style.fileNameWrapper}
+                            onClick={() => onDownload(testcaseResult.testcaseInfo.inputFile)}
+                          >
+                            <EmojiRenderer>
+                              <span className={style.fileName}>{testcaseResult.testcaseInfo.inputFile}</span>
+                            </EmojiRenderer>
+                            <Icon name="download" />
+                          </span>
+                        )}
+                      </>
+                    }
+                    ansiMessage={testcaseResult.input}
+                  />
+                )}
+                {testcaseResult.output && (
+                  <OmittableAnsiCodeBox
+                    title={
+                      <>
+                        <strong>{_(".testcase.output")}</strong>
+                        {testcaseResult.testcaseInfo.outputFile && (
+                          <span
+                            className={"monospace " + style.fileNameWrapper}
+                            onClick={() => onDownload(testcaseResult.testcaseInfo.outputFile)}
+                          >
+                            <EmojiRenderer>
+                              <span className={style.fileName}>{testcaseResult.testcaseInfo.outputFile}</span>
+                            </EmojiRenderer>
+                            <Icon name="download" />
+                          </span>
+                        )}
+                      </>
+                    }
+                    ansiMessage={testcaseResult.output}
+                  />
+                )}
+                <OmittableAnsiCodeBox title={_(".testcase.user_output")} ansiMessage={testcaseResult.userOutput} />
+                <OmittableAnsiCodeBox title={_(".testcase.user_error")} ansiMessage={testcaseResult.userError} />
+                {getAdditionalSections(testcaseResult)}
+                <OmittableAnsiCodeBox
+                  title={_(".testcase.system_message")}
+                  ansiMessage={testcaseResult.systemMessage}
+                />
+              </>
             )}
-            {testcaseResult.output && (
-              <OmittableAnsiCodeBox
-                title={
-                  <>
-                    <strong>{_(".testcase.output")}</strong>
-                    {testcaseResult.testcaseInfo.outputFile && (
-                      <span
-                        className={"monospace " + style.fileNameWrapper}
-                        onClick={() => onDownload(testcaseResult.testcaseInfo.outputFile)}
-                      >
-                        <EmojiRenderer>
-                          <span className={style.fileName}>{testcaseResult.testcaseInfo.outputFile}</span>
-                        </EmojiRenderer>
-                        <Icon name="download" />
-                      </span>
-                    )}
-                  </>
-                }
-                ansiMessage={testcaseResult.output}
-              />
-            )}
-            <OmittableAnsiCodeBox title={_(".testcase.user_output")} ansiMessage={testcaseResult.userOutput} />
-            <OmittableAnsiCodeBox title={_(".testcase.user_error")} ansiMessage={testcaseResult.userError} />
-            {getAdditionalSections(testcaseResult)}
-            <OmittableAnsiCodeBox title={_(".testcase.system_message")} ansiMessage={testcaseResult.systemMessage} />
-          </Accordion.Content>
+          />
         )
       };
     });
+
+  const getTestcasesView = (
+    testcases: TestcaseProgressReference[],
+    isSample: boolean,
+    getAdditionalSections: GetAdditionalSectionsCallback,
+    className: string,
+    leadingPanels: ReturnType<typeof getSamplePanel>[] = []
+  ) => (
+    <PaginatedList
+      totalCount={testcases.length}
+      renderRange={(start, end) => (
+        <Accordion
+          key={start}
+          className={className}
+          panels={[
+            ...leadingPanels,
+            ...getTestcasesAccordionPanels(testcases, isSample, getAdditionalSections, start, end)
+          ]}
+        />
+      )}
+    />
+  );
 
   const getSamplePanel = (getAdditionalSections: GetAdditionalSectionsCallback) => ({
     key: "samples",
@@ -602,119 +637,127 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
       }
     })(),
     content: (
-      <Accordion.Content className={style.accordionContent + " " + style.subtaskContent}>
-        <Accordion
-          className={"styled fluid " + style.subAccordion}
-          panels={getTestcasesAccordionPanels(samples, true, getAdditionalSections)}
-        />
-      </Accordion.Content>
+      <LazyAccordionContent
+        className={style.accordionContent + " " + style.subtaskContent}
+        renderContent={() =>
+          getTestcasesView(samples, true, getAdditionalSections, "styled fluid " + style.subAccordion)
+        }
+      />
     )
   });
 
-  const getSubtasksAccordionPanels = (getAdditionalSections: GetAdditionalSectionsCallback) =>
-    subtasks.map((subtask, i) => ({
-      key: i,
-      // If a subtask is unexpandable, make it unable to be "active"
-      [!subtaskDisplayInfo[i].expandable ? "active" : ""]: false,
-      title: (() => {
-        const columnTitle = (width: SemanticWIDTHS) => (
-          <Grid.Column width={width}>
-            <Icon name="dropdown" />
-            {_(".subtask.title")} #{i + 1}
-          </Grid.Column>
-        );
+  const getSubtasksAccordionPanels = (
+    getAdditionalSections: GetAdditionalSectionsCallback,
+    start: number,
+    end: number
+  ) =>
+    subtasks.slice(start, end).map((subtask, offset) => {
+      const i = start + offset;
+      return {
+        key: i,
+        // If a subtask is unexpandable, make it unable to be "active"
+        [!subtaskDisplayInfo[i].expandable ? "active" : ""]: false,
+        title: (() => {
+          const columnTitle = (width: SemanticWIDTHS) => (
+            <Grid.Column width={width}>
+              <Icon name="dropdown" />
+              {_(".subtask.title")} #{i + 1}
+            </Grid.Column>
+          );
 
-        const columnStatus = (width: SemanticWIDTHS) => (
-          <Grid.Column width={width}>
-            <StatusText status={subtaskDisplayInfo[i].status} statusText={subtaskDisplayInfo[i].statusText} />
-          </Grid.Column>
-        );
+          const columnStatus = (width: SemanticWIDTHS) => (
+            <Grid.Column width={width}>
+              <StatusText status={subtaskDisplayInfo[i].status} statusText={subtaskDisplayInfo[i].statusText} />
+            </Grid.Column>
+          );
 
-        const columnScore = (width: SemanticWIDTHS) => (
-          <Grid.Column width={width}>
-            <Icon className={style.accordionTitleIcon} name="clipboard check" />
-            {round(subtask.score)}/{round(subtask.fullScore)} pts
-          </Grid.Column>
-        );
+          const columnScore = (width: SemanticWIDTHS) => (
+            <Grid.Column width={width}>
+              <Icon className={style.accordionTitleIcon} name="clipboard check" />
+              {round(subtask.score)}/{round(subtask.fullScore)} pts
+            </Grid.Column>
+          );
 
-        if (isWideScreen) {
-          return (
-            <Accordion.Title className={style.accordionTitle}>
-              <Grid>
-                {columnTitle(3)}
-                {columnStatus(4)}
-                {columnScore(3)}
-              </Grid>
-            </Accordion.Title>
-          );
-        } else if (!isMobile) {
-          return (
-            <Accordion.Title className={style.accordionTitle}>
-              <Grid>
-                {columnTitle(4)}
-                {columnStatus(5)}
-                {columnScore(4)}
-              </Grid>
-            </Accordion.Title>
-          );
-        } else if (!isNarrowMobile) {
-          return (
-            <Accordion.Title className={style.accordionTitle}>
-              <Grid>
-                {columnTitle(4)}
-                {columnStatus(7)}
-                {columnScore(5)}
-              </Grid>
-            </Accordion.Title>
-          );
-        } else {
-          return (
-            <Accordion.Title className={style.accordionTitle + " " + style.accordionTitleTwoRows}>
-              <Grid>
-                <Grid.Row className={style.accordionTitleFirstRow}>
-                  {columnTitle(6)}
-                  {columnStatus(10)}
-                </Grid.Row>
-                <Grid.Row className={style.accordionTitleSecondRow}>{columnScore(5)}</Grid.Row>
-              </Grid>
-            </Accordion.Title>
-          );
-        }
-      })(),
-      content: (
-        <Accordion.Content className={style.accordionContent + " " + style.subtaskContent}>
-          <Accordion
-            className={"styled fluid " + style.subAccordion}
-            panels={getTestcasesAccordionPanels(subtask.testcases, false, getAdditionalSections)}
+          if (isWideScreen) {
+            return (
+              <Accordion.Title className={style.accordionTitle}>
+                <Grid>
+                  {columnTitle(3)}
+                  {columnStatus(4)}
+                  {columnScore(3)}
+                </Grid>
+              </Accordion.Title>
+            );
+          } else if (!isMobile) {
+            return (
+              <Accordion.Title className={style.accordionTitle}>
+                <Grid>
+                  {columnTitle(4)}
+                  {columnStatus(5)}
+                  {columnScore(4)}
+                </Grid>
+              </Accordion.Title>
+            );
+          } else if (!isNarrowMobile) {
+            return (
+              <Accordion.Title className={style.accordionTitle}>
+                <Grid>
+                  {columnTitle(4)}
+                  {columnStatus(7)}
+                  {columnScore(5)}
+                </Grid>
+              </Accordion.Title>
+            );
+          } else {
+            return (
+              <Accordion.Title className={style.accordionTitle + " " + style.accordionTitleTwoRows}>
+                <Grid>
+                  <Grid.Row className={style.accordionTitleFirstRow}>
+                    {columnTitle(6)}
+                    {columnStatus(10)}
+                  </Grid.Row>
+                  <Grid.Row className={style.accordionTitleSecondRow}>{columnScore(5)}</Grid.Row>
+                </Grid>
+              </Accordion.Title>
+            );
+          }
+        })(),
+        content: (
+          <LazyAccordionContent
+            className={style.accordionContent + " " + style.subtaskContent}
+            renderContent={() =>
+              getTestcasesView(subtask.testcases, false, getAdditionalSections, "styled fluid " + style.subAccordion)
+            }
           />
-        </Accordion.Content>
-      )
-    }));
+        )
+      };
+    });
 
-  const getSubtasksView = (getAdditionalSections: GetAdditionalSectionsCallback) =>
-    subtasks.length > 0 &&
-    (subtasks.length === 1 ? (
-      <Accordion
-        className={"styled fluid " + style.accordion}
-        panels={
-          samples && samples.length > 0
-            ? [
-                getSamplePanel(getAdditionalSections),
-                ...getTestcasesAccordionPanels(subtasks[0].testcases, false, getAdditionalSections)
-              ]
-            : getTestcasesAccordionPanels(subtasks[0].testcases, false, getAdditionalSections)
-        }
-      />
+  const getSubtasksView = (getAdditionalSections: GetAdditionalSectionsCallback) => {
+    if (subtasks.length === 0) return null;
+    const leadingPanels = samples.length > 0 ? [getSamplePanel(getAdditionalSections)] : [];
+    return subtasks.length === 1 ? (
+      getTestcasesView(
+        subtasks[0].testcases,
+        false,
+        getAdditionalSections,
+        "styled fluid " + style.accordion,
+        leadingPanels
+      )
     ) : (
-      <Accordion
-        className={"styled fluid " + style.accordion}
-        panels={
-          samples && samples.length > 0
-            ? [getSamplePanel(getAdditionalSections), ...getSubtasksAccordionPanels(getAdditionalSections)]
-            : getSubtasksAccordionPanels(getAdditionalSections)
-        }
+      <PaginatedList
+        totalCount={subtasks.length}
+        pageSize={20}
+        renderRange={(start, end) => (
+          <Accordion
+            key={start}
+            className={"styled fluid " + style.accordion}
+            panels={[...leadingPanels, ...getSubtasksAccordionPanels(getAdditionalSections, start, end)]}
+          />
+        )}
       />
-    ));
+    );
+  };
 
   const answerInfo = useMemo(
     () =>

@@ -6,6 +6,7 @@ return {
   submit: "提交",
   no_submit_permission: "无提交权限",
   submit_success: "提交成功。",
+  preview_truncated: "配置较大，仅预览前 200 行（最多 12000 字符）。点击源码编辑可查看和编辑完整配置。",
   error: {
     NO_SUCH_PROBLEM: "无此题目。",
     PERMISSION_DENIED: "权限不足。",
@@ -194,6 +195,7 @@ return {
     dependencies: "依赖子任务"
   },
   file_selector: {
+    search_hint: "仅显示前 100 个文件，请输入文件名缩小范围。",
     no_matching_files: "找不到匹配的文件。",
     file_not_found_warning: "数据包中找不到该文件。",
     empty: "空"
