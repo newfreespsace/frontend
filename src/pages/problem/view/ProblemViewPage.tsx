@@ -880,7 +880,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {inContest && appState.currentUser?.isAdmin && (
+              {inContest && (appState.currentUser?.isAdmin || props.contestPermissions?.canGoToProblemSet) && (
                 <Menu.Item
                   name={_(".action.go_to_problem_set")}
                   icon="book"

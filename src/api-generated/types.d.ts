@@ -329,6 +329,7 @@ declare namespace ApiTypes {
       manageContest?: boolean;
       running?: boolean;
       ended?: boolean;
+      canGoToProblemSet?: boolean;
       canSubmit?: boolean;
       submissionState?: "not_started" | "official" | "cooldown" | "post_contest";
       postContestOpensAt?: string; // date-time
