@@ -224,7 +224,9 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             onBlur={checkQueryProblemId}
             error={queryProblemIdError}
           />
-          {(appState.currentUser?.isAdmin || props.canViewGroupSubmissions) && (
+          {(appState.currentUser?.isAdmin ||
+            props.canViewGroupSubmissions ||
+            props.queryResult.permissionViewOthers) && (
             <Form.Input
               className={style.queryInputSubmitter}
               icon="user"
@@ -296,7 +298,9 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             onClick={() => onFilter(false)}
           />
 
-          {(appState.currentUser?.isAdmin || props.canViewGroupSubmissions) && (
+          {(appState.currentUser?.isAdmin ||
+            props.canViewGroupSubmissions ||
+            props.queryResult.permissionViewOthers) && (
             <Button
               className={(isWideScreen ? "labeled icon " : "") + style.mySubmissions}
               primary

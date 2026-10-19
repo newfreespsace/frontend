@@ -36,16 +36,24 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
     props.preference.security.hideSubmissionTestcaseDetailsForNormalUsers
   );
   const [pending, setPending] = useState(false);
+  const [otherSubmissionCodeMinAcceptedProblems, setOtherSubmissionCodeMinAcceptedProblems] = useState(
+    String(props.preference.security.otherSubmissionCodeMinAcceptedProblems)
+  );
+  const threshold = Number(otherSubmissionCodeMinAcceptedProblems);
+  const thresholdValid =
+    otherSubmissionCodeMinAcceptedProblems.trim() !== "" && Number.isSafeInteger(threshold) && threshold >= 0;
 
   async function onSubmit() {
     if (pending) return;
+    if (!thresholdValid) return toast.error(_(".other_submission_code_min_accepted_problems_invalid"));
     setPending(true);
 
     const { requestError, response } = await api.siteSetting.updatePreference({
       preference: {
         security: {
           allowRegister,
-          hideSubmissionTestcaseDetailsForNormalUsers
+          hideSubmissionTestcaseDetailsForNormalUsers,
+          otherSubmissionCodeMinAcceptedProblems: threshold
         }
       }
     });
@@ -81,7 +89,17 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
               onChange={(e, { checked }) => setHideSubmissionTestcaseDetailsForNormalUsers(!!checked)}
             />
           </Form.Field>
-          <Button primary loading={pending} onClick={onSubmit}>
+          <Form.Input
+            type="number"
+            min={0}
+            step={1}
+            label={_(".other_submission_code_min_accepted_problems")}
+            value={otherSubmissionCodeMinAcceptedProblems}
+            onChange={(e, { value }) => setOtherSubmissionCodeMinAcceptedProblems(value)}
+            error={!thresholdValid}
+          />
+          <p>{_(".other_submission_code_min_accepted_problems_hint")}</p>
+          <Button primary loading={pending} disabled={!thresholdValid} onClick={onSubmit}>
             <Icon name="save" />
             {_(".save")}
           </Button>

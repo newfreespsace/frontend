@@ -861,6 +861,7 @@ declare namespace ApiTypes {
     discussionReplyDefaultPublic: boolean;
     allowEveryoneCreateDiscussion: boolean;
     hideSubmissionTestcaseDetailsForNormalUsers: boolean;
+    otherSubmissionCodeMinAcceptedProblems: number;
   }
   export interface ProblemContentSectionDto {
     sectionTitle: string;
@@ -1162,6 +1163,7 @@ declare namespace ApiTypes {
     takeCount: number;
   }
   export interface QuerySubmissionResponseDto {
+    permissionViewOthers?: boolean;
     error?: "NO_SUCH_PROBLEM" | "NO_SUCH_USER" | "NO_SUCH_CONTEST" | "PERMISSION_DENIED";
     submissions?: ApiTypes.SubmissionMetaDto[];
     hasSmallerId?: boolean;
