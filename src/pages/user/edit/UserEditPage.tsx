@@ -15,6 +15,7 @@ import { isValidUsername } from "@/utils/validators";
 import { makeToBeLocalizedText } from "@/locales";
 
 enum EditType {
+  Remote = "remote",
   Profile = "profile",
   Preference = "preference",
   Security = "security",
@@ -68,6 +69,12 @@ let UserEditPage: React.FC<UserEditPageProps> = props => {
               <Icon name="lock" />
               {_(".menu.security")}
             </Menu.Item>
+            {isEditingCurrentUser && (
+              <Menu.Item active={props.type === EditType.Remote} as={Link} href="../remote">
+                <Icon name="linkify" />
+                {_("remote_judge.accounts")}
+              </Menu.Item>
+            )}
             {showPrivilegeTab && (
               <Menu.Item active={props.type === EditType.Privilege} as={Link} href="../privilege">
                 <Icon name="key" />
@@ -102,6 +109,7 @@ async function getView(username: string, type: EditType, query: Record<string, s
   if (!Object.values(EditType).includes(type)) type = EditType.Profile;
 
   const { fetchData, View } = await {
+    [EditType.Remote]: () => import("./RemoteView"),
     [EditType.Profile]: () => import("./ProfileView"),
     [EditType.Preference]: () => import("./PreferenceView"),
     [EditType.Security]: () => import("./SecurityView"),

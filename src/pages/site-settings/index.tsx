@@ -8,6 +8,8 @@ import { appState } from "@/appState";
 import { makeToBeLocalizedText } from "@/locales";
 import { useLocalizer } from "@/utils/hooks";
 import toast from "@/utils/toast";
+import AtcoderSessionSettings from "@/remote-judge/AtcoderSessionSettings";
+import { remoteAdminApi, RemoteJudgeSettings } from "@/remote-judge/admin-api";
 
 async function fetchData() {
   const { requestError, response } = await api.siteSetting.getPreference();
@@ -19,10 +21,16 @@ async function fetchData() {
       showBack: true
     });
 
-  return response;
+  const remote = await remoteAdminApi.getSettings();
+  if (remote.requestError) throw new RouteError(remote.requestError, { showRefresh: true, showBack: true });
+  if (remote.response?.error)
+    throw new RouteError(makeToBeLocalizedText(`site_settings.errors.${remote.response.error}`));
+  return { ...response, remoteJudgeSettings: remote.response?.settings };
 }
 
-type SiteSettingsPageProps = Omit<ApiTypes.GetSitePreferenceResponseDto, "error">;
+type SiteSettingsPageProps = Omit<ApiTypes.GetSitePreferenceResponseDto, "error"> & {
+  remoteJudgeSettings?: RemoteJudgeSettings;
+};
 
 const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
   const _ = useLocalizer("site_settings");
@@ -105,6 +113,7 @@ const SiteSettingsPage: React.FC<SiteSettingsPageProps> = props => {
           </Button>
         </Form>
       </Segment>
+      <AtcoderSessionSettings initialSettings={props.remoteJudgeSettings} />
     </>
   );
 };

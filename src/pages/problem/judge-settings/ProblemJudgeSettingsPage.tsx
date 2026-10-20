@@ -1,3 +1,5 @@
+import SubmissionMethodSettings from "@/remote-judge/SubmissionMethodSettings";
+import { isRemoteProblem } from "@/remote-judge/api";
 import React, { useEffect, useMemo, useState } from "react";
 import { Dropdown, Grid, Header, Popup, Button, Form, Message } from "semantic-ui-react";
 import { observer } from "mobx-react";
@@ -203,6 +205,7 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
 
   return (
     <>
+      <SubmissionMethodSettings meta={props.problem.meta} />
       {editRawDialog.element}
       <Grid>
         <Grid.Row>
@@ -337,6 +340,8 @@ export default {
   byId: defineRoute(async request => {
     const id = parseInt(request.params["id"]);
     const problem = await fetchData("id", id);
+    if (isRemoteProblem(problem.meta))
+      return <SubmissionMethodSettings meta={problem.meta} submittable={problem.submittable} />;
 
     return (
       <ProblemJudgeSettingsPage
@@ -350,6 +355,8 @@ export default {
   byDisplayId: defineRoute(async request => {
     const displayId = parseInt(request.params["displayId"]);
     const problem = await fetchData("displayId", displayId);
+    if (isRemoteProblem(problem.meta))
+      return <SubmissionMethodSettings meta={problem.meta} submittable={problem.submittable} />;
 
     return (
       <ProblemJudgeSettingsPage

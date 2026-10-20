@@ -156,7 +156,12 @@ declare namespace ApiTypes {
     statement: ApiTypes.ProblemStatementDto;
   }
   export interface CreateProblemResponseDto {
-    error?: "PERMISSION_DENIED" | "NO_SUCH_PROBLEM_TAG" | "FAILED";
+    error?:
+      | "PERMISSION_DENIED"
+      | "NO_SUCH_PROBLEM_TAG"
+      | "FAILED"
+      | "INVALID_REMOTE_URL"
+      | "REMOTE_SUBMIT_ANSWER_UNSUPPORTED";
     id?: number;
   }
   export interface CreateProblemTagRequestDto {

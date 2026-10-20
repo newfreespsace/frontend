@@ -127,9 +127,16 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
       </Table.Cell>
       {!props?.config?.hideTimeMemory && (
         <>
-          <Table.Cell className={style.columnTime}>{Math.round(submission.timeUsed || 0) + " ms"}</Table.Cell>
-          <Table.Cell className={style.columnMemory} title={(submission.memoryUsed || 0) + " K"}>
-            {formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
+          <Table.Cell className={style.columnTime}>
+            {submission.remote && submission.timeUsed == null ? "—" : Math.round(submission.timeUsed || 0) + " ms"}
+          </Table.Cell>
+          <Table.Cell
+            className={style.columnMemory}
+            title={submission.remote && submission.memoryUsed == null ? undefined : (submission.memoryUsed || 0) + " K"}
+          >
+            {submission.remote && submission.memoryUsed == null
+              ? "—"
+              : formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
           </Table.Cell>
         </>
       )}
@@ -153,7 +160,13 @@ export const SubmissionItem: React.FC<SubmissionItemProps> = props => {
                   &nbsp;/&nbsp;
                 </>
               )}
-              <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+              {submission.remote ? (
+                <span title={submission.remote.language}>
+                  {submission.remote.platform} · {submission.remote.language}
+                </span>
+              ) : (
+                <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+              )}
               {props.onDownloadAnswer && (
                 <Icon className={style.downloadIcon} name="download" onClick={props.onDownloadAnswer} />
               )}
@@ -248,7 +261,13 @@ export const SubmissionItemMobile: React.FC<SubmissionItemMobileProps> = props =
                   &nbsp;/&nbsp;
                 </>
               )}
-              <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+              {submission.remote ? (
+                <span title={submission.remote.language}>
+                  {submission.remote.platform} · {submission.remote.language}
+                </span>
+              ) : (
+                <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+              )}
             </div>
           </div>
 
@@ -263,10 +282,20 @@ export const SubmissionItemMobile: React.FC<SubmissionItemMobileProps> = props =
                 <UserLink user={submission.submitter} />
               </div>
               {props.importantField === "timeUsed" ? (
-                <div>{Math.round(submission.timeUsed || 0) + " ms"}</div>
+                <div>
+                  {submission.remote && submission.timeUsed == null
+                    ? "—"
+                    : Math.round(submission.timeUsed || 0) + " ms"}
+                </div>
               ) : props.importantField === "memoryUsed" ? (
-                <div title={(submission.memoryUsed || 0) + " K"}>
-                  {formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
+                <div
+                  title={
+                    submission.remote && submission.memoryUsed == null ? undefined : (submission.memoryUsed || 0) + " K"
+                  }
+                >
+                  {submission.remote && submission.memoryUsed == null
+                    ? "—"
+                    : formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
                 </div>
               ) : (
                 <div title={timeString[1]}>{timeString[0]}</div>
@@ -339,14 +368,16 @@ export const SubmissionItemExtraRows: React.FC<SubmissionItemExtraRowsProps> = p
   const columnTime = (
     <div>
       <Icon name="time" />
-      {Math.round(submission.timeUsed || 0) + " ms"}
+      {submission.remote && submission.timeUsed == null ? "—" : Math.round(submission.timeUsed || 0) + " ms"}
     </div>
   );
 
   const columnMemory = (
-    <div title={(submission.memoryUsed || 0) + " K"}>
+    <div title={submission.remote && submission.memoryUsed == null ? undefined : (submission.memoryUsed || 0) + " K"}>
       <Icon name="microchip" />
-      {formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
+      {submission.remote && submission.memoryUsed == null
+        ? "—"
+        : formatFileSize((submission.memoryUsed || 0) * 1024, 1)}
     </div>
   );
 
@@ -367,7 +398,13 @@ export const SubmissionItemExtraRows: React.FC<SubmissionItemExtraRowsProps> = p
                 &nbsp;/&nbsp;
               </>
             )}
-            <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+            {submission.remote ? (
+              <span title={submission.remote.language}>
+                {submission.remote.platform} · {submission.remote.language}
+              </span>
+            ) : (
+              <span title={submission.answerSize + " B"}>{formatFileSize(submission.answerSize, 1)}</span>
+            )}
           </span>
           {props.onDownloadAnswer && (
             <Icon className={style.downloadIcon} name="download" onClick={props.onDownloadAnswer} />

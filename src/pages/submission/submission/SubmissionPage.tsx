@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu } from "semantic-ui-react";
+import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu, Message } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { v4 as uuid } from "uuid";
 import { patch } from "jsondiffpatch";
@@ -103,8 +103,8 @@ function parseProgress<T extends TestcaseResultCommon>(
       pending: status === "Waiting",
       status,
       score: 0,
-      timeUsed: 0,
-      memoryUsed: 0
+      timeUsed: resultMeta?.remote ? resultMeta.timeUsed : 0,
+      memoryUsed: resultMeta?.remote ? resultMeta.memoryUsed : 0
     };
   }
 
@@ -153,8 +153,8 @@ function parseProgress<T extends TestcaseResultCommon>(
   let memoryUsed = 0;
   if (progress.progressType === SubmissionProgressType.Finished) {
     // If finished, use the time/memory usage from result meta
-    timeUsed = resultMeta?.timeUsed ?? 0;
-    memoryUsed = resultMeta?.memoryUsed ?? 0;
+    timeUsed = resultMeta?.remote ? resultMeta.timeUsed : resultMeta?.timeUsed ?? 0;
+    memoryUsed = resultMeta?.remote ? resultMeta.memoryUsed : resultMeta?.memoryUsed ?? 0;
   } else if (Array.isArray(progress.subtasks)) {
     // If NOT finished, calculate them
     for (const subtask of progress.subtasks) {
@@ -203,10 +203,19 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   // The meta only provides fields not changing with progress
   // score, status, time, memory are in the full info
   // score and status are in this meta, but we still use them in full info
+  const [remoteMeta, setRemoteMeta] = useState(props.meta.remote);
   const meta: Pick<
     ApiTypes.SubmissionMetaDto,
-    "id" | "problem" | "isPublic" | "codeLanguage" | "answerSize" | "submitTime" | "problemTitle" | "submitter"
-  > = props.meta;
+    | "id"
+    | "remote"
+    | "problem"
+    | "isPublic"
+    | "codeLanguage"
+    | "answerSize"
+    | "submitTime"
+    | "problemTitle"
+    | "submitter"
+  > = { ...props.meta, remote: remoteMeta };
 
   const [progress, setProgress] = useState(props.progress);
   const [progressMeta, setProgressMeta] = useState(() => parseProgress(props.progress, props.meta));
@@ -256,6 +265,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
       socket.on("message", (submissionId: number, messageDelta: any) => {
         messageRef.current = patch(messageRef.current, messageDelta);
         const message = messageRef.current;
+        if (message.progressMeta?.resultMeta?.remote) setRemoteMeta(message.progressMeta.resultMeta.remote);
 
         setProgress(message.progressDetail);
         setProgressMeta(parseProgress(message.progressDetail, message.progressMeta?.resultMeta));
@@ -1017,23 +1027,41 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
           }}
         />
       )}
-      <props.ProblemTypeSubmissionView
-        progress={progress}
-        progressMeta={progressMeta}
-        content={props.content}
-        getCompilationMessage={() =>
-          progress?.compile?.message && (
-            <OmittableAnsiCodeBox title={_(".compilation_message")} ansiMessage={progress.compile.message} />
-          )
-        }
-        getSystemMessage={() =>
-          progress?.systemMessage && (
-            <OmittableAnsiCodeBox title={_(".system_message")} ansiMessage={progress.systemMessage} />
-          )
-        }
-        getSubtasksView={getSubtasksView}
-        refDefaultCopyCodeBox={refDefaultCopyCodeBox}
-      />
+      {meta.remote ? (
+        <Message info>
+          <Message.Header>
+            {_("remote_judge.source_record")} · {meta.remote.platform}
+          </Message.Header>
+          <p>
+            {meta.remote.language} · {meta.remote.handle} · {meta.remote.verdict}
+          </p>
+          {meta.remote.points != null && <p>{_("remote_judge.raw_points", { points: meta.remote.points })}</p>}
+          <p>
+            <a href={meta.remote.url} target="_blank" rel="noopener noreferrer">
+              {meta.remote.platform} #{meta.remote.id}
+            </a>
+          </p>
+          <p>{_("remote_judge.details_unavailable")}</p>
+        </Message>
+      ) : (
+        <props.ProblemTypeSubmissionView
+          progress={progress}
+          progressMeta={progressMeta}
+          content={props.content}
+          getCompilationMessage={() =>
+            progress?.compile?.message && (
+              <OmittableAnsiCodeBox title={_(".compilation_message")} ansiMessage={progress.compile.message} />
+            )
+          }
+          getSystemMessage={() =>
+            progress?.systemMessage && (
+              <OmittableAnsiCodeBox title={_(".system_message")} ansiMessage={progress.systemMessage} />
+            )
+          }
+          getSubtasksView={getSubtasksView}
+          refDefaultCopyCodeBox={refDefaultCopyCodeBox}
+        />
+      )}
     </>
   );
 };

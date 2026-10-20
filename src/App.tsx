@@ -6,6 +6,8 @@ import { appState } from "./appState";
 import { updateCodeFontCss, updateContentFontCss, updateUiFontCss } from "./misc/fonts";
 import { setGlobalTheme } from "./themes";
 
+import { remoteApi } from "./remote-judge/api";
+
 import AppRouter from "./AppRouter";
 
 const App: React.FC = () => {
@@ -18,6 +20,18 @@ const App: React.FC = () => {
   useEffect(() => {
     setGlobalTheme(appState.theme);
   }, [appState.theme]);
+
+  useEffect(() => {
+    if (!appState.currentUser) return;
+    // Only schedules work; the server enforces the shared upstream cooldown.
+    const activate = () => {
+      if (document.visibilityState === "visible" && !/^\/c\/\d+/.test(window.location.pathname))
+        void remoteApi.activate({});
+    };
+    activate();
+    document.addEventListener("visibilitychange", activate);
+    return () => document.removeEventListener("visibilitychange", activate);
+  }, [appState.currentUser?.id]);
 
   return (
     <>

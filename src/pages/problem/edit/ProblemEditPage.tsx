@@ -1,3 +1,5 @@
+import SubmissionMethodFields from "@/remote-judge/SubmissionMethodFields";
+import { SubmissionMethod } from "@/remote-judge/api";
 import React, { useEffect, useState, useRef } from "react";
 import {
   Dropdown,
@@ -629,6 +631,11 @@ let ProblemEditPage: React.FC<ProblemEditPageProps> = props => {
   );
 
   const [newProblemType, setNewProblemType] = useState(ProblemType.Traditional);
+  const [submissionMethod, setSubmissionMethod] = useState({
+    method: "Local" as SubmissionMethod,
+    url: "",
+    fullScore: ""
+  });
 
   const [modified, setModified] = useConfirmNavigation();
   const [pendingSubmit, onSubmit] = useAsyncCallbackPending(async () => {
@@ -681,6 +688,9 @@ let ProblemEditPage: React.FC<ProblemEditPageProps> = props => {
       const { requestError, response } = await api.problem.createProblem(
         {
           type: newProblemType,
+          submissionMethod: submissionMethod.method,
+          remoteUrl: submissionMethod.method === "Local" ? undefined : submissionMethod.url,
+          remoteFullScore: submissionMethod.fullScore ? Number(submissionMethod.fullScore) : undefined,
           statement: {
             localizedContents: localizedContentsPayload,
             samples: samplesPayload,
@@ -692,7 +702,13 @@ let ProblemEditPage: React.FC<ProblemEditPageProps> = props => {
 
       if (requestError) toast.error(requestError(_));
       else if (response.error) {
-        toast.error(_(`.error.${response.error}`));
+        toast.error(
+          _(
+            ["INVALID_REMOTE_URL", "REMOTE_SUBMIT_ANSWER_UNSUPPORTED"].includes(response.error)
+              ? `remote_judge.error.${response.error}`
+              : `.error.${response.error}`
+          )
+        );
       } else {
         setModified(false);
         navigation.navigate(getProblemUrl(response.id));
@@ -1120,11 +1136,13 @@ let ProblemEditPage: React.FC<ProblemEditPageProps> = props => {
                   <Dropdown
                     item
                     value={newProblemType}
-                    options={Object.values(ProblemType).map(type => ({
-                      text: _(`problem.type.${type}`),
-                      value: type,
-                      key: type
-                    }))}
+                    options={Object.values(ProblemType)
+                      .filter(type => submissionMethod.method === "Local" || type !== ProblemType.SubmitAnswer)
+                      .map(type => ({
+                        text: _(`problem.type.${type}`),
+                        value: type,
+                        key: type
+                      }))}
                     onChange={(e, { value }) => setNewProblemType(value as ProblemType)}
                   />
                 </Menu>
@@ -1155,6 +1173,20 @@ let ProblemEditPage: React.FC<ProblemEditPageProps> = props => {
         </Grid.Row>
         <Grid.Row className={style.row}>
           <Grid.Column width={11}>
+            {props.new && (
+              <SubmissionMethodFields
+                method={submissionMethod.method}
+                url={submissionMethod.url}
+                fullScore={submissionMethod.fullScore}
+                disabled={pendingSubmit}
+                onChange={value => {
+                  setSubmissionMethod(value);
+                  setModified(true);
+                  if (value.method !== "Local" && newProblemType === ProblemType.SubmitAnswer)
+                    setNewProblemType(ProblemType.Traditional);
+                }}
+              />
+            )}
             <LocalizeTab
               locales={Object.keys(localizedContents) as Locale[]}
               activeLocale={activeLocale}

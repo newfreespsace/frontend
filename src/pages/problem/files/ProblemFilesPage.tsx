@@ -1,3 +1,4 @@
+import { isRemoteProblem } from "@/remote-judge/api";
 import React, { useEffect, useState, useRef } from "react";
 import {
   Dropdown,
@@ -174,6 +175,7 @@ async function fetchData(idType: "id" | "displayId", id: number) {
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
   else if (response.error) throw new RouteError(makeToBeLocalizedText(`problem_files.error.${response.error}`));
 
+  if (isRemoteProblem(response.meta)) throw new RouteError(makeToBeLocalizedText("remote_judge.files_disabled"));
   return response;
 }
 
@@ -1009,6 +1011,8 @@ export default {
     if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
     if (response.error) throw new RouteError(makeToBeLocalizedText(`contest.error.${response.error}`));
 
+    if (isRemoteProblem(response.problem.meta))
+      throw new RouteError(makeToBeLocalizedText("remote_judge.files_disabled"));
     return (
       <ProblemFilesPage
         key={uuid()}

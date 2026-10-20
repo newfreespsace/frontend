@@ -1,3 +1,5 @@
+import RemoteSubmitMenuItem from "@/remote-judge/RemoteSubmitMenuItem";
+import { isRemoteProblem } from "@/remote-judge/api";
 import React, { useEffect, useState, useRef } from "react";
 import {
   Dropdown,
@@ -423,6 +425,21 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
   // End delete
 
   const ProblemTypeView = props.ProblemTypeView;
+  const remoteProblem = isRemoteProblem(props.problem.meta);
+  const [, setRemoteRevision] = useState(0);
+  async function refreshRemoteResult() {
+    if (inContest) return;
+    const { response } = await api.problem.getProblem({
+      id: props.problem.meta.id,
+      statistics: true,
+      lastSubmissionAndLastAcceptedSubmission: true
+    });
+    if (response?.meta) {
+      Object.assign(props.problem.meta, response.meta);
+      props.problem.lastSubmission = response.lastSubmission;
+      setRemoteRevision(value => value + 1);
+    }
+  }
 
   // Begin submit
   const [inSubmitView, setInSubmitView] = useState(false);
@@ -639,7 +656,11 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 onRated={() => setHasDifficultyRatings(true)}
               />
             )}
-            <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />
+            {remoteProblem ? (
+              <Label>{props.problem.meta.submissionMethod}</Label>
+            ) : (
+              <ProblemTypeView.Labels size={isMobile ? "small" : null} judgeInfo={props.problem.judgeInfo} />
+            )}
             {!inContest && props.problem.tagsOfLocale.length > 0 && (
               <>
                 <Label
@@ -679,16 +700,18 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
         {!isMobile && statistic}
       </div>
       <Divider className={style.divider} />
-      <ProblemTypeView.SubmitView
-        judgeInfo={props.problem.judgeInfo}
-        lastSubmission={!inContest ? props.problem.lastSubmission : undefined}
-        inSubmitView={inSubmitView}
-        pendingSubmit={submitPending}
-        submissionContent={submissionContent}
-        onCloseSubmitView={closeSubmitView}
-        onUpdateSubmissionContent={updateSubmissionContent}
-        onSubmit={onSubmit}
-      />
+      {!remoteProblem && (
+        <ProblemTypeView.SubmitView
+          judgeInfo={props.problem.judgeInfo}
+          lastSubmission={!inContest ? props.problem.lastSubmission : undefined}
+          inSubmitView={inSubmitView}
+          pendingSubmit={submitPending}
+          submissionContent={submissionContent}
+          onCloseSubmitView={closeSubmitView}
+          onUpdateSubmissionContent={updateSubmissionContent}
+          onSubmit={onSubmit}
+        />
+      )}
       <div className={style.statementView} style={{ display: inSubmitView ? "none" : null }}>
         <div className={style.leftContainer}>
           {inContest && props.contestPermissions?.submissionState === "cooldown" && !contestCanSubmit && (
@@ -823,7 +846,20 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
               />
             )}
             <Menu pointing secondary vertical className={style.actionMenu}>
-              {contestCanSubmit &&
+              {remoteProblem && (
+                <RemoteSubmitMenuItem
+                  className={style.menuItemImportant}
+                  meta={props.problem.meta}
+                  context={{
+                    problemId: props.problem.meta.id,
+                    ...(inContest ? { contestId: props.contest.id, contestProblemIndex: props.contestPid } : {})
+                  }}
+                  canSubmit={contestCanSubmit && props.problem.submittable}
+                  onResult={refreshRemoteResult}
+                />
+              )}
+              {!remoteProblem &&
+                contestCanSubmit &&
                 props.problem.submittable &&
                 props.ProblemTypeView.isSubmittable(props.problem.judgeInfo) && (
                   <Popup
@@ -871,7 +907,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                 />
               )}
 
-              {inContest && props.problem.additionalFiles?.length > 0 && (
+              {inContest && !remoteProblem && props.problem.additionalFiles?.length > 0 && (
                 <Menu.Item
                   name={_(".action.additional_files")}
                   icon="folder open"
@@ -933,7 +969,7 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
                   ) : null}
                 </Menu.Item>
               )}
-              {!inContest && (
+              {!inContest && !remoteProblem && (
                 <Menu.Item
                   name={_(".action.files")}
                   icon="folder open"
