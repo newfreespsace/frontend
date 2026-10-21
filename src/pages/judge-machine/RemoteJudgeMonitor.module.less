@@ -95,6 +95,55 @@
   gap: 0.65em;
   padding: 0.6em 0;
 }
+.taskItem:global(.ui.segment) {
+  padding: 0.85em;
+  overflow-wrap: anywhere;
+}
+.taskResult {
+  margin: 0.6em 0 0;
+}
+.problemTasks {
+  margin-top: 0.75em;
+}
+.problemTask {
+  border-top: 1px solid var(--theme-border, #eee);
+  margin-top: 0.65em;
+  padding-top: 0.65em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+.problemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.historyHeader,
+.pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 1.25em 0 0.75em;
+  > :global(.header) {
+    margin: 0;
+  }
+}
+.historyHeader {
+  justify-content: space-between;
+}
+.pagination {
+  justify-content: center;
+}
+.taskFilter {
+  border: 1px solid var(--theme-border, #ddd);
+  background: var(--theme-background, #fff);
+  color: var(--theme-foreground, #333);
+  border-radius: 0.3em;
+  padding: 0.4em;
+  max-width: 100%;
+}
 .inlineFact {
   display: flex;
   flex-wrap: wrap;
