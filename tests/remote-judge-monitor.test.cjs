@@ -100,16 +100,6 @@ const account = {
 };
 function snapshot() {
   const now = new Date().toISOString();
-  const problem = {
-    problemId: 11,
-    displayId: 1001,
-    title: "Two Melodies",
-    remoteKey: "813:D",
-    state: "Importing",
-    records: 5,
-    processed: 2,
-    synchronized: 2
-  };
   const admin = {
     boundAccounts: 42,
     activeAccounts: 6,
@@ -121,45 +111,7 @@ function snapshot() {
     sourceErrorAccounts: 1,
     oldestQueuedAt: now,
     liveWorkers: 2,
-    tasks: [{ account, phase: "Collecting", startedAt: now, problems: [problem], problemsTruncated: false }],
-    scheduledTaskTotal: 2,
-    scheduledTasksTruncated: false,
-    scheduledTasks: [
-      {
-        account,
-        phase: "Importing",
-        state: "Queued",
-        scheduledAt: now,
-        problems: [{ ...problem, state: "Queued", processed: 0, synchronized: 0 }],
-        problemsTruncated: false
-      },
-      {
-        account: { ...account, accountId: 8 },
-        phase: "Collecting",
-        state: "Retrying",
-        scheduledAt: now,
-        problems: [],
-        problemsTruncated: false
-      }
-    ],
-    historyAvailable: true,
-    history: Array.from({ length: 12 }, (_, i) => ({
-      id: `round-${i}`,
-      accountId: 7,
-      account,
-      phase: "Importing",
-      state: i === 0 ? "Failed" : "Succeeded",
-      continuation: i === 0 ? "Retry" : "More",
-      startedAt: now,
-      finishedAt: now,
-      durationMs: 1500,
-      processed: i + 1,
-      nextSyncAt: now,
-      error: i === 0 ? "REMOTE_UNAVAILABLE" : null,
-      sourceError: null,
-      problems: [{ ...problem, state: i === 0 ? "Failed" : "Succeeded", processed: 5, synchronized: i === 0 ? 2 : 5 }],
-      problemsTruncated: false
-    })),
+    tasks: [{ account, phase: "Collecting", startedAt: now }],
     errors: [account],
     errorsTruncated: false
   };
@@ -287,47 +239,6 @@ test("polling only reads stored snapshots, pauses in hidden tabs and refreshes o
   assert.equal(calls, 3);
   await click(container.querySelector('button[aria-label=".refresh"]'));
   assert.equal(calls, 4);
-});
-
-test("task lists identify exact problems, distinguish pending states and paginate or filter completed rounds", async () => {
-  await render({ isAdmin: true });
-  const cf = container.querySelector('[data-platform="Codeforces"]');
-  await click(cf.querySelector("button[aria-expanded]"));
-  const scheduled = cf.querySelector('[aria-label=".scheduled_tasks"]');
-  assert.match(scheduled.textContent, /Two Melodies|813:D/);
-  assert.match(scheduled.textContent, /task_state.Queued/);
-  assert.match(scheduled.textContent, /task_state.Retrying/);
-  assert.match(scheduled.textContent, /problems_collecting/);
-  assert.ok(scheduled.querySelector('a[href="/p/1001"]'), "a display ID must not be confused with the internal ID");
-  const running = cf.querySelector('[aria-label=".running_tasks"]');
-  assert.match(running.textContent, /problem_progress.*"processed":2.*"remaining":3/);
-  let history = cf.querySelector('[aria-label=".finished_tasks"]');
-  assert.equal(history.querySelectorAll('a[href="/p/1001"]').length, 10);
-  assert.match(history.textContent, /task_state.Failed/);
-  await click(history.querySelector('button[aria-label=".next_page"]'));
-  assert.equal(history.querySelectorAll('a[href="/p/1001"]').length, 2);
-  assert.match(history.textContent, /task_page.*"page":2/);
-  const filter = cf.querySelector('select[aria-label=".task_filter"]');
-  await act(async () => {
-    filter.value = "Failed";
-    filter.dispatchEvent(new window.Event("change", { bubbles: true }));
-  });
-  history = cf.querySelector('[aria-label=".finished_tasks"]');
-  assert.equal(history.querySelectorAll('a[href="/p/1001"]').length, 1);
-  assert.match(history.textContent, /REMOTE_UNAVAILABLE/);
-  assert.doesNotMatch(history.textContent, /task_state.Succeeded/);
-});
-
-test("problem links use internal IDs when no display ID exists, and unavailable history is explicitly marked", async () => {
-  const detail = response.platforms[0].admin;
-  detail.tasks[0].problems[0].displayId = null;
-  detail.historyAvailable = false;
-  detail.history = [];
-  await render({ isAdmin: true });
-  const cf = container.querySelector('[data-platform="Codeforces"]');
-  await click(cf.querySelector("button[aria-expanded]"));
-  assert.ok(cf.querySelector('[aria-label=".running_tasks"] a[href="/p/id/11"]'));
-  assert.match(cf.textContent, /history_unavailable/);
 });
 
 test("a failed refresh retains timestamps but replaces healthy states with unknown", async () => {

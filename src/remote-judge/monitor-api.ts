@@ -22,34 +22,6 @@ export interface MonitorAccount {
   sourceErrorAt: string | null;
   sourceRetryAt: string | null;
 }
-export interface RemoteTaskProblem {
-  problemId: number;
-  displayId: number | null;
-  title: string;
-  remoteKey: string;
-  scope: "Round" | "Buffer" | "Watch";
-  state: "Watching" | "Collecting" | "Queued" | "Importing" | "Succeeded" | "Skipped" | "Failed";
-  records: number | null;
-  processed: number;
-  synchronized: number;
-}
-export interface FinishedRemoteTask {
-  id: string;
-  accountId: number;
-  account: MonitorAccount | null;
-  phase: "Syncing" | "Collecting" | "Importing";
-  state: "Succeeded" | "Failed" | "Skipped";
-  continuation: "None" | "More" | "Pending" | "Polling" | "Retry" | "Paused" | "Inactive";
-  startedAt: string;
-  finishedAt: string;
-  durationMs: number;
-  processed: number;
-  nextSyncAt: string | null;
-  error: string | null;
-  sourceError: string | null;
-  problems: RemoteTaskProblem[];
-  problemsTruncated: boolean;
-}
 export interface PlatformMonitor {
   platform: "Codeforces" | "AtCoder";
   state: RemoteMonitorState;
@@ -67,25 +39,7 @@ export interface PlatformMonitor {
     sourceErrorAccounts: number;
     oldestQueuedAt: string | null;
     liveWorkers: number;
-    tasks: {
-      account: MonitorAccount;
-      phase: "Syncing" | "Collecting" | "Importing";
-      startedAt: string;
-      problems: RemoteTaskProblem[];
-      problemsTruncated: boolean;
-    }[];
-    scheduledTasks: {
-      account: MonitorAccount;
-      phase: "Syncing" | "Collecting" | "Importing";
-      state: "Queued" | "Scheduled" | "Retrying" | "Paused";
-      scheduledAt: string | null;
-      problems: RemoteTaskProblem[];
-      problemsTruncated: boolean;
-    }[];
-    scheduledTaskTotal: number;
-    scheduledTasksTruncated: boolean;
-    history: FinishedRemoteTask[];
-    historyAvailable: boolean;
+    tasks: { account: MonitorAccount; phase: "Syncing" | "Collecting" | "Importing"; startedAt: string }[];
     errors: MonitorAccount[];
     errorsTruncated: boolean;
     session?: { configured: boolean; status: string; checkedAt: string | null; error: string | null };
