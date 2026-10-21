@@ -160,7 +160,7 @@
     "postinstall": "patch-package",
     "test:whiteboard": "node --test tests/whiteboard.test.cjs tests/library.test.cjs",
     "test:legacy": "node --test tests/legacy-build.test.cjs",
-    "test:remote-judge": "node --test tests/remote-judge.test.cjs",
+    "test:remote-judge": "node --test tests/remote-judge.test.cjs tests/remote-judge-monitor.test.cjs",
     "test:judge-pages": "node --test tests/judge-pages.test.cjs"
   },
   "resolutions": {

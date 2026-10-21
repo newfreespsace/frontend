@@ -25,5 +25,82 @@ return {
     PERMISSION_DENIED: "Permission denied.",
     NO_SUCH_JUDGE_CLIENT: "No such judge machine."
   },
+  remote: {
+    title: "Remote judging",
+    refresh: "Refresh remote status",
+    refresh_hint:
+      "Stored monitoring data refreshes every 30 seconds. Refreshing this page does not query the original sites.",
+    last_success: "Last successful sync",
+    source: "Source synchronization",
+    no_data: "No data",
+    none: "None",
+    idle_hint: "No tracking or catch-up tasks are pending. Idle is a normal state.",
+    unknown_hint: "Recent worker heartbeats or sync results are missing, so the current state is unknown.",
+    queued_accounts: "Queued accounts",
+    history_accounts: "History imports",
+    pending_submissions: "Pending submissions",
+    source_error_hint: "Source sync has errors for {count} accounts. Result sync runs independently.",
+    details: "Administrator details",
+    collapse: "Hide details",
+    bound_accounts: "Bound accounts",
+    active_accounts: "Tracked accounts",
+    retrying_accounts: "Accounts retrying",
+    oldest_queue: "Longest queue wait",
+    oldest_queue_hint: "Measured from the earliest overdue scheduled sync; future polling is excluded.",
+    worker_heartbeat: "Latest worker heartbeat",
+    live_workers: "Live workers",
+    atcoder_session: "AtCoder sync session",
+    checked_at: "Last checked",
+    session_settings: "Update the session in site settings",
+    running_tasks: "In progress",
+    account_errors: "Account errors",
+    no_errors: "No account errors.",
+    result_error: "Result sync error",
+    source_error: "Source sync error",
+    occurred_at: "Occurred at",
+    retry_at: "Next scheduled retry",
+    errors_truncated: "Only the 20 most recent accounts with errors are shown.",
+    snapshot_at: "Monitoring data updated",
+    unavailable: "Monitoring data is unavailable or stale. Retained data is for reference only.",
+    redis_title: "Redis connections",
+    redis_unavailable: "Redis connection information is unavailable.",
+    redis_clients: "Connected clients",
+    redis_max_clients: "Client limit",
+    redis_rejected: "Total rejected connections",
+    redis_delta: "New rejections in this sample",
+    redis_rejections_increasing:
+      "New connections were rejected during the sampling period. Check connection counts and Redis resources.",
+    redis_hint:
+      "Counts cover the entire Redis instance. Rejections are cumulative; the first sample and counter resets have no delta.",
+    delta_since: "Delta baseline",
+    sampled_at: "Sampled at",
+    state: {
+      Healthy: "Healthy",
+      Syncing: "Syncing",
+      Idle: "Idle",
+      RateLimited: "Rate limited",
+      Error: "Error",
+      Disabled: "Disabled",
+      Unconfigured: "Not configured",
+      AuthExpired: "Session expired",
+      Unknown: "Unknown"
+    },
+    source_support: {
+      PersonalKey: "Supported with a personal API key",
+      Unavailable: "Not integrated"
+    },
+    phase: {
+      Syncing: "Fetching results",
+      Collecting: "Collecting history",
+      Importing: "Importing records"
+    },
+    session: {
+      missing: "No session configured. Sync is paused.",
+      unchecked: "Configured; waiting for an original-site check.",
+      valid: "Valid at the latest check.",
+      expired: "The session expired and must be updated.",
+      unavailable: "Temporarily unavailable. Check the reported error."
+    }
+  },
   no_judge_machine: "No judge machine"
 };
