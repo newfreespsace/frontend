@@ -22,6 +22,13 @@ return {
   sync_paused: "Remote result sync has been paused by an administrator.",
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
+  sync_access_denied:
+    "元サイトがサーバーからのアクセスを拒否しました（HTTP 403）。アクセス保護または IP 制限の可能性があります。自動で再試行し、取得済みの結果は保持します。",
+  sync_rate_limited: "元サイトのレート制限により同期を待機しています。自動で再試行し、取得済みの結果は保持します。",
+  sync_api_failed:
+    "元サイトの API から提出結果を読み取れませんでした。管理者はサーバーからのアクセスを確認してください。自動で再試行します。",
+  sync_error_code: "エラーコード：{code}",
+  next_retry: "次回の再試行：{time}",
   atcoder_session_expired:
     "AtCoder の同期セッションが無効または利用できません。管理者による再設定が必要です。取得済みの結果は保持します。",
   update_atcoder_session: "サイト設定でセッションを更新",
@@ -56,6 +63,8 @@ return {
     UNBIND_FIRST: "Unlink the current account first.",
     BIND_COOLDOWN: "Please wait before trying again.",
     REMOTE_UNAVAILABLE: "The remote service is unavailable. Please try again later.",
+    REMOTE_ACCESS_DENIED:
+      "元サイトがサーバーからのアクセスを拒否しました（HTTP 403）。管理者はアクセス保護または IP 制限を確認してください。",
     REMOTE_RATE_LIMITED: "The remote service is unavailable. Please try again later.",
     REMOTE_API_FAILED: "The remote service is unavailable. Please try again later.",
     NO_SUCH_PROBLEM: "Problem not found.",

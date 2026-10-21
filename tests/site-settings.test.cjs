@@ -121,7 +121,9 @@ test("site settings display the saved threshold, validate input and save a confi
     assert.match(container.querySelector('[role="alert"]').textContent, /atcoder_session_unavailable/);
     assert.doesNotMatch(container.textContent, /atcoder_session_expired/);
     global.__siteSettingsTest.remoteStatus = {
-      ...global.__siteSettingsTest.remoteStatus, atcoderSessionStatus: "valid", atcoderSessionError: undefined
+      ...global.__siteSettingsTest.remoteStatus,
+      atcoderSessionStatus: "valid",
+      atcoderSessionError: undefined
     };
     await React.act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
     assert.ok(container.querySelector(".positive.message"));

@@ -22,6 +22,14 @@ return {
   sync_paused: "Remote result sync has been paused by an administrator.",
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
+  sync_access_denied:
+    "The original site denied server access (HTTP 403), possibly due to access protection or IP restrictions. Sync will retry automatically; existing results are retained.",
+  sync_rate_limited:
+    "The original site is rate limiting requests. Sync will retry automatically; existing results are retained.",
+  sync_api_failed:
+    "The original API did not return readable submission results. An administrator should check server access. Sync will retry automatically.",
+  sync_error_code: "Error code: {code}",
+  next_retry: "Next retry: {time}",
   atcoder_session_expired:
     "The AtCoder sync session has expired or is unavailable. An administrator must update it. Existing results are retained.",
   update_atcoder_session: "Update the session in Site Settings",
@@ -56,6 +64,8 @@ return {
     UNBIND_FIRST: "Unlink the current account first.",
     BIND_COOLDOWN: "Please wait before trying again.",
     REMOTE_UNAVAILABLE: "The remote service is unavailable. Please try again later.",
+    REMOTE_ACCESS_DENIED:
+      "The original site denied server access (HTTP 403). An administrator should check access protection or IP restrictions.",
     REMOTE_RATE_LIMITED: "The remote service is unavailable. Please try again later.",
     REMOTE_API_FAILED: "The remote service is unavailable. Please try again later.",
     NO_SUCH_PROBLEM: "Problem not found.",

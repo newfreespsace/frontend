@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Form, Header, Message, Segment, Popup } from "semantic-ui-react";
 import { appState } from "@/appState";
 import { Link, useLocalizer } from "@/utils/hooks";
@@ -31,6 +31,15 @@ function BindingCard({
   const [error, setError] = useState("");
   const sessionUnavailable =
     platform === "AtCoder" && ["REMOTE_AUTH_REQUIRED", "REMOTE_SESSION_UNREADABLE"].includes(account?.lastError);
+  const syncErrorMessage = sessionUnavailable
+    ? ".atcoder_session_expired"
+    : account?.lastError === "REMOTE_ACCESS_DENIED"
+    ? ".sync_access_denied"
+    : account?.lastError === "REMOTE_RATE_LIMITED"
+    ? ".sync_rate_limited"
+    : account?.lastError === "REMOTE_API_FAILED"
+    ? ".sync_api_failed"
+    : ".sync_delayed";
   async function run(action: "begin" | "verify" | "unbind") {
     setPending(true);
     setError("");
@@ -55,13 +64,15 @@ function BindingCard({
       {account ? (
         <>
           <p>{_(".bound_as", { handle: account.handle })}</p>
-          {account.importingHistory && <p>{_(".importing_history")}</p>}
+          {account.importingHistory && !account.lastError && <p>{_(".importing_history")}</p>}
           {account.lastSyncedAt && (
             <p>{_(".last_synced", { time: new Date(account.lastSyncedAt).toLocaleString() })}</p>
           )}
           {account.lastError && (
             <Message warning role={sessionUnavailable ? "alert" : undefined}>
-              {_(sessionUnavailable ? ".atcoder_session_expired" : ".sync_delayed")}
+              {_(syncErrorMessage)}
+              <p>{_(".sync_error_code", { code: account.lastError })}</p>
+              {account.nextSyncAt && <p>{_(".next_retry", { time: new Date(account.nextSyncAt).toLocaleString() })}</p>}
               {sessionUnavailable && appState.currentUser?.isAdmin && (
                 <p>
                   <Link href="/site-settings">{_(".update_atcoder_session")}</Link>
@@ -119,20 +130,54 @@ function BindingCard({
 export function View(props: { accounts: RemoteAccount[]; enabled: boolean }) {
   const _ = useLocalizer("remote_judge");
   const [accounts, setAccounts] = useState(props.accounts);
+  const [enabled, setEnabled] = useState(props.enabled);
+  const revision = useRef(0);
   useEffect(() => {
     appState.enterNewPage(_(".accounts"), null, false);
   }, [appState.locale]);
+  useEffect(() => {
+    let stopped = false;
+    let inFlight = false;
+    const refresh = async () => {
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      const version = revision.current;
+      try {
+        // Read saved progress only; visiting this page must not create extra upstream requests.
+        const { response } = await remoteApi.accounts({});
+        if (!stopped && version === revision.current && response?.accounts) {
+          setAccounts(response.accounts);
+          setEnabled(response.enabled);
+        }
+      } catch {
+        // Retain the last observed state if the status request fails.
+      } finally {
+        inFlight = false;
+      }
+    };
+    const timer = setInterval(refresh, 30000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+  const updateAccounts = (next: RemoteAccount[]) => {
+    revision.current++;
+    setAccounts(next);
+  };
   return (
     <>
       <Header as="h1">{_(".accounts")}</Header>
       <Message info content={_(".account_help")} />
-      {!props.enabled && <Message warning content={_(".sync_paused")} />}
+      {!enabled && <Message warning content={_(".sync_paused")} />}
       {(["Codeforces", "AtCoder"] as SubmissionMethod[]).map(platform => (
         <BindingCard
           key={platform}
           platform={platform}
           account={accounts.find(account => account.platform === platform)}
-          onChange={setAccounts}
+          onChange={updateAccounts}
         />
       ))}
     </>

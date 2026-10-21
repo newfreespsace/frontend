@@ -21,7 +21,7 @@ const { createRoot } = require("react-dom/client");
 let Fields, SubmitMenuItem, AccountView, SubmissionItem, root;
 const container = document.getElementById("root");
 const mockState = { enterNewPage() {}, currentUser: { id: 1, username: "coder" } };
-let activations, status;
+let activations, status, accountStatus, accountReads;
 
 before(async () => {
   global.__remoteTest = {
@@ -30,7 +30,11 @@ before(async () => {
       activations.push(context);
       return { response: {} };
     },
-    status: async () => ({ response: status })
+    status: async () => ({ response: status }),
+    accounts: async () => {
+      accountReads++;
+      return { response: accountStatus };
+    }
   };
   const mocks = {
     "@/utils/hooks": `const React = require('react'); exports.useLocalizer = () => (key, params) => key + (params ? JSON.stringify(params) : '');
@@ -38,7 +42,7 @@ before(async () => {
       exports.useLoginOrRegisterNavigation = () => () => {};`,
     "@/appState": `exports.appState = global.__remoteTest.state;`,
     "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status};`,
-    "@/remote-judge/api": `exports.remoteApi = {};`,
+    "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts};`,
     "@/components/StatusText": `const React = require('react'); export default props => React.createElement('span',null,props.status);`,
     "@/AppRouter": `exports.RouteError = Error;`,
     "@/locales": `exports.makeToBeLocalizedText = key => key;`,
@@ -91,6 +95,8 @@ before(async () => {
 
 beforeEach(() => {
   activations = [];
+  accountReads = 0;
+  accountStatus = { accounts: [], enabled: true };
   status = {
     enabled: true,
     bound: true,
@@ -235,7 +241,45 @@ test("expired AtCoder sessions prompt users and give administrators a settings l
     )
   );
   assert.doesNotMatch(container.textContent, /atcoder_session_expired/);
-  assert.match(container.textContent, /sync_delayed/);
+  assert.match(container.textContent, /sync_rate_limited/);
+});
+
+test("account progress refreshes after returning to the page and clears a completed CF history import", async () => {
+  const account = { platform: "Codeforces", handle: "coder", importingHistory: true };
+  await act(async () => root.render(React.createElement(AccountView, { accounts: [account], enabled: true })));
+  assert.match(container.textContent, /importing_history/);
+  accountStatus = {
+    accounts: [{ ...account, importingHistory: false, lastSyncedAt: "2026-10-21T12:00:00Z" }],
+    enabled: true
+  };
+  await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.doesNotMatch(container.textContent, /importing_history/);
+  assert.match(container.textContent, /last_synced/);
+  assert.equal(accountReads, 1);
+  assert.deepEqual(activations, [], "reading progress must not trigger an upstream catch-up");
+  Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+  await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.equal(accountReads, 1);
+  delete document.visibilityState;
+});
+
+test("failed CF history imports show access errors and retry time instead of a running banner", async () => {
+  const account = {
+    platform: "Codeforces",
+    handle: "coder",
+    importingHistory: true,
+    lastError: "REMOTE_ACCESS_DENIED",
+    nextSyncAt: "2026-10-21T12:10:00Z"
+  };
+  await act(async () => root.render(React.createElement(AccountView, { accounts: [account], enabled: true })));
+  assert.doesNotMatch(container.textContent, /importing_history/);
+  assert.match(container.textContent, /sync_access_denied/);
+  assert.match(container.textContent, /REMOTE_ACCESS_DENIED/);
+  assert.match(container.textContent, /next_retry/);
+  accountStatus = { accounts: [{ ...account, lastError: "REMOTE_API_FAILED" }], enabled: false };
+  await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.match(container.textContent, /sync_api_failed/);
+  assert.match(container.textContent, /sync_paused/);
 });
 
 test("remote memory summaries use KiB and unavailable values remain unknown", async () => {

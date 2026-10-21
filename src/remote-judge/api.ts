@@ -26,6 +26,7 @@ export interface RemoteAccount {
   platform: SubmissionMethod;
   handle: string;
   lastSyncedAt?: string;
+  nextSyncAt?: string;
   lastError?: string;
   importingHistory?: boolean;
 }
