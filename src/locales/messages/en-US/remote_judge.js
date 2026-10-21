@@ -40,6 +40,9 @@ return {
   confirm_unbind: "Unlink and keep existing results",
   handle: "Username",
   get_code: "Get verification code",
+  copy_code: "Copy",
+  code_copied: "Verification code copied.",
+  code_copy_failed: "Copy failed. Please copy the verification code manually.",
   verification_help:
     "Temporarily set your profile’s {field} to this code, save, and verify here. The code expires in 15 minutes. You can restore the field after verification.",
   open_profile_settings: "Open profile settings",

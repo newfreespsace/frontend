@@ -39,6 +39,9 @@ return {
   confirm_unbind: "Unlink and keep existing results",
   handle: "Username",
   get_code: "Get verification code",
+  copy_code: "コピー",
+  code_copied: "認証コードをコピーしました。",
+  code_copy_failed: "コピーできませんでした。認証コードを手動でコピーしてください。",
   verification_help:
     "Temporarily set your profile’s {field} to this code, save, and verify here. The code expires in 15 minutes. You can restore the field after verification.",
   open_profile_settings: "Open profile settings",

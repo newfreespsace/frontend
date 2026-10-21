@@ -34,6 +34,9 @@ return {
   confirm_unbind: "确认解绑，保留已有成绩",
   handle: "账号用户名",
   get_code: "获取验证码",
+  copy_code: "复制",
+  code_copied: "验证码已复制。",
+  code_copy_failed: "复制失败，请手动复制验证码。",
   verification_help:
     "请将验证码临时填写到原站个人资料的 {field} 字段，保存后点击验证。验证码 15 分钟有效，验证后可恢复原资料。",
   open_profile_settings: "打开原站个人资料设置",

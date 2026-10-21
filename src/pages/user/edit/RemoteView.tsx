@@ -5,6 +5,7 @@ import { Link, useLocalizer } from "@/utils/hooks";
 import { RouteError } from "@/AppRouter";
 import { makeToBeLocalizedText } from "@/locales";
 import toast from "@/utils/toast";
+import copyToClipboard from "@/utils/copyToClipboard";
 import { remoteApi, RemoteAccount, SubmissionMethod } from "@/remote-judge/api";
 import CodeforcesSourceSettings from "@/remote-judge/CodeforcesSourceSettings";
 
@@ -41,6 +42,17 @@ function BindingCard({
     : account?.lastError === "REMOTE_API_FAILED"
     ? ".sync_api_failed"
     : ".sync_delayed";
+  async function copyCode() {
+    try {
+      if (await copyToClipboard(code)) {
+        toast.success(_(".code_copied"));
+        return;
+      }
+    } catch {
+      // Clipboard access can be denied by the browser.
+    }
+    toast.error(_(".code_copy_failed"));
+  }
   async function run(action: "begin" | "verify" | "unbind") {
     setPending(true);
     setError("");
@@ -104,6 +116,16 @@ function BindingCard({
               <Message info>
                 <p>{_(".verification_help", { field: platform === "Codeforces" ? "Organization" : "Affiliation" })}</p>
                 <code style={{ overflowWrap: "anywhere" }}>{code}</code>
+                <Button
+                  type="button"
+                  size="mini"
+                  icon="copy"
+                  title={_(".copy_code")}
+                  aria-label={_(".copy_code")}
+                  disabled={pending}
+                  onClick={copyCode}
+                  style={{ marginLeft: "0.75em" }}
+                />
                 <p>
                   <a
                     href={
