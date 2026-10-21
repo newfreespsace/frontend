@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu, Message } from "semantic-ui-react";
+import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { v4 as uuid } from "uuid";
 import { patch } from "jsondiffpatch";
@@ -26,6 +26,7 @@ import { makeToBeLocalizedText } from "@/locales";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
 import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
+import RemoteSubmissionDetails from "@/remote-judge/RemoteSubmissionDetails";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -1028,21 +1029,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
         />
       )}
       {meta.remote ? (
-        <Message info>
-          <Message.Header>
-            {_("remote_judge.source_record")} · {meta.remote.platform}
-          </Message.Header>
-          <p>
-            {meta.remote.language} · {meta.remote.handle} · {meta.remote.verdict}
-          </p>
-          {meta.remote.points != null && <p>{_("remote_judge.raw_points", { points: meta.remote.points })}</p>}
-          <p>
-            <a href={meta.remote.url} target="_blank" rel="noopener noreferrer">
-              {meta.remote.platform} #{meta.remote.id}
-            </a>
-          </p>
-          <p>{_("remote_judge.details_unavailable")}</p>
-        </Message>
+        <RemoteSubmissionDetails remote={meta.remote} content={props.content} codeRef={refDefaultCopyCodeBox} />
       ) : (
         <props.ProblemTypeSubmissionView
           progress={progress}

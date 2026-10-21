@@ -52,7 +52,29 @@ return {
   details_unavailable:
     "This submission was judged on the original website. Source code and testcase details are unavailable here.",
   raw_points: "Original score: {points}",
+  passed_tests: "Passed tests: {count}",
+  test_stage: "Test stage: {stage}",
+  testset: { SAMPLES: "Samples", PRETESTS: "Pretests", TESTS: "System tests", CHALLENGES: "Challenges" },
+  test_details_unavailable:
+    "The CF API does not provide individual test details. View the original submission for more information.",
+  cf_source_optional:
+    "Optional: add your own Codeforces API credentials to sync source code. Results and test summaries sync without credentials.",
+  cf_source_enabled: "Source sync credentials are saved. Source code will be fetched and backfilled automatically.",
+  cf_source_failed:
+    "Source code is unavailable. Check that the credentials are valid and belong to the linked account. Automatic retries continue; result sync remains active.",
+  cf_api_settings: "Generate API credentials on Codeforces",
+  cf_source_missing:
+    "CF returned submissions without readable source code. This does not establish that the credentials are invalid. Automatic retries continue; result sync remains active.",
+  cf_source_response_invalid:
+    "The source returned by CF could not be decoded or exceeds the size limit. Automatic retries continue; result sync remains active.",
+  cf_credentials_help:
+    "Use the linked account's API Key and Secret; no password or Cookie is needed. Credentials are encrypted and never displayed. Enter both fields to replace them. Clearing credentials stops future source sync and retains existing code.",
+  cf_credentials_save: "Save source sync credentials",
+  cf_credentials_clear: "Clear credentials",
+  cf_credentials_save_failed: "Save failed. Please try again later.",
   error: {
+    INVALID_CF_CREDENTIALS: "Enter a valid API Key and Secret.",
+    CF_ACCOUNT_REQUIRED: "Link a Codeforces account first.",
     INVALID_HANDLE: "Invalid username.",
     INVALID_REMOTE_URL: "Enter a supported HTTPS problem URL.",
     REMOTE_SUBMIT_ANSWER_UNSUPPORTED: "Answer-only problems cannot use this remote method.",

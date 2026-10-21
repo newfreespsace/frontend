@@ -18,10 +18,10 @@ for (const [key, value] of Object.entries({
 const React = require("react");
 const { act } = React;
 const { createRoot } = require("react-dom/client");
-let Fields, SubmitMenuItem, AccountView, SubmissionItem, root;
+let Fields, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails, root;
 const container = document.getElementById("root");
 const mockState = { enterNewPage() {}, currentUser: { id: 1, username: "coder" } };
-let activations, status, accountStatus, accountReads;
+let activations, status, accountStatus, accountReads, credentialWrites;
 
 before(async () => {
   global.__remoteTest = {
@@ -34,6 +34,15 @@ before(async () => {
     accounts: async () => {
       accountReads++;
       return { response: accountStatus };
+    },
+    setCredentials: async request => {
+      credentialWrites.push(request);
+      return {
+        response: {
+          enabled: true,
+          accounts: [{ platform: "Codeforces", handle: "coder", codeforcesSourceEnabled: !request.clear }]
+        }
+      };
     }
   };
   const mocks = {
@@ -42,7 +51,8 @@ before(async () => {
       exports.useLoginOrRegisterNavigation = () => () => {};`,
     "@/appState": `exports.appState = global.__remoteTest.state;`,
     "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status};`,
-    "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts};`,
+    "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts,setCodeforcesCredentials:global.__remoteTest.setCredentials};`,
+    "@/pages/submission/submission/common/FormattableCodeBox": `const React = require('react'); export default React.forwardRef(({code},ref)=>React.createElement('pre',{ref},code));`,
     "@/components/StatusText": `const React = require('react'); export default props => React.createElement('span',null,props.status);`,
     "@/AppRouter": `exports.RouteError = Error;`,
     "@/locales": `exports.makeToBeLocalizedText = key => key;`,
@@ -59,6 +69,7 @@ before(async () => {
       contents: `export {default as Fields} from './src/remote-judge/SubmissionMethodFields';
       export {default as SubmitMenuItem} from './src/remote-judge/RemoteSubmitMenuItem';
       export {View as AccountView} from './src/pages/user/edit/RemoteView';
+      export {default as RemoteDetails} from './src/remote-judge/RemoteSubmissionDetails';
       export {SubmissionItem} from './src/pages/submission/componments/SubmissionItem';`,
       resolveDir: path.resolve(__dirname, ".."),
       loader: "tsx"
@@ -90,11 +101,12 @@ before(async () => {
   compiledModule.filename = path.join(__dirname, "remote-judge.generated.cjs");
   compiledModule.paths = Module._nodeModulePaths(__dirname);
   compiledModule._compile(bundle.outputFiles[0].text, compiledModule.filename);
-  ({ Fields, SubmitMenuItem, AccountView, SubmissionItem } = compiledModule.exports);
+  ({ Fields, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails } = compiledModule.exports);
 });
 
 beforeEach(() => {
   activations = [];
+  credentialWrites = [];
   accountReads = 0;
   accountStatus = { accounts: [], enabled: true };
   status = {
@@ -313,4 +325,89 @@ test("remote memory summaries use KiB and unavailable values remain unknown", as
   cells = container.querySelectorAll("td");
   assert.equal(cells[3].textContent, "—");
   assert.equal(cells[4].textContent, "—");
+});
+
+test("CF source credentials are optional, require both fields and are cleared from the form after save", async () => {
+  await act(async () =>
+    root.render(
+      React.createElement(AccountView, { accounts: [{ platform: "Codeforces", handle: "coder" }], enabled: true })
+    )
+  );
+  assert.match(container.textContent, /cf_source_optional/);
+  assert.ok(container.querySelector('a[href="https://codeforces.com/settings/api"]'));
+  const key = container.querySelector("#cf-api-key");
+  const secret = container.querySelector("#cf-api-secret");
+  assert.equal(key.type, "password");
+  assert.equal(secret.type, "password");
+  const save = [...container.querySelectorAll("button")].find(button => button.textContent === ".cf_credentials_save");
+  const clear = [...container.querySelectorAll("button")].find(
+    button => button.textContent === ".cf_credentials_clear"
+  );
+  assert.equal(save.disabled, true);
+  assert.equal(clear.disabled, true);
+  async function change(input, value) {
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(input, value);
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+  }
+  await change(key, "testKey123");
+  assert.equal(save.disabled, true);
+  await change(secret, "testSecret456");
+  assert.equal(save.disabled, false);
+  await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.deepEqual(credentialWrites, [{ apiKey: "testKey123", apiSecret: "testSecret456" }]);
+  assert.equal(key.value, "");
+  assert.equal(secret.value, "");
+  assert.doesNotMatch(container.innerHTML, /testKey123|testSecret456/);
+  assert.match(container.textContent, /cf_source_enabled/);
+  assert.equal(clear.disabled, false);
+  await act(async () => clear.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.deepEqual(credentialWrites[1], { clear: true });
+  assert.match(container.textContent, /cf_source_optional/);
+});
+
+test("missing source is not mislabeled as invalid credentials", async () => {
+  await act(async () =>
+    root.render(
+      React.createElement(AccountView, {
+        accounts: [
+          {
+            platform: "Codeforces",
+            handle: "coder",
+            codeforcesSourceEnabled: true,
+            codeforcesSourceError: "REMOTE_CF_SOURCE_MISSING"
+          }
+        ],
+        enabled: true
+      })
+    )
+  );
+  assert.match(container.querySelector('[role="alert"]').textContent, /cf_source_missing/);
+  assert.doesNotMatch(container.querySelector('[role="alert"]').textContent, /cf_source_failed/);
+});
+
+test("remote detail shows authorized source and real summaries, including zero, without inventing test cases", async () => {
+  const remote = {
+    platform: "Codeforces",
+    handle: "coder",
+    id: "123",
+    url: "https://codeforces.com/contest/4/submission/123",
+    language: "GNU C++20",
+    verdict: "COMPILATION_ERROR",
+    passedTestCount: 0,
+    testset: "PRETESTS",
+    sourceAvailable: true
+  };
+  await act(async () =>
+    root.render(React.createElement(RemoteDetails, { remote, content: { code: "int main() {}", language: "cpp" } }))
+  );
+  assert.equal(container.querySelector("pre").textContent, "int main() {}");
+  assert.match(container.textContent, /passed_tests.*0/);
+  assert.match(container.textContent, /test_stage.*PRETESTS/);
+  assert.match(container.textContent, /test_details_unavailable/);
+  assert.equal(container.querySelectorAll("table").length, 0);
+  await act(async () => root.render(React.createElement(RemoteDetails, { remote, content: undefined })));
+  assert.equal(container.querySelector("pre"), null);
+  assert.match(container.textContent, /details_unavailable/);
 });

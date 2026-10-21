@@ -16,6 +16,9 @@ export interface RemoteInfo {
   verdict: string;
   points?: number;
   historical: boolean;
+  passedTestCount?: number;
+  testset?: string;
+  sourceAvailable?: boolean;
 }
 export interface RemoteContext {
   problemId?: number;
@@ -29,6 +32,9 @@ export interface RemoteAccount {
   nextSyncAt?: string;
   lastError?: string;
   importingHistory?: boolean;
+  codeforcesSourceEnabled?: boolean;
+  codeforcesSourceError?: string;
+  codeforcesSourceRetryAt?: string;
 }
 interface AccountsResponse {
   error?: string;
@@ -52,6 +58,10 @@ export const remoteApi = {
   ),
   verifyBinding: createPostApi<{ platform: SubmissionMethod }, AccountsResponse>("remoteJudge/verifyBinding", false),
   unbind: createPostApi<{ platform: SubmissionMethod }, AccountsResponse>("remoteJudge/unbind", false),
+  setCodeforcesCredentials: createPostApi<{ apiKey?: string; apiSecret?: string; clear?: boolean }, AccountsResponse>(
+    "remoteJudge/setCodeforcesCredentials",
+    false
+  ),
   activate: createPostApi<RemoteContext, AccountsResponse>("remoteJudge/activate", false),
   status: createPostApi<RemoteContext, RemoteStatus>("remoteJudge/status", false),
   setMethod: createPostApi<

@@ -6,6 +6,7 @@ import { RouteError } from "@/AppRouter";
 import { makeToBeLocalizedText } from "@/locales";
 import toast from "@/utils/toast";
 import { remoteApi, RemoteAccount, SubmissionMethod } from "@/remote-judge/api";
+import CodeforcesSourceSettings from "@/remote-judge/CodeforcesSourceSettings";
 
 export async function fetchData(username: string) {
   if (username !== appState.currentUser?.username)
@@ -80,6 +81,7 @@ function BindingCard({
               )}
             </Message>
           )}
+          {platform === "Codeforces" && <CodeforcesSourceSettings account={account} onChange={onChange} />}
           <Popup
             on="click"
             trigger={<Button disabled={pending} content={_(".unbind")} />}
