@@ -27,7 +27,7 @@ export interface PlatformMonitor {
   state: RemoteMonitorState;
   lastSyncedAt: string | null;
   lastHeartbeatAt: string | null;
-  sourceSupport: "PersonalKey" | "Unavailable";
+  sourceSupport: "PersonalKey" | "SiteSession" | "Unavailable";
   admin?: {
     boundAccounts: number;
     activeAccounts: number;
@@ -35,6 +35,8 @@ export interface PlatformMonitor {
     retryingAccounts: number;
     historyAccounts: number;
     pendingSubmissions: number;
+    sourcePendingSubmissions: number;
+    sourceFailedSubmissions: number;
     errorAccounts: number;
     sourceErrorAccounts: number;
     oldestQueuedAt: string | null;

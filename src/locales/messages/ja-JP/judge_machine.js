@@ -82,7 +82,10 @@ return {
       AuthExpired: "セッション失効",
       Unknown: "不明"
     },
+    source_pending_submissions: "ソース取得待ち",
+    source_failed_submissions: "ソース再試行待ち",
     source_support: {
+      SiteSession: "サイト専用セッションで利用可能",
       PersonalKey: "個人APIキーの設定で利用可能",
       Unavailable: "未対応"
     },

@@ -205,6 +205,36 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   // score, status, time, memory are in the full info
   // score and status are in this meta, but we still use them in full info
   const [remoteMeta, setRemoteMeta] = useState(props.meta.remote);
+  const [remoteContent, setRemoteContent] = useState(props.content);
+
+  // Completed submissions have no progress subscription; refresh authorized source content separately.
+  useEffect(() => {
+    if (remoteMeta?.platform !== "AtCoder" || (remoteContent as { code?: string })?.code) return;
+    let stopped = false;
+    let inFlight = false;
+    const refresh = async () => {
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      try {
+        const data = await fetchData(props.meta.id);
+        if (!stopped && data.meta.remote?.platform === "AtCoder") {
+          setRemoteMeta(data.meta.remote);
+          setRemoteContent(data.content);
+        }
+      } catch {
+        // The detail endpoint checks permissions again on every read.
+      } finally {
+        inFlight = false;
+      }
+    };
+    const timer = setInterval(refresh, 15000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [props.meta.id, remoteMeta?.platform, remoteContent]);
   const meta: Pick<
     ApiTypes.SubmissionMetaDto,
     | "id"
@@ -1029,7 +1059,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
         />
       )}
       {meta.remote ? (
-        <RemoteSubmissionDetails remote={meta.remote} content={props.content} codeRef={refDefaultCopyCodeBox} />
+        <RemoteSubmissionDetails remote={meta.remote} content={remoteContent} codeRef={refDefaultCopyCodeBox} />
       ) : (
         <props.ProblemTypeSubmissionView
           progress={progress}

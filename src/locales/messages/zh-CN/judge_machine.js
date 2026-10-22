@@ -82,7 +82,10 @@ return {
       AuthExpired: "会话失效",
       Unknown: "状态未知"
     },
+    source_pending_submissions: "源码等待补齐",
+    source_failed_submissions: "源码失败待重试",
     source_support: {
+      SiteSession: "支持，使用站点专用会话",
       PersonalKey: "支持，需配置个人 API 密钥",
       Unavailable: "尚未接入"
     },

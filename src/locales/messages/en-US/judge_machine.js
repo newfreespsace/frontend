@@ -85,7 +85,10 @@ return {
       AuthExpired: "Session expired",
       Unknown: "Unknown"
     },
+    source_pending_submissions: "Sources queued",
+    source_failed_submissions: "Sources awaiting retry",
     source_support: {
+      SiteSession: "Supported with the site session",
       PersonalKey: "Supported with a personal API key",
       Unavailable: "Not integrated"
     },

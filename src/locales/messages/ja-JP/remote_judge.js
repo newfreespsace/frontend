@@ -1,4 +1,8 @@
 return {
+  atcoder_source_pending: "ソースコードを取得待ちです。取得後に自動表示されます。",
+  atcoder_source_failed: "ソースコードを取得できませんでした。成績を保持し、自動的に再試行します。",
+  atcoder_source_available: "ソースコードを取得しました。各テストの詳細は元サイトをご確認ください。",
+
   back_to_problem: "Back to problem",
   submittable: "Allow submissions",
   submission_method: "Submission method",

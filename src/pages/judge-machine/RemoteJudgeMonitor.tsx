@@ -94,6 +94,18 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
               <strong>{detail.pendingSubmissions}</strong>
               <span>{_(".pending_submissions")}</span>
             </div>
+            {row.platform === "AtCoder" && (
+              <>
+                <div>
+                  <strong>{detail.sourcePendingSubmissions ?? 0}</strong>
+                  <span>{_(".source_pending_submissions")}</span>
+                </div>
+                <div>
+                  <strong>{detail.sourceFailedSubmissions ?? 0}</strong>
+                  <span>{_(".source_failed_submissions")}</span>
+                </div>
+              </>
+            )}
           </div>
           {!!detail.sourceErrorAccounts && (
             <Message warning size="small" content={_(".source_error_hint", { count: detail.sourceErrorAccounts })} />
@@ -265,7 +277,7 @@ export default function RemoteJudgeMonitor(props: { isAdmin: boolean }) {
           state: "Unknown",
           lastSyncedAt: null,
           lastHeartbeatAt: null,
-          sourceSupport: platform === "Codeforces" ? "PersonalKey" : "Unavailable"
+          sourceSupport: platform === "Codeforces" ? "PersonalKey" : "SiteSession"
         })));
   return (
     <section className={style.section} aria-label={_(".title")}>

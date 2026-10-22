@@ -1,4 +1,8 @@
 return {
+  atcoder_source_pending: "源码等待后台补齐，完成后会自动显示。",
+  atcoder_source_failed: "源码暂时无法获取，后台将自动重试，已同步成绩保留。",
+  atcoder_source_available: "已获取原站源码。测试点详情请前往原站查看。",
+
   back_to_problem: "返回题目",
   submittable: "允许提交",
   submission_method: "提交方式",

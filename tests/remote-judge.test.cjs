@@ -411,3 +411,45 @@ test("remote detail shows authorized source and real summaries, including zero, 
   assert.equal(container.querySelector("pre"), null);
   assert.match(container.textContent, /details_unavailable/);
 });
+
+test("AtCoder details distinguish queued, failed and available code without displaying code from metadata", async () => {
+  const remote = {
+    platform: "AtCoder",
+    handle: "coder",
+    id: "123",
+    url: "https://atcoder.jp/contests/abc001/submissions/123",
+    language: "C++23",
+    verdict: "AC",
+    sourceStatus: "Pending"
+  };
+  await act(async () => root.render(React.createElement(RemoteDetails, { remote, content: { code: "" } })));
+  assert.match(container.textContent, /atcoder_source_pending/);
+  assert.equal(container.querySelector("pre"), null);
+  await act(async () =>
+    root.render(
+      React.createElement(RemoteDetails, {
+        remote: {
+          ...remote,
+          sourceStatus: "Failed",
+          sourceError: "REMOTE_ACCESS_DENIED",
+          sourceRetryAt: "2026-10-22T12:00:00Z"
+        },
+        content: { code: "" }
+      })
+    )
+  );
+  assert.match(container.textContent, /atcoder_source_failed/);
+  assert.match(container.textContent, /REMOTE_ACCESS_DENIED/);
+  assert.match(container.textContent, /next_retry/);
+  await act(async () =>
+    root.render(
+      React.createElement(RemoteDetails, {
+        remote: { ...remote, sourceStatus: "Available", sourceAvailable: true },
+        content: { code: "int main() {}", language: "cpp" }
+      })
+    )
+  );
+  assert.match(container.textContent, /atcoder_source_available/);
+  assert.equal(container.querySelector("pre").textContent, "int main() {}");
+  assert.doesNotMatch(container.textContent, /test_details_unavailable|atcoder_source_failed/);
+});

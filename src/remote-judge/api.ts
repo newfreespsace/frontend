@@ -19,6 +19,9 @@ export interface RemoteInfo {
   passedTestCount?: number;
   testset?: string;
   sourceAvailable?: boolean;
+  sourceStatus?: "Pending" | "Available" | "Failed";
+  sourceError?: string;
+  sourceRetryAt?: string;
 }
 export interface RemoteContext {
   problemId?: number;

@@ -1,4 +1,9 @@
 return {
+  atcoder_source_pending: "Source code is queued and will appear automatically when fetched.",
+  atcoder_source_failed:
+    "Source code could not be fetched. Automatic retries will continue; the synced result is preserved.",
+  atcoder_source_available: "Source code has been fetched. Visit AtCoder for testcase details.",
+
   back_to_problem: "Back to problem",
   submittable: "Allow submissions",
   submission_method: "Submission method",
