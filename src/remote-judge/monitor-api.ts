@@ -21,6 +21,24 @@ export interface MonitorAccount {
   sourceError: string | null;
   sourceErrorAt: string | null;
   sourceRetryAt: string | null;
+  lastErrorDetails?: RemoteErrorDetails;
+}
+export interface RemoteErrorDetails {
+  stage?: string;
+  reason?: string;
+  contestId?: string;
+  page?: number;
+  submissionId?: string;
+  httpStatus?: number;
+}
+export interface MonitorError {
+  id: string;
+  account: Pick<MonitorAccount, "accountId" | "userId" | "username" | "handle">;
+  kind: "Result" | "Source";
+  error: string;
+  at: string;
+  retryAt: string | null;
+  details: RemoteErrorDetails;
 }
 export interface PlatformMonitor {
   platform: "Codeforces" | "AtCoder";
@@ -44,6 +62,8 @@ export interface PlatformMonitor {
     tasks: { account: MonitorAccount; phase: "Syncing" | "Collecting" | "Importing"; startedAt: string }[];
     errors: MonitorAccount[];
     errorsTruncated: boolean;
+    recentErrors?: MonitorError[];
+    errorHistoryAvailable?: boolean;
     session?: { configured: boolean; status: string; checkedAt: string | null; error: string | null };
   };
 }

@@ -16,7 +16,7 @@
 }
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25em;
   align-items: start;
 }
@@ -119,6 +119,11 @@
 .errorCode {
   overflow-wrap: anywhere;
 }
+.historyList {
+  max-height: 36em;
+  overflow-y: auto;
+  padding: 0.15em;
+}
 .updatedAt {
   display: flex;
   flex-wrap: wrap;
@@ -128,9 +133,4 @@
 }
 .redis {
   margin-top: 1.5em !important;
-}
-@media (max-width: 760px) {
-  .cards {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

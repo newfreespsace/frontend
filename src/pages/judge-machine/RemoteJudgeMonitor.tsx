@@ -6,6 +6,7 @@ import formatDateTime from "@/utils/formatDateTime";
 import {
   getRemoteMonitor,
   MonitorAccount,
+  RemoteErrorDetails,
   PlatformMonitor,
   RemoteMonitorSnapshot,
   RemoteMonitorState
@@ -39,7 +40,7 @@ function Timestamp(props: { value: string | null }) {
   );
 }
 
-function AccountLink({ account }: { account: MonitorAccount }) {
+function AccountLink({ account }: { account: Pick<MonitorAccount, "userId" | "username" | "handle"> }) {
   return (
     <span className={style.account}>
       {account.username ? (
@@ -49,6 +50,56 @@ function AccountLink({ account }: { account: MonitorAccount }) {
       )}
       <span className={style.muted}>{account.handle}</span>
     </span>
+  );
+}
+
+function ErrorDetails({ error, details }: { error: string; details?: RemoteErrorDetails }) {
+  const _ = useLocalizer("judge_machine.remote");
+  const knownErrors = [
+    "REMOTE_PARSE_FAILED",
+    "REMOTE_AUTH_REQUIRED",
+    "REMOTE_SESSION_UNREADABLE",
+    "REMOTE_RATE_LIMITED",
+    "REMOTE_ACCESS_DENIED",
+    "REMOTE_UNAVAILABLE",
+    "REMOTE_API_FAILED"
+  ];
+  return (
+    <div className={style.errorEntry}>
+      <span>{_(`.error_summary.${knownErrors.includes(error) ? error : "UNKNOWN"}`)}</span>
+      <code>{error}</code>
+      {details?.reason && <span>{_(`.diagnostic_reason.${details.reason}`)}</span>}
+      {details?.stage && (
+        <div className={style.inlineFact}>
+          <span>{_(".failure_stage")}</span>
+          <span>{_(`.diagnostic_stage.${details.stage}`)}</span>
+        </div>
+      )}
+      {details?.contestId && (
+        <div className={style.inlineFact}>
+          <span>{_(".failure_contest")}</span>
+          <span>{details.contestId}</span>
+        </div>
+      )}
+      {details?.page != null && (
+        <div className={style.inlineFact}>
+          <span>{_(".failure_page")}</span>
+          <span>{details.page}</span>
+        </div>
+      )}
+      {details?.submissionId && (
+        <div className={style.inlineFact}>
+          <span>{_(".failure_submission")}</span>
+          <span>{details.submissionId}</span>
+        </div>
+      )}
+      {details?.httpStatus != null && (
+        <div className={style.inlineFact}>
+          <span>HTTP</span>
+          <span>{details.httpStatus}</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -179,7 +230,7 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
                       {account.lastError && (
                         <div className={style.errorEntry}>
                           <strong>{_(".result_error")}</strong>
-                          <code>{account.lastError}</code>
+                          <ErrorDetails error={account.lastError} details={account.lastErrorDetails} />
                           <div className={style.inlineFact}>
                             <span>{_(".occurred_at")}</span>
                             <Timestamp value={account.lastErrorAt} />
@@ -193,7 +244,7 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
                       {account.sourceError && (
                         <div className={style.errorEntry}>
                           <strong>{_(".source_error")}</strong>
-                          <code>{account.sourceError}</code>
+                          <ErrorDetails error={account.sourceError} />
                           <div className={style.inlineFact}>
                             <span>{_(".occurred_at")}</span>
                             <Timestamp value={account.sourceErrorAt} />
@@ -209,6 +260,35 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
                 </div>
               )}
               {detail.errorsTruncated && <p className={style.muted}>{_(".errors_truncated")}</p>}
+              <Header as="h4">{_(".recent_errors")}</Header>
+              <p className={style.hint}>{_(".error_history_hint")}</p>
+              {detail.errorHistoryAvailable === false ? (
+                <Message warning content={_(".error_history_unavailable")} />
+              ) : !detail.recentErrors?.length ? (
+                <p className={style.muted}>{_(".no_recent_errors")}</p>
+              ) : (
+                <div className={style.historyList}>
+                  {detail.recentErrors.map(event => (
+                    <Segment key={event.id} className={style.errorItem}>
+                      <AccountLink account={event.account} />
+                      <div className={style.errorEntry}>
+                        <strong>{_(event.kind === "Source" ? ".source_error" : ".result_error")}</strong>
+                        <ErrorDetails error={event.error} details={event.details} />
+                        <div className={style.inlineFact}>
+                          <span>{_(".occurred_at")}</span>
+                          <Timestamp value={event.at} />
+                        </div>
+                        {event.retryAt && (
+                          <div className={style.inlineFact}>
+                            <span>{_(".retry_at_when_failed")}</span>
+                            <Timestamp value={event.retryAt} />
+                          </div>
+                        )}
+                      </div>
+                    </Segment>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>

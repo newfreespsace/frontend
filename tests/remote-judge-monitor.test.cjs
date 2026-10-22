@@ -227,6 +227,64 @@ test("administrators can inspect queue stages, account errors, session recovery 
   assert.ok(at.querySelector('a[href="/site-settings"]'));
 });
 
+test("administrators see parse details and retained errors after the account recovers", async () => {
+  const at = response.platforms[1];
+  const details = {
+    stage: "parse",
+    reason: "INVALID_SUBMISSION_TIME",
+    contestId: "abc480",
+    page: 3,
+    submissionId: "80223806"
+  };
+  at.admin.errors = [
+    {
+      ...account,
+      sourceError: null,
+      lastError: "REMOTE_PARSE_FAILED",
+      lastErrorAt: response.updatedAt,
+      lastErrorDetails: details
+    }
+  ];
+  at.admin.errorHistoryAvailable = true;
+  at.admin.recentErrors = [
+    {
+      id: "error-1",
+      account,
+      kind: "Result",
+      error: "REMOTE_PARSE_FAILED",
+      details,
+      at: response.updatedAt,
+      retryAt: account.nextSyncAt
+    }
+  ];
+  await render({ isAdmin: true });
+  const card = container.querySelector('[data-platform="AtCoder"]');
+  await click(card.querySelector("button[aria-expanded]"));
+  assert.equal((card.textContent.match(/diagnostic_reason.INVALID_SUBMISSION_TIME/g) || []).length, 2);
+  assert.match(card.textContent, /error_summary.REMOTE_PARSE_FAILED/);
+  assert.match(card.textContent, /abc480/);
+  assert.match(card.textContent, /failure_page3/);
+  assert.match(card.textContent, /80223806/);
+  assert.match(card.textContent, /recent_errors|error_history_hint/);
+  at.admin.errors = [];
+  at.state = "Healthy";
+  await tick();
+  assert.match(card.textContent, /no_errors/);
+  assert.match(card.textContent, /REMOTE_PARSE_FAILED/);
+  assert.match(card.textContent, /abc480/);
+  await render({ isAdmin: false });
+  assert.doesNotMatch(container.textContent, /REMOTE_PARSE_FAILED|abc480|80223806|recent_errors/);
+});
+
+test("unavailable error history is distinguished from an empty error history", async () => {
+  response.platforms[1].admin.errorHistoryAvailable = false;
+  await render({ isAdmin: true });
+  const card = container.querySelector('[data-platform="AtCoder"]');
+  await click(card.querySelector("button[aria-expanded]"));
+  assert.match(card.textContent, /error_history_unavailable/);
+  assert.doesNotMatch(card.textContent, /no_recent_errors/);
+});
+
 test("polling only reads stored snapshots, pauses in hidden tabs and refreshes on return", async () => {
   await render({ isAdmin: false });
   assert.equal(calls, 1);
