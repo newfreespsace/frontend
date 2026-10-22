@@ -18,14 +18,19 @@ for (const [key, value] of Object.entries({
 const React = require("react");
 const { act } = React;
 const { createRoot } = require("react-dom/client");
-let Fields, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails, root;
+let Fields, MethodSettings, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails, root;
 const container = document.getElementById("root");
 const mockState = { enterNewPage() {}, currentUser: { id: 1, username: "coder" } };
-let activations, status, accountStatus, accountReads, credentialWrites;
+let activations, status, accountStatus, accountReads, credentialWrites, methodWrites;
 
 before(async () => {
   global.__remoteTest = {
     state: mockState,
+    setMethod: async request => {
+      methodWrites.push(request);
+      // Keep the page mounted so the saved request can be inspected without navigating jsdom.
+      return { response: { error: "TEST_SAVE_STOP" } };
+    },
     activate: async context => {
       activations.push(context);
       return { response: {} };
@@ -50,7 +55,8 @@ before(async () => {
       exports.Link = ({href,children,...props}) => React.createElement('a',{...props,href},children);
       exports.useLoginOrRegisterNavigation = () => () => {};`,
     "@/appState": `exports.appState = global.__remoteTest.state;`,
-    "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status};`,
+    "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status,setMethod:global.__remoteTest.setMethod};
+      exports.isRemoteProblem = meta => !!meta.submissionMethod && meta.submissionMethod !== 'Local';`,
     "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts,setCodeforcesCredentials:global.__remoteTest.setCredentials};`,
     "@/pages/submission/submission/common/FormattableCodeBox": `const React = require('react'); export default React.forwardRef(({code},ref)=>React.createElement('pre',{ref},code));`,
     "@/components/StatusText": `const React = require('react'); export default props => React.createElement('span',null,props.status);`,
@@ -67,6 +73,7 @@ before(async () => {
   const bundle = await esbuild.build({
     stdin: {
       contents: `export {default as Fields} from './src/remote-judge/SubmissionMethodFields';
+      export {default as MethodSettings} from './src/remote-judge/SubmissionMethodSettings';
       export {default as SubmitMenuItem} from './src/remote-judge/RemoteSubmitMenuItem';
       export {View as AccountView} from './src/pages/user/edit/RemoteView';
       export {default as RemoteDetails} from './src/remote-judge/RemoteSubmissionDetails';
@@ -101,12 +108,13 @@ before(async () => {
   compiledModule.filename = path.join(__dirname, "remote-judge.generated.cjs");
   compiledModule.paths = Module._nodeModulePaths(__dirname);
   compiledModule._compile(bundle.outputFiles[0].text, compiledModule.filename);
-  ({ Fields, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails } = compiledModule.exports);
+  ({ Fields, MethodSettings, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails } = compiledModule.exports);
 });
 
 beforeEach(() => {
   activations = [];
   credentialWrites = [];
+  methodWrites = [];
   accountReads = 0;
   accountStatus = { accounts: [], enabled: true };
   status = {
@@ -148,6 +156,67 @@ test("remote configuration exposes source URL and optional partial-score maximum
   );
   assert.ok(container.querySelector('input[type="number"]'));
   assert.match(container.textContent, /source_help/);
+});
+
+for (const method of ["Codeforces", "AtCoder"]) {
+  test(`switching local settings to ${method} shows an enabled submission toggle and saves it`, async () => {
+    // The local judge editor owns its separate submittable flag and passes only meta here.
+    await act(async () =>
+      root.render(React.createElement(MethodSettings, { meta: { id: 7, submissionMethod: "Local" } }))
+    );
+    assert.equal(container.querySelector('input[type="checkbox"]'), null);
+    const choice = [...container.querySelectorAll(".dropdown .menu .item")].find(
+      item => item.textContent === `.method.${method}`
+    );
+    assert.ok(choice);
+    await act(async () => choice.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+    assert.equal(container.querySelector('input[type="checkbox"]').checked, true);
+    const url = container.querySelector('input[placeholder^="https://"]');
+    const source =
+      method === "Codeforces"
+        ? "https://codeforces.com/problemset/problem/4/A"
+        : "https://atcoder.jp/contests/abc001/tasks/abc001_1";
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(url, source);
+      url.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+    const save = [...container.querySelectorAll("button")].find(button => button.textContent === ".save");
+    await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+    assert.deepEqual(methodWrites[0], {
+      problemId: 7,
+      submissionMethod: method,
+      remoteUrl: source,
+      remoteFullScore: undefined,
+      submittable: true
+    });
+    await act(async () => {
+      const toggle = container.querySelector(".ui.checkbox");
+      toggle.dispatchEvent(new window.MouseEvent("mouseup", { bubbles: true }));
+      toggle.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    });
+    assert.equal(container.querySelector('input[type="checkbox"]').checked, false);
+    await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+    assert.equal(methodWrites[1].submittable, false);
+  });
+}
+
+test("existing remote settings preserve an explicitly disabled submission toggle", async () => {
+  await act(async () =>
+    root.render(
+      React.createElement(MethodSettings, {
+        meta: {
+          id: 7,
+          submissionMethod: "Codeforces",
+          remoteProblem: { url: "https://codeforces.com/problemset/problem/4/A" }
+        },
+        submittable: false
+      })
+    )
+  );
+  assert.equal(container.querySelector('input[type="checkbox"]').checked, false);
+  const save = [...container.querySelectorAll("button")].find(button => button.textContent === ".save");
+  await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.equal(methodWrites[0].submittable, false);
 });
 
 test("CF submit menu item links to the original form and keeps syncing without a status panel", async () => {

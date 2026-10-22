@@ -27,6 +27,7 @@ export default function SubmissionMethodSettings({
   const [enabled, setEnabled] = useState(submittable ?? true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const showSubmittable = submittable != null || value.method !== "Local";
   async function save() {
     setPending(true);
     setError("");
@@ -35,7 +36,7 @@ export default function SubmissionMethodSettings({
       submissionMethod: value.method,
       remoteUrl: value.method === "Local" ? undefined : value.url,
       remoteFullScore: value.fullScore ? Number(value.fullScore) : undefined,
-      submittable: submittable == null ? undefined : enabled
+      submittable: showSubmittable ? enabled : undefined
     });
     setPending(false);
     if (requestError) toast.error(requestError(_));
@@ -55,7 +56,7 @@ export default function SubmissionMethodSettings({
         disabled={pending}
         onChange={setValue}
       />
-      {submittable != null && (
+      {showSubmittable && (
         <p>
           <Checkbox
             toggle
