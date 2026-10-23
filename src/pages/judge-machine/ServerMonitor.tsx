@@ -75,6 +75,8 @@ function ResourceChart(props: {
 
 export default function ServerMonitor({ locale }: { locale: string }) {
   const _ = useLocalizer("judge_machine.server");
+  // App locale IDs use underscores; browser Intl APIs require BCP 47 tags.
+  const dateLocale = locale.replace(/_/g, "-");
   const [hours, setHours] = useState(1);
   const [snapshot, setSnapshot] = useState<ServerMonitorSnapshot>();
   const [failed, setFailed] = useState(false);
@@ -190,13 +192,13 @@ export default function ServerMonitor({ locale }: { locale: string }) {
                   {_(stale ? ".stale" : ".live")}
                 </Label>
                 <time dateTime={new Date(server.latest.at).toISOString()}>
-                  {new Date(server.latest.at).toLocaleString(locale)}
+                  {new Date(server.latest.at).toLocaleString(dateLocale)}
                 </time>
               </div>
             </div>
             <div className={style.charts}>
-              <ResourceChart points={server.points} metric="cpuPercent" title={_(".cpu")} locale={locale} />
-              <ResourceChart points={server.points} metric="memoryPercent" title={_(".memory")} locale={locale} />
+              <ResourceChart points={server.points} metric="cpuPercent" title={_(".cpu")} locale={dateLocale} />
+              <ResourceChart points={server.points} metric="memoryPercent" title={_(".memory")} locale={dateLocale} />
             </div>
             <p className={style.hint}>{_(`.resolution_${snapshot.bucketSeconds}`)}</p>
           </Segment>

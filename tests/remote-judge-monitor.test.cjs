@@ -35,13 +35,13 @@ before(async () => {
   const mocks = {
     "./server-monitor-api": "exports.getServerMonitor = query => global.__monitorTest.readServer(query);",
     "react-chartjs-2":
-      "const React = require('react'); exports.Line = props => React.createElement('canvas', {'aria-label':props['aria-label'], 'data-points':JSON.stringify(props.data.datasets[0].data)});",
+      "const React = require('react'); exports.Line = props => { global.__monitorTest.charts.set(props['aria-label'], props); return React.createElement('canvas', {'aria-label':props['aria-label'], 'data-points':JSON.stringify(props.data.datasets[0].data)}); };",
     "@/remote-judge/monitor-api": "exports.getRemoteMonitor = () => global.__monitorTest.read();",
     "@/utils/hooks": `const React=require('react'); exports.useLocalizer=()=> (key,params)=>key+(params?JSON.stringify(params):''); exports.Link=({href,children,...props})=>React.createElement('a',{...props,href},children); exports.useNavigationChecked=()=>({refresh(){}}); exports.useAsyncCallbackPending=fn=>[false,fn];`,
     "@/components/TimeAgo":
       "const React=require('react'); export default ({time})=>React.createElement('time',{dateTime:time.toISOString()},'relative-time');",
     "@/utils/formatDateTime": "export default date=>[date.toISOString(),date.toISOString()];",
-    "@/appState": "exports.appState={locale:'zh-CN',enterNewPage(){}};",
+    "@/appState": "exports.appState={locale:'zh_CN',enterNewPage(){}};",
     "@/components/EmojiRenderer": "exports.EmojiRenderer=props=>props.children;",
     "@/utils/toast": "export default {success(){},error(){}};",
     "@/AppRouter": "exports.defineRoute=route=>route; exports.RouteError=Error;",
@@ -177,6 +177,7 @@ beforeEach(() => {
     return { response };
   };
   serverCalls = [];
+  global.__monitorTest.charts = new Map();
   const at = Date.now();
   serverResponse = {
     unavailable: false,
@@ -405,7 +406,8 @@ test("verification and shared cooldown errors have specific administrator explan
   assert.match(card.textContent, /diagnostic_reason.SHARED_COOLDOWN/);
 });
 
-const renderServer = async () => act(async () => root.render(React.createElement(ServerMonitor, { locale: "zh-CN" })));
+const renderServer = async (locale = "zh_CN") =>
+  act(async () => root.render(React.createElement(ServerMonitor, { locale })));
 const tickServer = async () =>
   act(async () => {
     for (const { fn, ms } of timers.values()) if (ms === 15000) fn();
@@ -484,3 +486,23 @@ test("a failed manual resource refresh retains the last chart", async () => {
   assert.match(container.textContent, /unavailable/);
   assert.equal(container.querySelectorAll("canvas").length, 2);
 });
+
+for (const locale of ["zh_CN", "en_US", "ja_JP", "zh-CN", "en-US", "ja-JP"]) {
+  test(`resource dates, chart ticks and tooltips support locale ${locale}`, async () => {
+    await renderServer(locale);
+    const date = new Date(serverResponse.servers[0].latest.at);
+    const browserLocale = locale.replace(/_/g, "-");
+    assert.equal(container.querySelector("time").textContent, date.toLocaleString(browserLocale));
+    for (const metric of [".cpu", ".memory"]) {
+      const { options } = global.__monitorTest.charts.get(metric);
+      assert.equal(
+        options.scales.x.ticks.callback(+date),
+        date.toLocaleTimeString(browserLocale, { hour: "2-digit", minute: "2-digit" })
+      );
+      assert.equal(
+        options.plugins.tooltip.callbacks.title([{ parsed: { x: +date } }]),
+        date.toLocaleString(browserLocale)
+      );
+    }
+  });
+}
