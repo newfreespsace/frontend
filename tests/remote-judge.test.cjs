@@ -258,8 +258,11 @@ test("CF submit menu item links to the original form and keeps syncing without a
   assert.equal(container.querySelector(".message"), null);
   assert.equal(container.querySelectorAll("a").length, 1);
   assert.doesNotMatch(container.textContent, /submission_help|bound_as|last_synced|sync_delayed|Accepted|coder/);
+  await act(async () => button.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true })));
+  assert.deepEqual(activations.at(-1), { ...context, submissionIntent: true });
   status.latest = { id: 101, status: "Accepted" };
   await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.deepEqual(activations.at(-1), context, "returning to the page is an ordinary activation");
   assert.equal(refreshes, 1);
   assert.doesNotMatch(container.textContent, /Accepted|101/);
 });
@@ -282,6 +285,12 @@ test("AtCoder uses the real task ID rather than deriving the letter", async () =
     container.querySelector('a[target="_blank"]').href,
     "https://atcoder.jp/contests/abc001/submit?taskScreenName=abc001_1"
   );
+  await act(async () =>
+    container
+      .querySelector('a[target="_blank"]')
+      .dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }))
+  );
+  assert.deepEqual(activations.at(-1), { problemId: 7 });
 });
 
 test("the same submit menu item points unbound users to account settings and respects submission restrictions", async () => {

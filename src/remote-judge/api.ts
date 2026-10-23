@@ -70,7 +70,10 @@ export const remoteApi = {
     "remoteJudge/setCodeforcesCredentials",
     false
   ),
-  activate: createPostApi<RemoteContext, AccountsResponse>("remoteJudge/activate", false),
+  activate: createPostApi<RemoteContext & { submissionIntent?: boolean }, AccountsResponse>(
+    "remoteJudge/activate",
+    false
+  ),
   status: createPostApi<RemoteContext, RemoteStatus>("remoteJudge/status", false),
   setMethod: createPostApi<
     {

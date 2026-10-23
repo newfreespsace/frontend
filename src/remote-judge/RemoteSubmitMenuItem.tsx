@@ -89,7 +89,11 @@ export default function RemoteSubmitMenuItem(props: {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => void remoteApi.activate(props.context)}
+      onClick={() =>
+        void remoteApi.activate(
+          props.meta.submissionMethod === "Codeforces" ? { ...props.context, submissionIntent: true } : props.context
+        )
+      }
     />
   );
 }
