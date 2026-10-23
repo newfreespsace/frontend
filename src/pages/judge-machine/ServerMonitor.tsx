@@ -15,11 +15,17 @@ function ResourceChart(props: {
   metric: "cpuPercent" | "memoryPercent";
   title: string;
   locale: string;
+  value: string;
+  detail?: string;
 }) {
   const color = props.metric === "cpuPercent" ? "#3b82f6" : "#16a085";
   return (
     <div className={style.chartCard}>
-      <Header as="h3" content={props.title} />
+      <div className={style.chartSummary}>
+        <Header as="h3" content={props.title} />
+        <strong>{props.value}</strong>
+        {props.detail && <small>{props.detail}</small>}
+      </div>
       <div className={style.chart}>
         <Line
           aria-label={props.title}
@@ -170,23 +176,12 @@ export default function ServerMonitor({ locale }: { locale: string }) {
         const gib = (bytes: number) => (bytes / 1024 ** 3).toFixed(2);
         return (
           <Segment key={server.id} className={style.server}>
-            {snapshot.servers.length > 1 && (
-              <Header as="h3">
-                {_(".title")} · {server.id}
-              </Header>
-            )}
-            <div className={style.metrics}>
-              <div>
-                <span>{_(".cpu")}</span>
-                <strong>{percent(server.latest.cpuPercent)}</strong>
-              </div>
-              <div>
-                <span>{_(".memory")}</span>
-                <strong>{percent(server.latest.memoryPercent)}</strong>
-                <small>
-                  {gib(server.latest.memoryUsedBytes)} / {gib(server.latest.memoryTotalBytes)} GiB
-                </small>
-              </div>
+            <div className={style.serverHeader}>
+              {snapshot.servers.length > 1 && (
+                <Header as="h3">
+                  {_(".title")} · {server.id}
+                </Header>
+              )}
               <div className={style.updated}>
                 <Label basic color={stale ? "orange" : "green"}>
                   {_(stale ? ".stale" : ".live")}
@@ -197,8 +192,21 @@ export default function ServerMonitor({ locale }: { locale: string }) {
               </div>
             </div>
             <div className={style.charts}>
-              <ResourceChart points={server.points} metric="cpuPercent" title={_(".cpu")} locale={dateLocale} />
-              <ResourceChart points={server.points} metric="memoryPercent" title={_(".memory")} locale={dateLocale} />
+              <ResourceChart
+                points={server.points}
+                metric="cpuPercent"
+                title={_(".cpu")}
+                locale={dateLocale}
+                value={percent(server.latest.cpuPercent)}
+              />
+              <ResourceChart
+                points={server.points}
+                metric="memoryPercent"
+                title={_(".memory")}
+                locale={dateLocale}
+                value={percent(server.latest.memoryPercent)}
+                detail={`${gib(server.latest.memoryUsedBytes)} / ${gib(server.latest.memoryTotalBytes)} GiB`}
+              />
             </div>
             <p className={style.hint}>{_(`.resolution_${snapshot.bucketSeconds}`)}</p>
           </Segment>

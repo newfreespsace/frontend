@@ -258,7 +258,12 @@ test("administrators see parse details and retained errors after the account rec
     reason: "INVALID_SUBMISSION_TIME",
     contestId: "abc480",
     page: 3,
-    submissionId: "80223806"
+    submissionId: "80223806",
+    request: {
+      url: "https://atcoder.jp/contests/abc480/submissions?f.User=coder&lang=en&page=3",
+      command:
+        'curl --cookie "REVEL_SESSION=$ATCODER_REVEL_SESSION" https://atcoder.jp/contests/abc480/submissions?f.User=coder&lang=en&page=3'
+    }
   };
   at.admin.errors = [
     {
@@ -290,6 +295,9 @@ test("administrators see parse details and retained errors after the account rec
   assert.match(card.textContent, /failure_page3/);
   assert.match(card.textContent, /80223806/);
   assert.match(card.textContent, /recent_errors|error_history_hint/);
+  assert.equal(card.querySelectorAll("pre code").length, 2);
+  assert.equal(card.querySelector("pre code").textContent, details.request.command);
+  assert.match(card.textContent, /failure_request_hint/);
   at.admin.errors = [];
   at.state = "Healthy";
   await tick();
@@ -297,7 +305,10 @@ test("administrators see parse details and retained errors after the account rec
   assert.match(card.textContent, /REMOTE_PARSE_FAILED/);
   assert.match(card.textContent, /abc480/);
   await render({ isAdmin: false });
-  assert.doesNotMatch(container.textContent, /REMOTE_PARSE_FAILED|abc480|80223806|recent_errors/);
+  assert.doesNotMatch(
+    container.textContent,
+    /REMOTE_PARSE_FAILED|abc480|80223806|recent_errors|curl|ATCODER_REVEL_SESSION/
+  );
 });
 
 test("unavailable error history is distinguished from an empty error history", async () => {

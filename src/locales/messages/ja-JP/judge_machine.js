@@ -75,6 +75,9 @@ return {
     failure_contest: "AtCoderコンテスト",
     failure_page: "提出一覧のページ",
     failure_submission: "元の提出ID",
+    failure_request: "リクエストコマンド（curl）",
+    failure_request_hint:
+      "実行前に、環境変数 ATCODER_REVEL_SESSION に自分の AtCoder セッションを設定してください。実際の Cookie はここには含まれません。",
     diagnostic_stage: {
       lock: "リクエストロック",
       rate_limit: "レート制限待機",

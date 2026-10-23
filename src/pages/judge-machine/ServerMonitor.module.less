@@ -3,7 +3,7 @@
 }
 .header,
 .controls,
-.metrics {
+.serverHeader {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -21,30 +21,45 @@
   font-size: 13px;
   line-height: 1.6;
 }
-.metrics {
-  gap: 32px;
+.serverHeader {
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
-.metrics > div {
-  display: flex;
-  flex-direction: column;
+.serverHeader > :global(.header) {
+  margin: 0;
+}
+.chartSummary {
+  display: grid;
+  grid-template-rows: auto auto 1.4em;
   gap: 6px;
+  margin-bottom: 16px;
 }
-.metrics span,
-.metrics small,
+.chartSummary > :global(.ui.header) {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #767676;
+}
+.chartSummary small,
 .updated {
   color: #767676;
 }
-.metrics strong {
+.chartSummary strong {
   font-size: 28px;
   font-weight: 600;
   line-height: 1.2;
 }
 .updated {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
   margin-left: auto;
-  align-items: flex-end;
   font-size: 12px;
+}
+.chartCard {
+  min-width: 0;
 }
 .charts {
   display: grid;
@@ -65,7 +80,7 @@
   }
   .updated {
     margin-left: 0;
-    align-items: flex-start;
+    justify-content: flex-start;
   }
   .controls {
     flex-wrap: wrap;

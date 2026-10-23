@@ -76,6 +76,9 @@ return {
     failure_contest: "AtCoder contest",
     failure_page: "Submission list page",
     failure_submission: "Original submission ID",
+    failure_request: "Request command (curl)",
+    failure_request_hint:
+      "Before running, set the ATCODER_REVEL_SESSION environment variable to your own AtCoder session. The actual cookie is not included here.",
     diagnostic_stage: {
       lock: "Request lock",
       rate_limit: "Request rate limit",

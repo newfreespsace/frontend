@@ -75,6 +75,9 @@ return {
     failure_contest: "AtCoder 比赛",
     failure_page: "提交列表页码",
     failure_submission: "原站提交编号",
+    failure_request: "请求命令（curl）",
+    failure_request_hint:
+      "执行命令前，请在终端将 ATCODER_REVEL_SESSION 环境变量设为本人的 AtCoder 会话。此处不包含真实 Cookie。",
     diagnostic_stage: {
       lock: "等待请求锁",
       rate_limit: "等待请求限速",

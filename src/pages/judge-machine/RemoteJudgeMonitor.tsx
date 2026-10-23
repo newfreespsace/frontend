@@ -102,6 +102,15 @@ function ErrorDetails({ error, details }: { error: string; details?: RemoteError
           <span>{details.httpStatus}</span>
         </div>
       )}
+      {details?.request && (
+        <div className={style.requestDiagnostic}>
+          <span>{_(".failure_request")}</span>
+          <pre>
+            <code>{details.request.command}</code>
+          </pre>
+          <span className={style.muted}>{_(".failure_request_hint")}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -30,6 +30,7 @@ export interface RemoteErrorDetails {
   page?: number;
   submissionId?: string;
   httpStatus?: number;
+  request?: { url: string; command: string };
 }
 export interface MonitorError {
   id: string;
