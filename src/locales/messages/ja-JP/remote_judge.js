@@ -27,8 +27,8 @@ return {
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
   sync_verification_required:
-    "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
-  sync_shared_cooldown: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
+    "元サイトで人間による確認が必要です。関連するリクエストを一時停止し、後で自動的に再試行します。取得済み結果は保持します。",
+  sync_shared_cooldown: "リモートへのリクエストは待機中です。自動で再開し、取得済み結果は保持します。",
   sync_access_denied:
     "元サイトがサーバーからのアクセスを拒否しました（HTTP 403）。アクセス保護または IP 制限の可能性があります。自動で再試行し、取得済みの結果は保持します。",
   sync_rate_limited: "元サイトのレート制限により同期を待機しています。自動で再試行し、取得済みの結果は保持します。",
@@ -99,8 +99,8 @@ return {
     REMOTE_ATCODER_STATUS_FAILED: "状態取得の応答を解析できません。取得済み結果を保持して再試行します。",
 
     REMOTE_VERIFICATION_REQUIRED:
-      "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
-    REMOTE_COOLDOWN: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
+      "元サイトで人間による確認が必要です。関連するリクエストを一時停止し、後で自動的に再試行します。取得済み結果は保持します。",
+    REMOTE_COOLDOWN: "リモートへのリクエストは待機中です。自動で再開し、取得済み結果は保持します。",
     INVALID_CF_CREDENTIALS: "有効な API Key と Secret を入力してください。",
     CF_ACCOUNT_REQUIRED: "先に Codeforces アカウントを連携してください。",
     INVALID_HANDLE: "Invalid username.",

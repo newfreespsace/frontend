@@ -28,9 +28,8 @@ return {
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
   sync_verification_required:
-    "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
-  sync_shared_cooldown:
-    "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
+    "The remote site requires human verification. Affected requests are paused and will retry later; saved results are retained.",
+  sync_shared_cooldown: "Remote requests are cooling down. Requests resume automatically; saved results are retained.",
   sync_access_denied:
     "The original site denied server access (HTTP 403), possibly due to access protection or IP restrictions. Sync will retry automatically; existing results are retained.",
   sync_rate_limited:
@@ -104,8 +103,8 @@ return {
       "The status endpoint returned unexpected data. Saved results are retained while retrying.",
 
     REMOTE_VERIFICATION_REQUIRED:
-      "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
-    REMOTE_COOLDOWN: "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
+      "The remote site requires human verification. Affected requests are paused and will retry later; saved results are retained.",
+    REMOTE_COOLDOWN: "Remote requests are cooling down. Requests resume automatically; saved results are retained.",
     INVALID_CF_CREDENTIALS: "Enter a valid API Key and Secret.",
     CF_ACCOUNT_REQUIRED: "Link a Codeforces account first.",
     INVALID_HANDLE: "Invalid username.",
