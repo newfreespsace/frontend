@@ -223,8 +223,8 @@ test("administrators can inspect queue stages, account errors, session recovery 
   assert.match(cf.textContent, /retry_at/);
   const at = container.querySelector('[data-platform="AtCoder"]');
   await click(at.querySelector("button[aria-expanded]"));
-  assert.match(at.textContent, /session.expired/);
-  assert.ok(at.querySelector('a[href="/site-settings"]'));
+  assert.doesNotMatch(at.textContent, /session.expired/);
+  assert.equal(at.querySelector('a[href="/site-settings"]'), null);
 });
 
 test("administrators see parse details and retained errors after the account recovers", async () => {
@@ -355,4 +355,29 @@ test("the judge machine page still renders remote services when there are no loc
   assert.match(container.textContent, /no_judge_machine/);
   assert.match(container.textContent, /Codeforces/);
   assert.match(container.textContent, /AtCoder/);
+});
+
+test("verification and shared cooldown errors have specific administrator explanations", async () => {
+  response.platforms[1].admin.errors = [
+    {
+      ...account,
+      lastError: "REMOTE_VERIFICATION_REQUIRED",
+      lastErrorDetails: { stage: "request", reason: "CHALLENGE_PAGE", httpStatus: 403 },
+      sourceError: null
+    },
+    {
+      ...account,
+      accountId: 99,
+      lastError: "REMOTE_COOLDOWN",
+      lastErrorDetails: { stage: "rate_limit", reason: "SHARED_COOLDOWN" },
+      sourceError: null
+    }
+  ];
+  await render({ isAdmin: true });
+  const card = container.querySelector('[data-platform="AtCoder"]');
+  await click(card.querySelector("button[aria-expanded]"));
+  assert.match(card.textContent, /error_summary.REMOTE_VERIFICATION_REQUIRED/);
+  assert.match(card.textContent, /diagnostic_reason.CHALLENGE_PAGE/);
+  assert.match(card.textContent, /error_summary.REMOTE_COOLDOWN/);
+  assert.match(card.textContent, /diagnostic_reason.SHARED_COOLDOWN/);
 });

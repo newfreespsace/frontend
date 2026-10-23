@@ -48,9 +48,6 @@ return {
     oldest_queue_hint: "从最早已到期任务的计划同步时间起计算，不包含尚未到期的轮询。",
     worker_heartbeat: "最近工作进程心跳",
     live_workers: "有效工作进程",
-    atcoder_session: "AtCoder 同步会话",
-    checked_at: "最近检查",
-    session_settings: "前往站点设置更新会话",
     running_tasks: "正在处理",
     recent_errors: "最近错误",
     error_history_hint: "每个平台保留最近 50 条错误，最长 7 天；同步恢复后仍可查看。",
@@ -70,6 +67,9 @@ return {
       parse: "解析提交列表"
     },
     diagnostic_reason: {
+      INVALID_STATUS_RESPONSE: "状态接口返回的结构或评测字段不符合预期。",
+      CHALLENGE_PAGE: "已识别到原站的人机验证页面。",
+      SHARED_COOLDOWN: "本人会话因验证、登录失效或限流正在冷却。",
       MISSING_SUBMISSION_TABLE: "返回页面没有提交表格，可能返回了登录、验证或其他非预期页面。",
       UNEXPECTED_TABLE_HEADERS: "表格列名与预期的英文提交列表不一致。",
       LOGIN_PAGE: "原站返回了登录页面。",
@@ -87,8 +87,11 @@ return {
       NETWORK_ERROR: "网络连接或响应读取失败。"
     },
     error_summary: {
+      REMOTE_ATCODER_STATUS_FAILED: "评测状态接口返回了无法识别的数据，将保留已有结果并重试。",
+      REMOTE_VERIFICATION_REQUIRED: "原站要求人机验证，已暂缓本人的请求。请在 AtCoder 检查登录与验证状态。",
+      REMOTE_COOLDOWN: "本人的 AtCoder 会话正在冷却，稍后自动恢复，已有成绩保留。",
       REMOTE_PARSE_FAILED: "无法解析原站提交列表，请查看下方具体原因。",
-      REMOTE_AUTH_REQUIRED: "AtCoder 会话缺失或已失效，请检查站点会话设置。",
+      REMOTE_AUTH_REQUIRED: "该用户的 AtCoder 会话缺失或已失效，请在本人远端账号设置中更新。",
       REMOTE_SESSION_UNREADABLE: "无法读取已保存的 AtCoder 会话，请重新配置。",
       REMOTE_RATE_LIMITED: "原站限制了请求频率，将按计划重试。",
       REMOTE_ACCESS_DENIED: "原站拒绝服务器访问。",
@@ -129,7 +132,7 @@ return {
     source_pending_submissions: "源码等待补齐",
     source_failed_submissions: "源码失败待重试",
     source_support: {
-      SiteSession: "支持，使用站点专用会话",
+      PersonalSession: "支持，使用用户本人会话",
       PersonalKey: "支持，需配置个人 API 密钥",
       Unavailable: "尚未接入"
     },
@@ -137,13 +140,6 @@ return {
       Syncing: "查询原站",
       Collecting: "收集历史",
       Importing: "导入记录"
-    },
-    session: {
-      missing: "未配置会话，同步已暂停。",
-      unchecked: "已配置，等待原站请求验证。",
-      valid: "最近一次检查有效。",
-      expired: "会话已失效，需要更新。",
-      unavailable: "暂时不可用，请查看错误原因。"
     }
   },
   no_judge_machine: "暂无评测机"

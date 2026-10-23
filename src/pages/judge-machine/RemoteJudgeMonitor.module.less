@@ -16,13 +16,49 @@
 }
 .cards {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 1.25em;
   align-items: start;
 }
-.platform:global(.ui.segment) {
+.card:global(.ui.segment) {
   margin: 0;
   min-width: 0;
+  padding: 1.5em;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--theme-shadow, rgba(34, 36, 38, 0.04));
+}
+.cardHeader {
+  gap: 0.75em;
+  padding-bottom: 1.25em;
+  border-bottom: 1px solid var(--theme-border, #e8e8e8);
+}
+.cardTitle:global(.ui.header) {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  min-width: 0;
+  font-size: 1.1em;
+}
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2em;
+  height: 2em;
+  border-radius: 8px;
+  background: var(--theme-table-header-background, #f7f8fa);
+  color: var(--theme-secondary-title, #767676);
+  > :global(.icon) {
+    margin: 0;
+    font-size: 1em;
+  }
+}
+.status:global(.ui.label) {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.45em 0.65em;
+  border-radius: 6px;
 }
 .summary {
   display: grid;
@@ -32,6 +68,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.35em;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 .timestamp {
@@ -51,21 +89,42 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75em;
+  gap: 1.25em 0.75em;
   margin: 1.25em 0;
+  padding: 1.25em 0;
+  border-top: 1px solid var(--theme-border, #e8e8e8);
   > div {
     display: flex;
     flex-direction: column;
     gap: 0.4em;
+    min-width: 0;
   }
   strong {
-    font-size: 1.6em;
-    font-weight: 500;
+    font-size: 1.8em;
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
   }
   span {
     font-size: 0.9em;
     color: var(--theme-secondary-title, #767676);
+    overflow-wrap: anywhere;
   }
+}
+.redisMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 0;
+  padding-top: 0;
+  padding-bottom: 1.25em;
+  border-bottom: 1px solid var(--theme-border, #e8e8e8);
+}
+.cardNote {
+  margin-bottom: 0;
+}
+.detailsToggle:global(.ui.button) {
+  margin: 0;
+  border-radius: 7px;
 }
 .details {
   margin-top: 1.5em;
@@ -131,6 +190,15 @@
   margin-top: 1em;
   font-size: 0.9em;
 }
-.redis {
-  margin-top: 1.5em !important;
+@media (max-width: 480px) {
+  .card:global(.ui.segment) {
+    padding: 1.15em;
+  }
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4em;
+    dd {
+      margin-bottom: 0.5em;
+    }
+  }
 }

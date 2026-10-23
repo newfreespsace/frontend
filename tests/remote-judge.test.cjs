@@ -21,7 +21,7 @@ const { createRoot } = require("react-dom/client");
 let Fields, MethodSettings, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails, root;
 const container = document.getElementById("root");
 const mockState = { enterNewPage() {}, currentUser: { id: 1, username: "coder" } };
-let activations, status, accountStatus, accountReads, credentialWrites, methodWrites;
+let activations, status, accountStatus, accountReads, credentialWrites, methodWrites, sessionWrites;
 
 before(async () => {
   global.__remoteTest = {
@@ -40,6 +40,15 @@ before(async () => {
       accountReads++;
       return { response: accountStatus };
     },
+    setSession: async request => {
+      sessionWrites.push(request);
+      return {
+        response: {
+          accounts: [{ platform: "AtCoder", handle: "coder", atcoderSessionConfigured: !request.clear }],
+          enabled: true
+        }
+      };
+    },
     setCredentials: async request => {
       credentialWrites.push(request);
       return {
@@ -57,7 +66,7 @@ before(async () => {
     "@/appState": `exports.appState = global.__remoteTest.state;`,
     "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status,setMethod:global.__remoteTest.setMethod};
       exports.isRemoteProblem = meta => !!meta.submissionMethod && meta.submissionMethod !== 'Local';`,
-    "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts,setCodeforcesCredentials:global.__remoteTest.setCredentials};`,
+    "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts,setCodeforcesCredentials:global.__remoteTest.setCredentials,setAtcoderSession:global.__remoteTest.setSession};`,
     "@/pages/submission/submission/common/FormattableCodeBox": `const React = require('react'); export default React.forwardRef(({code},ref)=>React.createElement('pre',{ref},code));`,
     "@/components/StatusText": `const React = require('react'); export default props => React.createElement('span',null,props.status);`,
     "@/AppRouter": `exports.RouteError = Error;`,
@@ -113,6 +122,7 @@ before(async () => {
 
 beforeEach(() => {
   activations = [];
+  sessionWrites = [];
   credentialWrites = [];
   methodWrites = [];
   accountReads = 0;
@@ -296,11 +306,11 @@ test("the same submit menu item points unbound users to account settings and res
   assert.equal(container.querySelector("a[href]"), null);
 });
 
-test("account settings show both platforms without accepting passwords or cookies", async () => {
+test("unbound AtCoder accounts show only the session form while Codeforces retains its handle form", async () => {
   await act(async () => root.render(React.createElement(AccountView, { accounts: [], enabled: true })));
   assert.match(container.textContent, /Codeforces/);
   assert.match(container.textContent, /AtCoder/);
-  assert.equal(container.querySelectorAll('input[type="password"]').length, 0);
+  assert.equal(container.querySelectorAll('input[type="password"]').length, 1);
   assert.equal(container.querySelectorAll("input").length, 2);
 });
 
@@ -311,7 +321,7 @@ test("expired AtCoder sessions prompt users and give administrators a settings l
   assert.equal(container.querySelector('a[href="/site-settings"]'), null);
   mockState.currentUser.isAdmin = true;
   await act(async () => root.render(React.createElement(AccountView, { accounts, enabled: true })));
-  assert.ok(container.querySelector('a[href="/site-settings"]'));
+  assert.equal(container.querySelector('a[href="/site-settings"]'), null);
   await act(async () =>
     root.render(
       React.createElement(AccountView, {
@@ -521,4 +531,61 @@ test("AtCoder details distinguish queued, failed and available code without disp
   assert.match(container.textContent, /atcoder_source_available/);
   assert.equal(container.querySelector("pre").textContent, "int main() {}");
   assert.doesNotMatch(container.textContent, /test_details_unavailable|atcoder_source_failed/);
+});
+
+test("AtCoder sessions are configured by the owner, kept out of the rendered form and clearable", async () => {
+  await act(async () =>
+    root.render(
+      React.createElement(AccountView, { accounts: [{ platform: "AtCoder", handle: "coder" }], enabled: true })
+    )
+  );
+  const input = container.querySelector("#atcoder-personal-session");
+  assert.equal(input.type, "password");
+  const save = [...container.querySelectorAll("button")].find(
+    button => button.textContent === ".atcoder_personal_save"
+  );
+  const clear = [...container.querySelectorAll("button")].find(
+    button => button.textContent === ".atcoder_personal_clear"
+  );
+  assert.equal(save.disabled, true);
+  assert.equal(clear.disabled, true);
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(
+      input,
+      "REVEL_SESSION=private-personal-session"
+    );
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  });
+  await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.deepEqual(sessionWrites, [{ atcoderSession: "private-personal-session" }]);
+  assert.equal(input.value, "");
+  assert.doesNotMatch(container.innerHTML, /private-personal-session/);
+  assert.match(container.textContent, /atcoder_personal_configured/);
+  await act(async () => clear.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.deepEqual(sessionWrites[1], { clear: true });
+  assert.match(container.textContent, /atcoder_personal_missing/);
+});
+
+test("a first AtCoder session automatically connects the detected account without a username or profile code", async () => {
+  await act(async () => root.render(React.createElement(AccountView, { accounts: [], enabled: true })));
+  const input = container.querySelector("#atcoder-personal-session");
+  const card = input.closest(".segment");
+  assert.match(card.textContent, /atcoder_connect_intro/);
+  assert.match(card.textContent, /atcoder_connect_help/);
+  assert.equal(card.querySelectorAll("input").length, 1);
+  assert.doesNotMatch(card.textContent, /get_code|verification_help|Affiliation/);
+  const save = [...card.querySelectorAll("button")].find(button => button.textContent === ".atcoder_connect");
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(
+      input,
+      "REVEL_SESSION=private-first-session"
+    );
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  });
+  await act(async () => save.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+  assert.deepEqual(sessionWrites, [{ atcoderSession: "private-first-session" }]);
+  assert.match(container.textContent, /bound_as.*coder/);
+  assert.match(container.textContent, /atcoder_personal_configured/);
+  assert.equal(container.querySelector("#atcoder-personal-session").value, "");
+  assert.doesNotMatch(container.innerHTML, /private-first-session/);
 });

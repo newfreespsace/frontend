@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Form, Header, Message, Segment, Popup } from "semantic-ui-react";
 import { appState } from "@/appState";
-import { Link, useLocalizer } from "@/utils/hooks";
+import { useLocalizer } from "@/utils/hooks";
 import { RouteError } from "@/AppRouter";
 import { makeToBeLocalizedText } from "@/locales";
 import toast from "@/utils/toast";
 import copyToClipboard from "@/utils/copyToClipboard";
 import { remoteApi, RemoteAccount, SubmissionMethod } from "@/remote-judge/api";
+import AtcoderSessionSettings from "@/remote-judge/AtcoderSessionSettings";
 import CodeforcesSourceSettings from "@/remote-judge/CodeforcesSourceSettings";
 
 export async function fetchData(username: string) {
@@ -35,6 +36,10 @@ function BindingCard({
     platform === "AtCoder" && ["REMOTE_AUTH_REQUIRED", "REMOTE_SESSION_UNREADABLE"].includes(account?.lastError);
   const syncErrorMessage = sessionUnavailable
     ? ".atcoder_session_expired"
+    : account?.lastError === "REMOTE_VERIFICATION_REQUIRED"
+    ? ".sync_verification_required"
+    : account?.lastError === "REMOTE_COOLDOWN"
+    ? ".sync_shared_cooldown"
     : account?.lastError === "REMOTE_ACCESS_DENIED"
     ? ".sync_access_denied"
     : account?.lastError === "REMOTE_RATE_LIMITED"
@@ -86,13 +91,9 @@ function BindingCard({
               {_(syncErrorMessage)}
               <p>{_(".sync_error_code", { code: account.lastError })}</p>
               {account.nextSyncAt && <p>{_(".next_retry", { time: new Date(account.nextSyncAt).toLocaleString() })}</p>}
-              {sessionUnavailable && appState.currentUser?.isAdmin && (
-                <p>
-                  <Link href="/site-settings">{_(".update_atcoder_session")}</Link>
-                </p>
-              )}
             </Message>
           )}
+          {platform === "AtCoder" && <AtcoderSessionSettings account={account} onChange={onChange} />}
           {platform === "Codeforces" && <CodeforcesSourceSettings account={account} onChange={onChange} />}
           <Popup
             on="click"
@@ -100,6 +101,8 @@ function BindingCard({
             content={<Button negative loading={pending} onClick={() => run("unbind")} content={_(".confirm_unbind")} />}
           />
         </>
+      ) : platform === "AtCoder" ? (
+        <AtcoderSessionSettings onChange={onChange} />
       ) : (
         <>
           <Form onSubmit={() => run("begin")}>
@@ -114,7 +117,7 @@ function BindingCard({
           {code && (
             <>
               <Message info>
-                <p>{_(".verification_help", { field: platform === "Codeforces" ? "Organization" : "Affiliation" })}</p>
+                <p>{_(".verification_help", { field: "Organization" })}</p>
                 <code style={{ overflowWrap: "anywhere" }}>{code}</code>
                 <Button
                   type="button"
@@ -127,15 +130,7 @@ function BindingCard({
                   style={{ marginLeft: "0.75em" }}
                 />
                 <p>
-                  <a
-                    href={
-                      platform === "Codeforces"
-                        ? "https://codeforces.com/settings/social"
-                        : "https://atcoder.jp/settings"
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="https://codeforces.com/settings/social" target="_blank" rel="noopener noreferrer">
                     {_(".open_profile_settings")}
                   </a>
                 </p>

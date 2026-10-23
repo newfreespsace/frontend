@@ -26,6 +26,9 @@ return {
   sync_paused: "Remote result sync has been paused by an administrator.",
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
+  sync_verification_required:
+    "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
+  sync_shared_cooldown: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
   sync_access_denied:
     "元サイトがサーバーからのアクセスを拒否しました（HTTP 403）。アクセス保護または IP 制限の可能性があります。自動で再試行し、取得済みの結果は保持します。",
   sync_rate_limited: "元サイトのレート制限により同期を待機しています。自動で再試行し、取得済みの結果は保持します。",
@@ -34,8 +37,7 @@ return {
   sync_error_code: "エラーコード：{code}",
   next_retry: "次回の再試行：{time}",
   atcoder_session_expired:
-    "AtCoder の同期セッションが無効または利用できません。管理者による再設定が必要です。取得済みの結果は保持します。",
-  update_atcoder_session: "サイト設定でセッションを更新",
+    "本人のAtCoderセッションが未設定・失効・読取不可です。下で再保存してください。取得済み結果は保持します。",
   accounts: "Remote accounts",
   own_account_only: "You can only manage your own remote accounts.",
   importing_history: "Importing historical submissions for problems on NSOJ.",
@@ -52,7 +54,7 @@ return {
   verify: "Verify and link",
   restart_binding: "Start again",
   account_help:
-    "Verify ownership before linking. Each remote account can be linked to one NSOJ user. Results sync while you are active and catch up when you return. Idle accounts without pending work are not polled.",
+    "Codeforcesはプロフィールの確認コードで、AtCoderは本人のセッションを保存して連携します。各原サイトのアカウントは1人のNSOJユーザーのみと連携できます。利用中に結果を追跡し、オフラインで未処理の作業がなければ停止します。",
   files_disabled: "Remote problems do not support test data or additional files.",
   source_record: "Original submission",
   details_unavailable:
@@ -77,7 +79,28 @@ return {
   cf_credentials_save: "ソース同期キーを保存",
   cf_credentials_clear: "キーを削除",
   cf_credentials_save_failed: "保存できませんでした。後でもう一度お試しください。",
+  atcoder_personal_missing: "本人のAtCoderセッションが未設定のため、同期を停止しています。",
+  atcoder_personal_configured: "本人のセッションを保存しました。確認済み提出は状態取得エンドポイントで更新します。",
+  atcoder_personal_help:
+    "連携済みAtCoderアカウント {handle} にログインし、開発者ツール → Application → Cookies → https://atcoder.jp からREVEL_SESSIONの値をコピーしてください。保存時にアカウントを確認し、暗号化して保存します。値は再表示しません。削除後は本人の同期を停止し、取得済み結果を保持します。",
+  atcoder_personal_save: "本人のセッションを確認して保存",
+  atcoder_personal_clear: "本人のセッションを削除",
+  atcoder_open_login: "AtCoderにログイン",
+  atcoder_session_save_failed: "セッションを保存できませんでした。後で再試行してください。",
+  atcoder_connect_intro: "本人のセッションを入力すると、AtCoderアカウントを自動で識別して連携します。",
+  atcoder_connect_help:
+    "連携したいAtCoderアカウントにログインし、開発者ツール → Application → Cookies → https://atcoder.jp からREVEL_SESSIONの値をコピーしてください。保存時にアカウントを識別して連携します。セッションは暗号化して保存し、再表示しません。",
+  atcoder_connect: "確認してアカウントを連携",
   error: {
+    ATCODER_SESSION_REQUIRED: "本人のREVEL_SESSIONを入力すると、AtCoderアカウントを自動で識別して連携します。",
+    INVALID_ATCODER_SESSION: "有効なREVEL_SESSIONの値を入力してください。",
+    REMOTE_SESSION_IDENTITY_MISMATCH:
+      "別のAtCoderアカウントのセッションです。変更する場合は先に現在の連携を解除してください。取得済み結果は保持します。",
+    REMOTE_ATCODER_STATUS_FAILED: "状態取得の応答を解析できません。取得済み結果を保持して再試行します。",
+
+    REMOTE_VERIFICATION_REQUIRED:
+      "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
+    REMOTE_COOLDOWN: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
     INVALID_CF_CREDENTIALS: "有効な API Key と Secret を入力してください。",
     CF_ACCOUNT_REQUIRED: "先に Codeforces アカウントを連携してください。",
     INVALID_HANDLE: "Invalid username.",

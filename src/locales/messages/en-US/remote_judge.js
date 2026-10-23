@@ -27,6 +27,10 @@ return {
   sync_paused: "Remote result sync has been paused by an administrator.",
   last_synced: "Last synced: {time}",
   sync_delayed: "Sync is delayed and will retry automatically. Existing results are retained.",
+  sync_verification_required:
+    "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
+  sync_shared_cooldown:
+    "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
   sync_access_denied:
     "The original site denied server access (HTTP 403), possibly due to access protection or IP restrictions. Sync will retry automatically; existing results are retained.",
   sync_rate_limited:
@@ -36,8 +40,7 @@ return {
   sync_error_code: "Error code: {code}",
   next_retry: "Next retry: {time}",
   atcoder_session_expired:
-    "The AtCoder sync session has expired or is unavailable. An administrator must update it. Existing results are retained.",
-  update_atcoder_session: "Update the session in Site Settings",
+    "Your AtCoder session is missing, expired or unreadable. Save it again below; existing results are retained.",
   accounts: "Remote accounts",
   own_account_only: "You can only manage your own remote accounts.",
   importing_history: "Importing historical submissions for problems on NSOJ.",
@@ -54,7 +57,7 @@ return {
   verify: "Verify and link",
   restart_binding: "Start again",
   account_help:
-    "Verify ownership before linking. Each remote account can be linked to one NSOJ user. Results sync while you are active and catch up when you return. Idle accounts without pending work are not polled.",
+    "Verify Codeforces using a profile code, or connect AtCoder by saving your own session. Each remote account can be connected to one NSOJ user. Results are tracked while active; polling stops when offline with no pending work.",
   files_disabled: "Remote problems do not support test data or additional files.",
   source_record: "Original submission",
   details_unavailable:
@@ -80,7 +83,29 @@ return {
   cf_credentials_save: "Save source sync credentials",
   cf_credentials_clear: "Clear credentials",
   cf_credentials_save_failed: "Save failed. Please try again later.",
+  atcoder_personal_missing: "Your AtCoder session is not configured. Synchronization is paused.",
+  atcoder_personal_configured: "Your session is saved. Known submissions are updated through the status endpoint.",
+  atcoder_personal_help:
+    "Log in to your bound AtCoder account {handle}. Copy the REVEL_SESSION value from Developer Tools → Application → Cookies → https://atcoder.jp. Saving verifies the account. The session is encrypted and never displayed. Clearing it pauses your sync and retains saved results.",
+  atcoder_personal_save: "Verify and save my session",
+  atcoder_personal_clear: "Clear my session",
+  atcoder_open_login: "Open AtCoder login",
+  atcoder_session_save_failed: "Could not save the session. Try again later.",
+  atcoder_connect_intro: "Enter your session to identify and connect your AtCoder account automatically.",
+  atcoder_connect_help:
+    "Log in to the AtCoder account you want to connect. Copy the REVEL_SESSION value from Developer Tools → Application → Cookies → https://atcoder.jp. Saving identifies and connects the account. The session is encrypted and never displayed.",
+  atcoder_connect: "Verify and connect account",
   error: {
+    ATCODER_SESSION_REQUIRED: "Enter your REVEL_SESSION to identify and connect your AtCoder account automatically.",
+    INVALID_ATCODER_SESSION: "Enter a valid REVEL_SESSION value.",
+    REMOTE_SESSION_IDENTITY_MISMATCH:
+      "This session belongs to a different AtCoder account. Unbind the current account before switching; saved results are retained.",
+    REMOTE_ATCODER_STATUS_FAILED:
+      "The status endpoint returned unexpected data. Saved results are retained while retrying.",
+
+    REMOTE_VERIFICATION_REQUIRED:
+      "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
+    REMOTE_COOLDOWN: "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
     INVALID_CF_CREDENTIALS: "Enter a valid API Key and Secret.",
     CF_ACCOUNT_REQUIRED: "Link a Codeforces account first.",
     INVALID_HANDLE: "Invalid username.",

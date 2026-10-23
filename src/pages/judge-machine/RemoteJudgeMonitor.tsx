@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Header, Icon, Label, Loader, Message, Segment, Table } from "semantic-ui-react";
+import { Button, Header, Icon, Label, Loader, Message, Segment } from "semantic-ui-react";
 import { Link, useLocalizer } from "@/utils/hooks";
 import TimeAgo from "@/components/TimeAgo";
 import formatDateTime from "@/utils/formatDateTime";
@@ -57,11 +57,14 @@ function ErrorDetails({ error, details }: { error: string; details?: RemoteError
   const _ = useLocalizer("judge_machine.remote");
   const knownErrors = [
     "REMOTE_PARSE_FAILED",
+    "REMOTE_VERIFICATION_REQUIRED",
+    "REMOTE_COOLDOWN",
     "REMOTE_AUTH_REQUIRED",
     "REMOTE_SESSION_UNREADABLE",
     "REMOTE_RATE_LIMITED",
     "REMOTE_ACCESS_DENIED",
     "REMOTE_UNAVAILABLE",
+    "REMOTE_ATCODER_STATUS_FAILED",
     "REMOTE_API_FAILED"
   ];
   return (
@@ -110,13 +113,17 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
   const detail = props.admin ? row.admin : undefined;
   const state: RemoteMonitorState = props.stale && row.state !== "Disabled" ? "Unknown" : row.state;
   return (
-    <Segment className={style.platform} data-platform={row.platform}>
+    <Segment className={style.card} data-platform={row.platform}>
       <div className={style.cardHeader}>
-        <Header as="h3">
-          <Icon name="cloud" />
+        <Header as="h3" className={style.cardTitle}>
+          <span className={style.cardIcon}>
+            <Icon name="cloud" />
+          </span>
           {row.platform}
         </Header>
-        <Label color={colors[state]}>{_(`.state.${state}`)}</Label>
+        <Label basic color={colors[state]} className={style.status}>
+          {_(`.state.${state}`)}
+        </Label>
       </div>
       <div className={style.summary}>
         <div>
@@ -163,6 +170,7 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
           )}
           <Button
             type="button"
+            className={style.detailsToggle}
             basic
             size="small"
             fluid
@@ -189,22 +197,6 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
                 <dt>{_(".live_workers")}</dt>
                 <dd>{detail.liveWorkers}</dd>
               </dl>
-              {detail.session && (
-                <Segment secondary>
-                  <Header as="h4">{_(".atcoder_session")}</Header>
-                  <p>{_(`.session.${detail.session.status}`)}</p>
-                  <div className={style.inlineFact}>
-                    <span>{_(".checked_at")}</span>
-                    <Timestamp value={detail.session.checkedAt} />
-                  </div>
-                  {detail.session.error && (
-                    <p className={style.errorCode}>
-                      <code>{detail.session.error}</code>
-                    </p>
-                  )}
-                  <Link href="/site-settings">{_(".session_settings")}</Link>
-                </Segment>
-              )}
               <Header as="h4">{_(".running_tasks")}</Header>
               {!detail.tasks.length ? (
                 <p className={style.muted}>{_(".none")}</p>
@@ -297,6 +289,63 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
   );
 }
 
+function RedisCard({ redis, stale }: { redis: NonNullable<RemoteMonitorSnapshot["admin"]>["redis"]; stale: boolean }) {
+  const _ = useLocalizer("judge_machine.remote");
+  const rejectionsIncreasing = redis.rejectedDelta !== null && redis.rejectedDelta > 0;
+  const state = stale ? "Unknown" : !redis.available || rejectionsIncreasing ? "Error" : "Healthy";
+  return (
+    <Segment className={style.card}>
+      <div className={style.cardHeader}>
+        <Header as="h3" className={style.cardTitle}>
+          <span className={style.cardIcon}>
+            <Icon name="database" />
+          </span>
+          {_(".redis_title")}
+        </Header>
+        <Label basic color={colors[state]} className={style.status}>
+          {_(`.state.${state}`)}
+        </Label>
+      </div>
+      {!redis.available ? (
+        <Message warning content={_(".redis_unavailable")} />
+      ) : (
+        <>
+          <div className={`${style.metrics} ${style.redisMetrics}`}>
+            <div>
+              <strong>{redis.connectedClients ?? _(".no_data")}</strong>
+              <span>{_(".redis_clients")}</span>
+            </div>
+            <div>
+              <strong>{redis.maxClients ?? _(".no_data")}</strong>
+              <span>{_(".redis_max_clients")}</span>
+            </div>
+            <div>
+              <strong>{redis.rejectedConnections ?? _(".no_data")}</strong>
+              <span>{_(".redis_rejected")}</span>
+            </div>
+            <div>
+              <strong>{redis.rejectedDelta ?? _(".no_data")}</strong>
+              <span>{_(".redis_delta")}</span>
+            </div>
+          </div>
+          {rejectionsIncreasing && <Message negative size="small" content={_(".redis_rejections_increasing")} />}
+          <div className={style.summary}>
+            <div>
+              <span className={style.muted}>{_(".sampled_at")}</span>
+              <Timestamp value={redis.sampledAt} />
+            </div>
+            <div>
+              <span className={style.muted}>{_(".delta_since")}</span>
+              <Timestamp value={redis.deltaSince} />
+            </div>
+          </div>
+          <p className={`${style.hint} ${style.cardNote}`}>{_(".redis_hint")}</p>
+        </>
+      )}
+    </Segment>
+  );
+}
+
 export default function RemoteJudgeMonitor(props: { isAdmin: boolean }) {
   const _ = useLocalizer("judge_machine.remote");
   const [snapshot, setSnapshot] = useState<RemoteMonitorSnapshot>();
@@ -357,7 +406,7 @@ export default function RemoteJudgeMonitor(props: { isAdmin: boolean }) {
           state: "Unknown",
           lastSyncedAt: null,
           lastHeartbeatAt: null,
-          sourceSupport: platform === "Codeforces" ? "PersonalKey" : "SiteSession"
+          sourceSupport: platform === "Codeforces" ? "PersonalKey" : "PersonalSession"
         })));
   return (
     <section className={style.section} aria-label={_(".title")}>
@@ -387,54 +436,12 @@ export default function RemoteJudgeMonitor(props: { isAdmin: boolean }) {
             {displayedPlatforms.map(platform => (
               <PlatformCard key={platform.platform} platform={platform} admin={props.isAdmin} stale={stale} />
             ))}
+            {redis && <RedisCard redis={redis} stale={stale} />}
           </div>
           <div className={style.updatedAt}>
             {_(".snapshot_at")} <Timestamp value={snapshot?.updatedAt || null} />
           </div>
         </>
-      )}
-      {redis && (
-        <Segment className={style.redis}>
-          <Header as="h3" icon="database" content={_(".redis_title")} />
-          {!redis.available ? (
-            <Message warning content={_(".redis_unavailable")} />
-          ) : (
-            <>
-              <Table basic="very" compact unstackable>
-                <Table.Body>
-                  <Table.Row>
-                    <Table.Cell>{_(".redis_clients")}</Table.Cell>
-                    <Table.Cell textAlign="right">{redis.connectedClients ?? _(".no_data")}</Table.Cell>
-                  </Table.Row>
-                  <Table.Row>
-                    <Table.Cell>{_(".redis_max_clients")}</Table.Cell>
-                    <Table.Cell textAlign="right">{redis.maxClients ?? _(".no_data")}</Table.Cell>
-                  </Table.Row>
-                  <Table.Row>
-                    <Table.Cell>{_(".redis_rejected")}</Table.Cell>
-                    <Table.Cell textAlign="right">{redis.rejectedConnections ?? _(".no_data")}</Table.Cell>
-                  </Table.Row>
-                  <Table.Row>
-                    <Table.Cell>{_(".redis_delta")}</Table.Cell>
-                    <Table.Cell textAlign="right">{redis.rejectedDelta ?? _(".no_data")}</Table.Cell>
-                  </Table.Row>
-                </Table.Body>
-              </Table>
-              {redis.rejectedDelta !== null && redis.rejectedDelta > 0 && (
-                <Message negative content={_(".redis_rejections_increasing")} />
-              )}
-              <p className={style.hint}>{_(".redis_hint")}</p>
-              <div className={style.inlineFact}>
-                <span>{_(".delta_since")}</span>
-                <Timestamp value={redis.deltaSince} />
-              </div>
-              <div className={style.inlineFact}>
-                <span>{_(".sampled_at")}</span>
-                <Timestamp value={redis.sampledAt} />
-              </div>
-            </>
-          )}
-        </Segment>
       )}
     </section>
   );

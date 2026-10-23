@@ -49,9 +49,6 @@ return {
     oldest_queue_hint: "Measured from the earliest overdue scheduled sync; future polling is excluded.",
     worker_heartbeat: "Latest worker heartbeat",
     live_workers: "Live workers",
-    atcoder_session: "AtCoder sync session",
-    checked_at: "Last checked",
-    session_settings: "Update the session in site settings",
     running_tasks: "In progress",
     recent_errors: "Recent errors",
     error_history_hint: "Up to 50 errors per platform are retained for 7 days, including after sync recovers.",
@@ -71,6 +68,9 @@ return {
       parse: "Parse submission list"
     },
     diagnostic_reason: {
+      INVALID_STATUS_RESPONSE: "The status endpoint returned an unexpected structure or judging field.",
+      CHALLENGE_PAGE: "The original site returned a human verification page.",
+      SHARED_COOLDOWN: "Your session is cooling down after verification, authentication failure or rate limiting.",
       MISSING_SUBMISSION_TABLE:
         "The response has no submission table; it may be a login, verification or other unexpected page.",
       UNEXPECTED_TABLE_HEADERS: "Table headers do not match the expected English submission list.",
@@ -89,8 +89,15 @@ return {
       NETWORK_ERROR: "The network connection or response read failed."
     },
     error_summary: {
+      REMOTE_ATCODER_STATUS_FAILED:
+        "The status endpoint returned unexpected data. Saved results are retained while retrying.",
+      REMOTE_VERIFICATION_REQUIRED:
+        "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
+      REMOTE_COOLDOWN:
+        "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
       REMOTE_PARSE_FAILED: "The original submission list could not be parsed; see the reason below.",
-      REMOTE_AUTH_REQUIRED: "The AtCoder session is missing or expired; check site session settings.",
+      REMOTE_AUTH_REQUIRED:
+        "This user’s AtCoder session is missing or expired; update it in their remote account settings.",
       REMOTE_SESSION_UNREADABLE: "The saved AtCoder session could not be read; configure it again.",
       REMOTE_RATE_LIMITED: "The original site rate-limited requests; a retry is scheduled.",
       REMOTE_ACCESS_DENIED: "The original site denied server access.",
@@ -133,7 +140,7 @@ return {
     source_pending_submissions: "Sources queued",
     source_failed_submissions: "Sources awaiting retry",
     source_support: {
-      SiteSession: "Supported with the site session",
+      PersonalSession: "Supported with each user’s session",
       PersonalKey: "Supported with a personal API key",
       Unavailable: "Not integrated"
     },
@@ -141,13 +148,6 @@ return {
       Syncing: "Fetching results",
       Collecting: "Collecting history",
       Importing: "Importing records"
-    },
-    session: {
-      missing: "No session configured. Sync is paused.",
-      unchecked: "Configured; waiting for an original-site check.",
-      valid: "Valid at the latest check.",
-      expired: "The session expired and must be updated.",
-      unavailable: "Temporarily unavailable. Check the reported error."
     }
   },
   no_judge_machine: "No judge machine"

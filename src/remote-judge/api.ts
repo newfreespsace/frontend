@@ -35,6 +35,7 @@ export interface RemoteAccount {
   nextSyncAt?: string;
   lastError?: string;
   importingHistory?: boolean;
+  atcoderSessionConfigured?: boolean;
   codeforcesSourceEnabled?: boolean;
   codeforcesSourceError?: string;
   codeforcesSourceRetryAt?: string;
@@ -61,6 +62,10 @@ export const remoteApi = {
   ),
   verifyBinding: createPostApi<{ platform: SubmissionMethod }, AccountsResponse>("remoteJudge/verifyBinding", false),
   unbind: createPostApi<{ platform: SubmissionMethod }, AccountsResponse>("remoteJudge/unbind", false),
+  setAtcoderSession: createPostApi<{ atcoderSession?: string; clear?: boolean }, AccountsResponse>(
+    "remoteJudge/setAtcoderSession",
+    false
+  ),
   setCodeforcesCredentials: createPostApi<{ apiKey?: string; apiSecret?: string; clear?: boolean }, AccountsResponse>(
     "remoteJudge/setCodeforcesCredentials",
     false

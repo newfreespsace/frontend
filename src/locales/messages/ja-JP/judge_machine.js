@@ -48,9 +48,6 @@ return {
     oldest_queue_hint: "同期予定時刻を過ぎた最古のタスクから計算します。予定時刻前の定期取得は含みません。",
     worker_heartbeat: "最終ワーカーハートビート",
     live_workers: "有効なワーカー",
-    atcoder_session: "AtCoder同期セッション",
-    checked_at: "最終確認",
-    session_settings: "サイト設定でセッションを更新",
     running_tasks: "処理中",
     recent_errors: "最近のエラー",
     error_history_hint: "各プラットフォームの直近50件を最大7日間保持し、同期復旧後も確認できます。",
@@ -70,6 +67,9 @@ return {
       parse: "提出一覧の解析"
     },
     diagnostic_reason: {
+      INVALID_STATUS_RESPONSE: "状態取得の応答形式または判定フィールドが想定外です。",
+      CHALLENGE_PAGE: "元サイトの人間による確認ページを検出しました。",
+      SHARED_COOLDOWN: "認証失敗・確認要求・レート制限により本人のセッションを待機しています。",
       MISSING_SUBMISSION_TABLE: "応答に提出一覧の表がありません。認証・検証ページなど別のページの可能性があります。",
       UNEXPECTED_TABLE_HEADERS: "提出表の見出しが想定と異なります（英語ページを想定）。",
       LOGIN_PAGE: "ログインページが返されました。",
@@ -87,8 +87,13 @@ return {
       NETWORK_ERROR: "ネットワーク接続または応答の読み取りに失敗しました。"
     },
     error_summary: {
+      REMOTE_ATCODER_STATUS_FAILED: "状態取得の応答を解析できません。取得済み結果を保持して再試行します。",
+      REMOTE_VERIFICATION_REQUIRED:
+        "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
+      REMOTE_COOLDOWN: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
       REMOTE_PARSE_FAILED: "提出一覧を解析できません。詳細な理由を確認してください。",
-      REMOTE_AUTH_REQUIRED: "AtCoderセッションが未設定または失効しています。",
+      REMOTE_AUTH_REQUIRED:
+        "このユーザーのAtCoderセッションが未設定または失効しています。本人の連携アカウント設定で更新してください。",
       REMOTE_SESSION_UNREADABLE: "保存されたAtCoderセッションを読み取れません。再設定してください。",
       REMOTE_RATE_LIMITED: "元サイトのレート制限に達しました。再試行を予定しています。",
       REMOTE_ACCESS_DENIED: "元サイトがサーバーのアクセスを拒否しました。",
@@ -129,7 +134,7 @@ return {
     source_pending_submissions: "ソース取得待ち",
     source_failed_submissions: "ソース再試行待ち",
     source_support: {
-      SiteSession: "サイト専用セッションで利用可能",
+      PersonalSession: "本人のセッションで利用可能",
       PersonalKey: "個人APIキーの設定で利用可能",
       Unavailable: "未対応"
     },
@@ -137,13 +142,6 @@ return {
       Syncing: "原サイトを取得中",
       Collecting: "履歴を収集中",
       Importing: "記録を取り込み中"
-    },
-    session: {
-      missing: "セッション未設定のため同期を停止しています。",
-      unchecked: "設定済み、原サイトでの確認待ちです。",
-      valid: "直近の確認では有効です。",
-      expired: "セッションの更新が必要です。",
-      unavailable: "一時的に利用できません。エラーを確認してください。"
     }
   },
   no_judge_machine: "ジャッジサーバーは現在ありません。"
