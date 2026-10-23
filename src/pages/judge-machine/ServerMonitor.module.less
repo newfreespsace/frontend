@@ -1,0 +1,73 @@
+.section {
+  margin-top: 32px;
+}
+.header,
+.controls,
+.metrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.header > :global(.header) {
+  margin: 0 !important;
+}
+.hint {
+  color: #767676;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.metrics {
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.metrics span,
+.metrics small,
+.updated {
+  color: #767676;
+}
+.metrics strong {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.updated {
+  margin-left: auto;
+  align-items: flex-end;
+  font-size: 12px;
+}
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.chart {
+  height: 220px;
+  position: relative;
+}
+.server > .hint {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+@media (max-width: 767px) {
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .updated {
+    margin-left: 0;
+    align-items: flex-start;
+  }
+  .controls {
+    flex-wrap: wrap;
+  }
+}

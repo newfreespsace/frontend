@@ -12,6 +12,7 @@ import { defineRoute, RouteError } from "@/AppRouter";
 import { onEnterPress } from "@/utils/onEnterPress";
 import { EmojiRenderer } from "@/components/EmojiRenderer";
 import RemoteJudgeMonitor from "./RemoteJudgeMonitor";
+import ServerMonitor from "./ServerMonitor";
 
 interface JudgeClientSystemInfo {
   os: string;
@@ -270,6 +271,7 @@ let JudgeMachinePage: React.FC<JudgeMachinePageProps> = props => {
           </Table.Body>
         </Table>
       )}
+      <ServerMonitor locale={appState.locale} />
       <RemoteJudgeMonitor isAdmin={!!props.hasManagePermission} />
     </>
   );

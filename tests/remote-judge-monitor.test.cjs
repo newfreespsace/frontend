@@ -19,7 +19,7 @@ for (const [key, value] of Object.entries({
 const React = require("react");
 const { act } = React;
 const { createRoot } = require("react-dom/client");
-let Monitor, JudgePage, root, calls, response, visibility, timers, serial;
+let Monitor, JudgePage, ServerMonitor, root, calls, response, visibility, timers, serial, serverCalls, serverResponse;
 const originalSetInterval = global.setInterval,
   originalClearInterval = global.clearInterval;
 const container = document.getElementById("root");
@@ -33,6 +33,9 @@ before(async () => {
     }
   };
   const mocks = {
+    "./server-monitor-api": "exports.getServerMonitor = query => global.__monitorTest.readServer(query);",
+    "react-chartjs-2":
+      "const React = require('react'); exports.Line = props => React.createElement('canvas', {'aria-label':props['aria-label'], 'data-points':JSON.stringify(props.data.datasets[0].data)});",
     "@/remote-judge/monitor-api": "exports.getRemoteMonitor = () => global.__monitorTest.read();",
     "@/utils/hooks": `const React=require('react'); exports.useLocalizer=()=> (key,params)=>key+(params?JSON.stringify(params):''); exports.Link=({href,children,...props})=>React.createElement('a',{...props,href},children); exports.useNavigationChecked=()=>({refresh(){}}); exports.useAsyncCallbackPending=fn=>[false,fn];`,
     "@/components/TimeAgo":
@@ -47,7 +50,7 @@ before(async () => {
   };
   const bundle = await esbuild.build({
     stdin: {
-      contents: `export {default as Monitor} from './src/pages/judge-machine/RemoteJudgeMonitor'; export {JudgeMachinePage as JudgePage} from './src/pages/judge-machine/JudgeMachinePage';`,
+      contents: `export {default as Monitor} from './src/pages/judge-machine/RemoteJudgeMonitor'; export {JudgeMachinePage as JudgePage} from './src/pages/judge-machine/JudgeMachinePage'; export {default as ServerMonitor} from './src/pages/judge-machine/ServerMonitor';`,
       resolveDir: path.resolve(__dirname, ".."),
       loader: "tsx"
     },
@@ -83,7 +86,7 @@ before(async () => {
   const compiled = new Module(__filename, module);
   compiled.paths = module.paths;
   compiled._compile(bundle.outputFiles[0].text, __filename);
-  ({ Monitor, JudgePage } = compiled.exports);
+  ({ Monitor, JudgePage, ServerMonitor } = compiled.exports);
 });
 
 const account = {
@@ -172,6 +175,26 @@ beforeEach(() => {
   global.__monitorTest.read = async () => {
     calls++;
     return { response };
+  };
+  serverCalls = [];
+  const at = Date.now();
+  serverResponse = {
+    unavailable: false,
+    bucketSeconds: 10,
+    servers: [
+      {
+        id: "test-host",
+        latest: { at, cpuPercent: 25, memoryPercent: 50, memoryUsedBytes: 1024 ** 3, memoryTotalBytes: 2 * 1024 ** 3 },
+        points: [
+          { at: at - 10000, cpuPercent: null, memoryPercent: null },
+          { at, cpuPercent: 25, memoryPercent: 50 }
+        ]
+      }
+    ]
+  };
+  global.__monitorTest.readServer = async query => {
+    serverCalls.push(query);
+    return { response: serverResponse };
   };
 });
 afterEach(async () => {
@@ -380,4 +403,84 @@ test("verification and shared cooldown errors have specific administrator explan
   assert.match(card.textContent, /diagnostic_reason.CHALLENGE_PAGE/);
   assert.match(card.textContent, /error_summary.REMOTE_COOLDOWN/);
   assert.match(card.textContent, /diagnostic_reason.SHARED_COOLDOWN/);
+});
+
+const renderServer = async () => act(async () => root.render(React.createElement(ServerMonitor, { locale: "zh-CN" })));
+const tickServer = async () =>
+  act(async () => {
+    for (const { fn, ms } of timers.values()) if (ms === 15000) fn();
+  });
+
+test("server resources show current usage, two chart series and missing samples", async () => {
+  await renderServer();
+  assert.match(container.textContent, /25.0%/);
+  assert.match(container.textContent, /50.0%/);
+  assert.match(container.textContent, /1.00 \/ 2.00 GiB/);
+  assert.equal(container.querySelectorAll("canvas").length, 2);
+  const cpu = JSON.parse(container.querySelector('canvas[aria-label=".cpu"]').dataset.points);
+  assert.equal(cpu[0].y, null);
+  assert.equal(cpu[1].y, 25);
+  assert.deepEqual(serverCalls, [{ hours: 1 }]);
+});
+
+test("server range controls request the selected range and polling pauses when hidden", async () => {
+  await renderServer();
+  await click([...container.querySelectorAll("button")].find(button => button.textContent === ".range_24"));
+  assert.deepEqual(serverCalls, [{ hours: 1 }, { hours: 24 }]);
+  await tickServer();
+  assert.equal(serverCalls.length, 3);
+  await visible("hidden");
+  await tickServer();
+  assert.equal(serverCalls.length, 3);
+  await visible("visible");
+  assert.equal(serverCalls.length, 4);
+  assert.equal(timers.size, 1);
+});
+
+test("stale server data never displays current usage and outages retain historical charts", async () => {
+  serverResponse.servers[0].latest.at = Date.now() - 60000;
+  await renderServer();
+  assert.match(container.textContent, /stale/);
+  assert.doesNotMatch(container.textContent, /25.0%/);
+  global.__monitorTest.readServer = async () => {
+    throw new Error("unavailable");
+  };
+  await tickServer();
+  assert.match(container.textContent, /unavailable/);
+  assert.equal(container.querySelectorAll("canvas").length, 2);
+});
+
+test("late server responses cannot replace the newly selected range", async () => {
+  const pending = [];
+  global.__monitorTest.readServer = query => {
+    serverCalls.push(query);
+    return new Promise(resolve => pending.push(resolve));
+  };
+  await renderServer();
+  await tickServer();
+  assert.equal(pending.length, 1);
+  await click([...container.querySelectorAll("button")].find(button => button.textContent === ".range_6"));
+  const old = structuredClone(serverResponse);
+  old.servers[0].latest.cpuPercent = 99;
+  await act(async () => pending[1]({ response: serverResponse }));
+  await act(async () => pending[0]({ response: old }));
+  assert.match(container.textContent, /25.0%/);
+  assert.doesNotMatch(container.textContent, /99.0%/);
+});
+
+test("empty server history shows a waiting state", async () => {
+  serverResponse.servers = [];
+  await renderServer();
+  assert.match(container.textContent, /empty/);
+  assert.equal(container.querySelectorAll("canvas").length, 0);
+});
+
+test("a failed manual resource refresh retains the last chart", async () => {
+  await renderServer();
+  global.__monitorTest.readServer = async () => {
+    throw new Error("unavailable");
+  };
+  await click(container.querySelector('button[aria-label=".refresh"]'));
+  assert.match(container.textContent, /unavailable/);
+  assert.equal(container.querySelectorAll("canvas").length, 2);
 });

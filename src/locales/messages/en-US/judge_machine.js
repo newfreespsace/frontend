@@ -1,4 +1,21 @@
 return {
+  server: {
+    title: "Backend server resources",
+    cpu: "CPU usage",
+    memory: "Memory usage",
+    refresh: "Refresh resource monitor",
+    range_1: "Last hour",
+    range_6: "Last 6 hours",
+    range_24: "Last 24 hours",
+    hint: "Sampled every 10 seconds, retained for 24 hours, refreshed every 15 seconds. Shows system resources visible to the backend; container deployments do not show usage relative to container quotas. Linux memory usage is total minus available memory.",
+    resolution_10: "Each point is one sample. Missing samples appear as gaps.",
+    resolution_60: "Each point is a one-minute average. Missing samples appear as gaps.",
+    resolution_120: "Each point is a two-minute average. Missing samples appear as gaps.",
+    unavailable: "Resource updates are unavailable. The last successfully loaded charts are retained.",
+    empty: "Waiting for the first sample. CPU usage appears after two samples.",
+    stale: "Out of date",
+    live: "Updating"
+  },
   title: "Judge Machine",
   header: "Judge Machine",
   refresh: "Refresh",
