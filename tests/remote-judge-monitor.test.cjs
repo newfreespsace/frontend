@@ -311,6 +311,38 @@ test("administrators see parse details and retained errors after the account rec
   );
 });
 
+test("CF request failures show their curl command with source credentials guidance", async () => {
+  const cf = response.platforms[0];
+  const details = {
+    stage: "request",
+    reason: "TIMEOUT",
+    request: {
+      url: "https://codeforces.com/api/user.status?handle=coder&from=41&count=20&includeSources=true",
+      command: 'curl --request GET --max-time 20 "$CF_REQUEST_URL"'
+    }
+  };
+  cf.admin.errors = [{ ...account, sourceError: null, lastError: "REMOTE_UNAVAILABLE", lastErrorDetails: details }];
+  await render({ isAdmin: true });
+  const card = container.querySelector('[data-platform="Codeforces"]');
+  await click(card.querySelector("button[aria-expanded]"));
+  assert.equal(card.querySelector("pre code").textContent, details.request.command);
+  assert.match(card.textContent, /diagnostic_reason.TIMEOUT/);
+  assert.match(card.textContent, /failure_request_hint_cf_source/);
+  details.request.url = details.request.url.replace("&includeSources=true", "");
+  await tick();
+  assert.match(card.textContent, /failure_request_hint_cf_public/);
+  assert.doesNotMatch(card.textContent, /failure_request_hint_cf_source/);
+  details.request.url += "&includeSources=true";
+  cf.admin.errors = [
+    { ...account, lastError: null, sourceError: "REMOTE_CF_SOURCE_MISSING", sourceErrorDetails: details }
+  ];
+  await tick();
+  assert.equal(card.querySelector("pre code").textContent, details.request.command);
+  assert.match(card.textContent, /failure_request_hint_cf_source/);
+  await render({ isAdmin: false });
+  assert.doesNotMatch(container.textContent, /CF_REQUEST_URL|curl|failure_request_hint_cf/);
+});
+
 test("unavailable error history is distinguished from an empty error history", async () => {
   response.platforms[1].admin.errorHistoryAvailable = false;
   await render({ isAdmin: true });

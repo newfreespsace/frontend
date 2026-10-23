@@ -55,6 +55,11 @@ function AccountLink({ account }: { account: Pick<MonitorAccount, "userId" | "us
 
 function ErrorDetails({ error, details }: { error: string; details?: RemoteErrorDetails }) {
   const _ = useLocalizer("judge_machine.remote");
+  const requestHint = details?.request?.url.startsWith("https://codeforces.com/")
+    ? details.request.url.includes("includeSources=true")
+      ? ".failure_request_hint_cf_source"
+      : ".failure_request_hint_cf_public"
+    : ".failure_request_hint";
   const knownErrors = [
     "REMOTE_PARSE_FAILED",
     "REMOTE_VERIFICATION_REQUIRED",
@@ -108,7 +113,7 @@ function ErrorDetails({ error, details }: { error: string; details?: RemoteError
           <pre>
             <code>{details.request.command}</code>
           </pre>
-          <span className={style.muted}>{_(".failure_request_hint")}</span>
+          <span className={style.muted}>{_(requestHint)}</span>
         </div>
       )}
     </div>
@@ -245,7 +250,7 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
                       {account.sourceError && (
                         <div className={style.errorEntry}>
                           <strong>{_(".source_error")}</strong>
-                          <ErrorDetails error={account.sourceError} />
+                          <ErrorDetails error={account.sourceError} details={account.sourceErrorDetails} />
                           <div className={style.inlineFact}>
                             <span>{_(".occurred_at")}</span>
                             <Timestamp value={account.sourceErrorAt} />

@@ -22,6 +22,7 @@ export interface MonitorAccount {
   sourceErrorAt: string | null;
   sourceRetryAt: string | null;
   lastErrorDetails?: RemoteErrorDetails;
+  sourceErrorDetails?: RemoteErrorDetails;
 }
 export interface RemoteErrorDetails {
   stage?: string;

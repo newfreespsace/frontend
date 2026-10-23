@@ -78,6 +78,9 @@ return {
     failure_request: "リクエストコマンド（curl）",
     failure_request_hint:
       "実行前に、環境変数 ATCODER_REVEL_SESSION に自分の AtCoder セッションを設定してください。実際の Cookie はここには含まれません。",
+    failure_request_hint_cf_source:
+      "実行前に、自分の CODEFORCES_API_KEY と CODEFORCES_API_SECRET を環境変数に設定してください。Node.js が必要です。新しいタイムスタンプと署名を自動生成し、実際のキーはここには含まれません。",
+    failure_request_hint_cf_public: "Codeforces の公開 API を呼び出すコマンドです。キーは不要です。",
     diagnostic_stage: {
       lock: "リクエストロック",
       rate_limit: "レート制限待機",

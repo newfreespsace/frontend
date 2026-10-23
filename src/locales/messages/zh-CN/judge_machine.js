@@ -78,6 +78,9 @@ return {
     failure_request: "请求命令（curl）",
     failure_request_hint:
       "执行命令前，请在终端将 ATCODER_REVEL_SESSION 环境变量设为本人的 AtCoder 会话。此处不包含真实 Cookie。",
+    failure_request_hint_cf_source:
+      "执行前，请设置本人的 CODEFORCES_API_KEY 和 CODEFORCES_API_SECRET 环境变量。命令需要 Node.js，会自动生成新的时间戳和签名；此处不包含真实密钥。",
+    failure_request_hint_cf_public: "此命令请求 Codeforces 公开 API，无需密钥。",
     diagnostic_stage: {
       lock: "等待请求锁",
       rate_limit: "等待请求限速",

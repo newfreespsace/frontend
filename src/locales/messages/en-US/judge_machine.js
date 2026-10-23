@@ -79,6 +79,9 @@ return {
     failure_request: "Request command (curl)",
     failure_request_hint:
       "Before running, set the ATCODER_REVEL_SESSION environment variable to your own AtCoder session. The actual cookie is not included here.",
+    failure_request_hint_cf_source:
+      "Set CODEFORCES_API_KEY and CODEFORCES_API_SECRET to your own credentials before running. This command requires Node.js and generates a fresh timestamp and signature. No actual keys are included here.",
+    failure_request_hint_cf_public: "This command calls the public Codeforces API and requires no keys.",
     diagnostic_stage: {
       lock: "Request lock",
       rate_limit: "Request rate limit",
