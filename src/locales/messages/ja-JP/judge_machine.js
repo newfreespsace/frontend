@@ -84,13 +84,13 @@ return {
       request: "元サイトへのリクエスト",
       body: "応答読み取り",
       unlock: "ロック解除",
-      parse: "提出一覧の解析"
+      parse: "元サイトの応答の解析"
     },
     diagnostic_reason: {
       INVALID_STATUS_RESPONSE: "状態取得の応答形式または判定フィールドが想定外です。",
       CHALLENGE_PAGE: "元サイトの人間による確認ページを検出しました。",
       SHARED_COOLDOWN: "認証失敗・確認要求・レート制限により本人のセッションを待機しています。",
-      MISSING_SUBMISSION_TABLE: "応答に提出一覧の表がありません。認証・検証ページなど別のページの可能性があります。",
+      MISSING_SUBMISSION_TABLE: "応答に提出情報の表がありません。認証・検証ページなど別のページの可能性があります。",
       UNEXPECTED_TABLE_HEADERS: "提出表の見出しが想定と異なります（英語ページを想定）。",
       LOGIN_PAGE: "ログインページが返されました。",
       INVALID_TASK_LINK: "問題リンクまたはコンテストが一致しません。",
@@ -111,7 +111,7 @@ return {
       REMOTE_VERIFICATION_REQUIRED:
         "元サイトで人間による確認が必要です。本人のリクエストを一時停止しています。AtCoderでログインと確認状態を確認してください。",
       REMOTE_COOLDOWN: "本人のAtCoderセッションの待機時間中です。自動で再開し、取得済み結果は保持します。",
-      REMOTE_PARSE_FAILED: "提出一覧を解析できません。詳細な理由を確認してください。",
+      REMOTE_PARSE_FAILED: "提出情報を解析できません。詳細な理由を確認してください。",
       REMOTE_AUTH_REQUIRED:
         "このユーザーのAtCoderセッションが未設定または失効しています。本人の連携アカウント設定で更新してください。",
       REMOTE_SESSION_UNREADABLE: "保存されたAtCoderセッションを読み取れません。再設定してください。",

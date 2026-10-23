@@ -85,7 +85,7 @@ return {
       request: "Original-site request",
       body: "Read response",
       unlock: "Release request lock",
-      parse: "Parse submission list"
+      parse: "Parse original-site response"
     },
     diagnostic_reason: {
       INVALID_STATUS_RESPONSE: "The status endpoint returned an unexpected structure or judging field.",
@@ -115,7 +115,7 @@ return {
         "AtCoder requires human verification. Your requests are paused; check your login and verification in AtCoder.",
       REMOTE_COOLDOWN:
         "Your AtCoder session is cooling down. Requests resume automatically; saved results are retained.",
-      REMOTE_PARSE_FAILED: "The original submission list could not be parsed; see the reason below.",
+      REMOTE_PARSE_FAILED: "The original submission information could not be parsed; see the reason below.",
       REMOTE_AUTH_REQUIRED:
         "This user’s AtCoder session is missing or expired; update it in their remote account settings.",
       REMOTE_SESSION_UNREADABLE: "The saved AtCoder session could not be read; configure it again.",
