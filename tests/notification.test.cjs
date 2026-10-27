@@ -111,10 +111,11 @@ test("notification clicks always open this site's authenticated notification cen
   await f.dispatch("notificationclick", message);
   assert.equal(f.navigated.length, 1);
 });
-function pushFixture() {
+function pushFixture(timers = { setTimeout, clearTimeout }) {
   let saved = { ...binding },
     token = "alice-token";
   const calls = [],
+    warnings = [],
     appState = { currentUser: { id: 2 }, token };
   const subscription = {
     toJSON: () => ({
@@ -157,8 +158,8 @@ function pushFixture() {
     Notification,
     indexedDB: {},
     dispatchEvent() {},
-    setTimeout,
-    clearTimeout
+    setTimeout: timers.setTimeout,
+    clearTimeout: timers.clearTimeout
   };
   const navigator = { serviceWorker: { register: async () => registered, getRegistration: async () => registered } };
   const preferences = new Map();
@@ -179,6 +180,7 @@ function pushFixture() {
     setTimeout,
     clearTimeout,
     Event,
+    console: { warn: (...args) => warnings.push(args) },
     require: name =>
       ({
         "@/appState": { appState },
@@ -194,6 +196,9 @@ function pushFixture() {
     api,
     appState,
     registered,
+    navigator,
+    subscription,
+    warnings,
     Notification,
     prompt,
     getSaved: () => saved,
@@ -284,6 +289,219 @@ test("account changes while native permission is pending never subscribe the new
   await assert.rejects(() => pending, /push_error/);
   assert.equal(f.calls.includes("bind"), false);
   assert.equal(f.prompt.readPushPromptPreference(3), null);
+});
+
+function pushTimers() {
+  const pending = new Map();
+  let nextId = 0;
+  return {
+    pending,
+    setTimeout: (callback, delay) => {
+      const id = ++nextId;
+      pending.set(id, { callback, delay });
+      return id;
+    },
+    clearTimeout: id => pending.delete(id),
+    expire: delay => {
+      for (const [id, timer] of pending) {
+        if (timer.delay !== delay) continue;
+        pending.delete(id);
+        timer.callback();
+      }
+    }
+  };
+}
+
+for (const scenario of [
+  {
+    name: "permission",
+    key: "push_permission_timeout",
+    delay: 60000,
+    hang: f => (f.Notification.requestPermission = () => new Promise(() => {}))
+  },
+  {
+    name: "worker registration",
+    key: "push_worker_timeout",
+    delay: 15000,
+    hang: f => (f.navigator.serviceWorker.register = () => new Promise(() => {}))
+  },
+  {
+    name: "reading an existing subscription",
+    key: "push_subscription_timeout",
+    delay: 15000,
+    hang: f => (f.registered.pushManager.getSubscription = () => new Promise(() => {}))
+  },
+  {
+    name: "reading server configuration",
+    key: "push_server_timeout",
+    delay: 15000,
+    hang: f => (f.api.pushStatus = () => new Promise(() => {}))
+  },
+  {
+    name: "saving a server binding",
+    key: "push_server_timeout",
+    delay: 15000,
+    hang: f => (f.api.bindPush = () => new Promise(() => {}))
+  }
+]) {
+  test(`a stalled ${scenario.name} stops enabling with the matching timeout`, async () => {
+    const timers = pushTimers();
+    const f = pushFixture(timers);
+    scenario.hang(f);
+    const pending = f.enableBrowserPush();
+    const rejected = assert.rejects(pending, new RegExp(scenario.key));
+    await new Promise(setImmediate);
+    assert.equal(timers.pending.size, 1);
+    timers.expire(scenario.delay);
+    await rejected;
+    assert.equal(f.calls.includes("save"), false);
+    assert.equal(f.calls.includes("bind"), false);
+    assert.equal(timers.pending.size, 0);
+  });
+}
+
+test("a subscription that completes after timeout never binds or saves ownership", async () => {
+  const timers = pushTimers();
+  const f = pushFixture(timers);
+  let resolveSubscription;
+  f.registered.pushManager.getSubscription = async () => null;
+  f.registered.pushManager.subscribe = () => new Promise(resolve => (resolveSubscription = resolve));
+  const pending = f.enableBrowserPush();
+  const rejected = assert.rejects(pending, /push_subscription_timeout/);
+  await new Promise(setImmediate);
+  assert.equal(typeof resolveSubscription, "function");
+  timers.expire(30000);
+  await rejected;
+  resolveSubscription(f.subscription);
+  await new Promise(setImmediate);
+  assert.equal(f.calls.includes("bind"), false);
+  assert.equal(f.calls.includes("save"), false);
+  assert.equal(timers.pending.size, 0);
+});
+
+test("worker activation timeout removes the listener and never creates a binding", async () => {
+  const timers = pushTimers();
+  const f = pushFixture(timers);
+  const listeners = new Set();
+  f.registered.active = null;
+  f.registered.installing = {
+    state: "installing",
+    addEventListener: (_, listener) => listeners.add(listener),
+    removeEventListener: (_, listener) => listeners.delete(listener)
+  };
+  const pending = f.enableBrowserPush();
+  const rejected = assert.rejects(pending, /push_worker_timeout/);
+  await new Promise(setImmediate);
+  assert.equal(listeners.size, 1);
+  timers.expire(15000);
+  await rejected;
+  assert.equal(listeners.size, 0);
+  assert.equal(f.calls.includes("bind"), false);
+});
+
+test("subscription failures expose the stage and log no provider details or subscription secrets", async () => {
+  const f = pushFixture();
+  f.registered.pushManager.getSubscription = async () => null;
+  f.registered.pushManager.subscribe = async () => {
+    const error = new Error("provider response containing a private endpoint and secret");
+    error.name = "AbortError";
+    throw error;
+  };
+  await assert.rejects(f.enableBrowserPush(), /push_subscription_error/);
+  assert.equal(f.browserPushErrorKey(new Error("push_subscription_error")), "push_subscription_error");
+  assert.equal(f.browserPushErrorKey(new Error("unknown private detail")), "push_error");
+  assert.equal(f.warnings.length, 1);
+  assert.equal(JSON.stringify(f.warnings), '[["[BrowserPush] subscription failed","AbortError"]]');
+  assert.equal(f.calls.includes("bind"), false);
+});
+
+test("offline browsers fail before asking for permission or creating a binding", async () => {
+  const f = pushFixture();
+  f.navigator.onLine = false;
+  let requested = false;
+  f.Notification.requestPermission = async () => {
+    requested = true;
+    return "granted";
+  };
+  await assert.rejects(f.enableBrowserPush(), /push_network_error/);
+  assert.equal(requested, false);
+  assert.equal(f.calls.includes("bind"), false);
+  assert.equal(f.calls.includes("save"), false);
+  assert.equal(f.prompt.readPushPromptPreference(2), null);
+});
+
+test("native network failures and denied permission have distinct subscription messages", async () => {
+  for (const [name, key] of [
+    ["NetworkError", "push_network_error"],
+    ["NotAllowedError", "push_denied"],
+    ["AbortError", "push_subscription_error"],
+    ["TypeError", "push_subscription_error"]
+  ]) {
+    const f = pushFixture();
+    f.registered.pushManager.getSubscription = async () => null;
+    f.registered.pushManager.subscribe = async () => {
+      const error = new Error("private provider details");
+      error.name = name;
+      throw error;
+    };
+    await assert.rejects(f.enableBrowserPush(), new RegExp(key));
+    assert.equal(f.browserPushErrorKey(new Error(key)), key);
+    assert.equal(f.calls.includes("bind"), false);
+    assert.equal(JSON.stringify(f.warnings).includes("private provider details"), false);
+  }
+});
+
+test("a login change while creating a native subscription never calls bindPush", async () => {
+  const f = pushFixture();
+  f.registered.pushManager.getSubscription = async () => null;
+  f.registered.pushManager.subscribe = async () => {
+    f.setToken("bob-token");
+    f.appState.currentUser.id = 3;
+    return f.subscription;
+  };
+  await assert.rejects(f.enableBrowserPush(), /push_error/);
+  assert.equal(f.calls.includes("bind"), false);
+  assert.equal(f.calls.includes("save"), false);
+});
+
+test("a stalled replacement subscription also times out without retrying the server binding", async () => {
+  const timers = pushTimers();
+  const f = pushFixture(timers);
+  f.api.bindPush = async () => {
+    f.calls.push("bind");
+    return { requestError: "conflict" };
+  };
+  f.registered.pushManager.subscribe = () => new Promise(() => {});
+  const pending = f.enableBrowserPush();
+  const rejected = assert.rejects(pending, /push_subscription_timeout/);
+  await new Promise(setImmediate);
+  timers.expire(30000);
+  await rejected;
+  assert.equal(f.calls.filter(call => call === "bind").length, 1);
+  assert.equal(f.calls.includes("save"), false);
+  assert.equal(f.getSaved(), null);
+});
+
+test("a failed configuration request is not reported as a site missing push configuration", async () => {
+  const f = pushFixture();
+  f.api.pushStatus = async () => ({ requestError: "network failure" });
+  await assert.rejects(f.enableBrowserPush(), /push_error/);
+  assert.equal(f.calls.includes("bind"), false);
+});
+
+test("a stalled notification cleanup cannot leave a new account's enable attempt spinning", async () => {
+  const timers = pushTimers();
+  const f = pushFixture(timers);
+  f.appState.currentUser.id = 3;
+  f.registered.getNotifications = () => new Promise(() => {});
+  const pending = f.enableBrowserPush();
+  const rejected = assert.rejects(pending, /push_worker_timeout/);
+  await new Promise(setImmediate);
+  timers.expire(15000);
+  await rejected;
+  assert.equal(f.getSaved(), null);
+  assert.equal(f.calls.includes("bind"), false);
+  assert.equal(f.calls.includes("save"), false);
 });
 
 function promptFixture(storage = new Map()) {

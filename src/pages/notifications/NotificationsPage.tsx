@@ -21,6 +21,7 @@ function NotificationsPage({ openId }: { openId?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<NotificationItem>(null);
+  const [deleteTarget, setDeleteTarget] = useState<NotificationItem>(null);
   const [revision, setRevision] = useState(0);
   const requestNumber = useRef(0);
   useEffect(() => {
@@ -44,6 +45,20 @@ function NotificationsPage({ openId }: { openId?: string }) {
       stopped = true;
     };
   }, [page, unreadOnly, revision, notificationState.revision]);
+  useEffect(() => {
+    if (!selected) return;
+    let stopped = false;
+    const id = selected.id;
+    // Revalidate an open detail after changes from another tab or device.
+    void notificationApi.get({ id }).then(result => {
+      if (stopped || result.response) return;
+      setSelected(current => (current?.id === id ? null : current));
+      setError(_(".unavailable"));
+    });
+    return () => {
+      stopped = true;
+    };
+  }, [selected?.id, notificationState.revision]);
   const markRead = async (item?: NotificationItem) => {
     setBusy(true);
     try {
@@ -65,6 +80,30 @@ function NotificationsPage({ openId }: { openId?: string }) {
   const open = (item: NotificationItem) => {
     setSelected(item);
     if (!item.readAt) void markRead(item);
+  };
+  const deleteReceived = async () => {
+    if (!deleteTarget || busy) return;
+    const id = deleteTarget.id;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await notificationApi.deleteReceived({ id });
+      if (!result.response) {
+        setError(_(".error"));
+        return;
+      }
+      runInAction(() => {
+        notificationState.unread = result.response.count;
+        notificationState.revision++;
+      });
+      setSelected(current => (current?.id === id ? null : current));
+      setDeleteTarget(null);
+      setRevision(value => value + 1);
+    } catch {
+      setError(_(".error"));
+    } finally {
+      setBusy(false);
+    }
   };
   useEffect(() => {
     if (!openId || !/^[0-9a-f-]{36}$/i.test(openId)) return;
@@ -125,6 +164,9 @@ function NotificationsPage({ openId }: { openId?: string }) {
           <Button size="small" onClick={() => open(item)}>
             {_(".open")}
           </Button>
+          <Button size="small" basic color="red" disabled={busy} onClick={() => setDeleteTarget(item)}>
+            {_(".delete")}
+          </Button>
         </Segment>
       ))}
       {total > 20 && (
@@ -139,12 +181,49 @@ function NotificationsPage({ openId }: { openId?: string }) {
         </div>
       )}
       <PushSettings />
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => {
+          if (!busy) setDeleteTarget(null);
+        }}
+        size="small"
+        closeOnDimmerClick={!busy}
+        closeOnEscape={!busy}
+      >
+        <Modal.Header>{_(".delete_confirm_title")}</Modal.Header>
+        <Modal.Content>
+          <p>{_(".delete_confirm_description")}</p>
+          <div className={style.messageBody}>{deleteTarget?.body}</div>
+          {error && <Message negative content={error} />}
+        </Modal.Content>
+        <Modal.Actions>
+          <Button disabled={busy} onClick={() => setDeleteTarget(null)}>
+            {_(".cancel")}
+          </Button>
+          <Button negative loading={busy} disabled={busy} onClick={() => void deleteReceived()}>
+            {_(".delete")}
+          </Button>
+        </Modal.Actions>
+      </Modal>
       <Modal open={!!selected} onClose={() => setSelected(null)} size="small" closeIcon>
         <Modal.Header>{_(".open")}</Modal.Header>
         <Modal.Content>
           <div className={style.messageBody}>{selected?.body}</div>
         </Modal.Content>
         <Modal.Actions>
+          {selected && (
+            <Button
+              basic
+              color="red"
+              disabled={busy}
+              onClick={() => {
+                setDeleteTarget(selected);
+                setSelected(null);
+              }}
+            >
+              {_(".delete")}
+            </Button>
+          )}
           {selected && !selected.readAt && (
             <Button
               disabled={busy}

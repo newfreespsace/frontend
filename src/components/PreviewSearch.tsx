@@ -1,4 +1,4 @@
-import React, { useState, useRef, PropsWithChildren } from "react";
+import React, { useState, useRef, useEffect, PropsWithChildren } from "react";
 import { Search } from "semantic-ui-react";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -9,6 +9,7 @@ import { onEnterPress } from "@/utils/onEnterPress";
 
 interface PreviewSearchProps<T> {
   className?: string;
+  disabled?: boolean;
   placeholder: string;
   noResultsMessage: string;
   onGetResultKey: (result: T) => React.Key;
@@ -48,13 +49,19 @@ const PreviewSearch = <T extends {}>(props: PropsWithChildren<PreviewSearchProps
 
   const [hideResults, setHideResults] = useState(true);
   const navigation = useNavigationChecked();
-  navigation.subscribe(route => route.type === "ready" && !hideResults && setHideResults(true));
+  useEffect(() => {
+    const subscription = navigation.subscribe(route => {
+      if (route.type === "ready") setHideResults(true);
+    });
+    return () => subscription.unsubscribe();
+  }, [navigation]);
 
   const isMobile = useScreenWidthWithin(0, 768);
 
   return (
     <Search
       className={style.search + (props.className ? " " + props.className : "")}
+      disabled={props.disabled}
       placeholder={props.placeholder}
       value={searchKeyword}
       noResultsMessage={props.noResultsMessage}

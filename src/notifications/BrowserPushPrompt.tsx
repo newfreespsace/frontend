@@ -9,7 +9,7 @@ import toast from "@/utils/toast";
 
 import { notificationApi } from "./api";
 import { browserBinding } from "./binding";
-import { browserPushSupported, enableBrowserPush } from "./push";
+import { browserPushErrorKey, browserPushSupported, enableBrowserPush } from "./push";
 import {
   PUSH_PROMPT_CHANGED_EVENT,
   PUSH_PROMPT_STORAGE_PREFIX,
@@ -103,11 +103,8 @@ function BrowserPushPrompt() {
       await enableBrowserPush();
     } catch (failure) {
       if (getAuthToken() !== token) return;
-      const key = (failure as Error).message;
-      if (key !== "push_deferred")
-        toast.warning(
-          _(["push_unsupported", "push_denied", "push_unconfigured"].includes(key) ? "." + key : ".push_error")
-        );
+      const key = browserPushErrorKey(failure);
+      if (key !== "push_deferred") toast.warning(_("." + key));
     } finally {
       busyRef.current = false;
       setBusy(false);

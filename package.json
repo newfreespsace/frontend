@@ -162,7 +162,7 @@
     "test:legacy": "node --test tests/legacy-build.test.cjs",
     "test:remote-judge": "node --test tests/remote-judge.test.cjs tests/remote-judge-monitor.test.cjs",
     "test:judge-pages": "node --test tests/judge-pages.test.cjs",
-    "test:notifications": "node --test tests/notification.test.cjs"
+    "test:notifications": "node --test tests/notification.test.cjs tests/notification-deletion.test.cjs"
   },
   "resolutions": {
     "@babel/core": "7.29.7",

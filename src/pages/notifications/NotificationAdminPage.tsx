@@ -1,23 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { Button, Checkbox, Form, Header, Label, Loader, Message, Modal, Segment } from "semantic-ui-react";
+import { Button, Checkbox, Form, Header, Label, List, Loader, Message, Modal, Segment } from "semantic-ui-react";
 import { v4 as uuid } from "uuid";
 
 import { defineRoute, RouteError } from "@/AppRouter";
 import { appState } from "@/appState";
 import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
+import UserSearch from "@/components/UserSearch";
+import GroupSearch from "@/components/GroupSearch";
 import { notificationApi, NotificationHistoryItem, SendNotification } from "@/notifications/api";
+import { notificationState } from "@/notifications/state";
 import style from "@/notifications/notifications.module.less";
 
 function freshDraft(): SendNotification {
-  return { body: "", targetPath: "", audience: "users", usernames: [], push: false, requestId: uuid() };
+  return { body: "", targetPath: "", audience: "users", usernames: [], groupIds: [], push: false, requestId: uuid() };
 }
 
 function NotificationAdminPage() {
   const _ = useLocalizer("notifications");
   const [draft, setDraft] = useState(freshDraft);
-  const [names, setNames] = useState("");
+  const [groups, setGroups] = useState<ApiTypes.GroupMetaDto[]>([]);
+  const [userSearchVersion, setUserSearchVersion] = useState(0);
+  const [groupSearchVersion, setGroupSearchVersion] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [configured, setConfigured] = useState(false);
@@ -25,6 +30,7 @@ function NotificationAdminPage() {
   const [success, setSuccess] = useState("");
   const [history, setHistory] = useState<NotificationHistoryItem[]>([]);
   const [selected, setSelected] = useState<NotificationHistoryItem>(null);
+  const [revokeTarget, setRevokeTarget] = useState<NotificationHistoryItem>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
@@ -32,6 +38,32 @@ function NotificationAdminPage() {
   const update = (values: Partial<SendNotification>) => {
     setDraft(current => ({ ...current, ...values, requestId: uuid() }));
     setSuccess("");
+  };
+  const addUser = (user: ApiTypes.UserMetaDto) => {
+    if (busy) return;
+    if (!draft.usernames.includes(user.username)) {
+      if (draft.usernames.length >= 500) {
+        setError(_(".selection_limit"));
+        return;
+      }
+      update({ usernames: [...draft.usernames, user.username] });
+    }
+    setError("");
+    setUserSearchVersion(value => value + 1);
+  };
+  const addGroup = (group: ApiTypes.GroupMetaDto) => {
+    if (busy) return;
+    if (!groups.some(item => item.id === group.id)) {
+      if (groups.length >= 500) {
+        setError(_(".selection_limit"));
+        return;
+      }
+      const selected = [...groups, group];
+      setGroups(selected);
+      update({ groupIds: selected.map(item => item.id) });
+    }
+    setError("");
+    setGroupSearchVersion(value => value + 1);
   };
   useEffect(() => {
     appState.enterNewPage(_(".admin"));
@@ -45,20 +77,44 @@ function NotificationAdminPage() {
       if (result.response) {
         setHistory(result.response.items);
         setTotal(result.response.total);
+        setSelected(current => (current ? result.response.items.find(item => item.id === current.id) || null : null));
+        if (!result.response.items.length && page > 1) setPage(page - 1);
       } else setError(_(".error"));
       setLoading(false);
     });
     return () => {
       stopped = true;
     };
-  }, [page, revision]);
+  }, [page, revision, notificationState.revision]);
+  const revoke = async () => {
+    if (!revokeTarget || busy) return;
+    const id = revokeTarget.id;
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await notificationApi.revoke({ id });
+      if (!result.response?.success) {
+        setError(_(".error"));
+        return;
+      }
+      setRevokeTarget(null);
+      setSelected(current => (current?.id === id ? null : current));
+      setSuccess(_(".revoke_success"));
+      setRevision(value => value + 1);
+    } catch {
+      setError(_(".error"));
+    } finally {
+      setBusy(false);
+    }
+  };
   const preview = () => {
     setError("");
     setSuccess("");
     if (
       !draft.body.trim() ||
       (draft.audience === "users" && !draft.usernames.length) ||
-      (draft.audience === "group" && (!Number.isSafeInteger(draft.groupId) || draft.groupId < 1)) ||
+      (draft.audience === "group" && !draft.groupIds?.length) ||
       (draft.targetPath &&
         (!draft.targetPath.startsWith("/") || draft.targetPath.startsWith("//") || /[\\\s]/.test(draft.targetPath)))
     ) {
@@ -74,7 +130,8 @@ function NotificationAdminPage() {
       const request = {
         ...draft,
         usernames: draft.audience === "users" ? draft.usernames : [],
-        groupId: draft.audience === "group" ? draft.groupId : undefined
+        groupIds: draft.audience === "group" ? draft.groupIds : [],
+        groupId: undefined
       };
       const result = await notificationApi.send(request);
       if (!result.response) {
@@ -84,7 +141,9 @@ function NotificationAdminPage() {
       setConfirming(false);
       setSuccess(_(".send_success", { count: result.response.recipientCount }));
       setDraft(freshDraft());
-      setNames("");
+      setGroups([]);
+      setUserSearchVersion(value => value + 1);
+      setGroupSearchVersion(value => value + 1);
       setPage(1);
       setRevision(value => value + 1);
     } finally {
@@ -95,7 +154,7 @@ function NotificationAdminPage() {
     draft.audience === "all"
       ? _(".audience_all")
       : draft.audience === "group"
-      ? `${_(".group_id")} ${draft.groupId}`
+      ? groups.map(group => group.name).join(", ")
       : draft.usernames.join(", ");
   return (
     <>
@@ -116,31 +175,69 @@ function NotificationAdminPage() {
             onChange={(_event, data) => update({ audience: data.value as SendNotification["audience"] })}
           />
           {draft.audience === "users" && (
-            <Form.TextArea
-              required
-              id="notification-usernames"
-              label={_(".usernames")}
-              value={names}
-              disabled={busy}
-              rows={2}
-              onChange={(_event, data) => {
-                const value = String(data.value);
-                setNames(value);
-                update({ usernames: [...new Set(value.split(/[\s,，;；]+/).filter(Boolean))] });
-              }}
-            />
+            <Form.Field required disabled={busy}>
+              <label>{_(".usernames")}</label>
+              <UserSearch
+                key={userSearchVersion}
+                className={style.recipientSearch}
+                placeholder={_(".search_users")}
+                disabled={busy || draft.usernames.length >= 500}
+                onResultSelect={addUser}
+              />
+              {!!draft.usernames.length && (
+                <List divided relaxed className={style.recipientList}>
+                  {draft.usernames.map(username => (
+                    <List.Item key={username} className={style.recipientRow}>
+                      <span>{username}</span>
+                      <Button
+                        type="button"
+                        size="mini"
+                        basic
+                        icon="close"
+                        aria-label={_(".remove_user", { username })}
+                        disabled={busy}
+                        onClick={() => update({ usernames: draft.usernames.filter(item => item !== username) })}
+                      />
+                    </List.Item>
+                  ))}
+                </List>
+              )}
+            </Form.Field>
           )}
           {draft.audience === "group" && (
-            <Form.Input
-              required
-              type="number"
-              min={1}
-              id="notification-group-id"
-              label={_(".group_id")}
-              value={draft.groupId || ""}
-              disabled={busy}
-              onChange={(_event, data) => update({ groupId: Number(data.value) })}
-            />
+            <Form.Field required disabled={busy}>
+              <label>{_(".groups")}</label>
+              <GroupSearch
+                key={groupSearchVersion}
+                className={style.recipientSearch}
+                placeholder={_(".search_groups")}
+                disabled={busy || groups.length >= 500}
+                onResultSelect={addGroup}
+              />
+              {!!groups.length && (
+                <List divided relaxed className={style.recipientList}>
+                  {groups.map(group => (
+                    <List.Item key={group.id} className={style.recipientRow}>
+                      <span>{group.name}</span>
+                      <Button
+                        type="button"
+                        size="mini"
+                        basic
+                        icon="close"
+                        aria-label={_(".remove_group", { name: group.name })}
+                        disabled={busy}
+                        onClick={() => {
+                          const remaining = groups.filter(item => item.id !== group.id);
+                          setGroups(remaining);
+                          update({ groupIds: remaining.map(item => item.id) });
+                        }}
+                      />
+                    </List.Item>
+                  ))}
+                </List>
+              )}
+              <p className={style.meta}>{_(".groups_hint")}</p>
+            </Form.Field>
           )}
           <Form.TextArea
             required
@@ -193,15 +290,22 @@ function NotificationAdminPage() {
           <div className={style.item}>
             <p className={style.previewBody}>{item.body}</p>
             <Label>{_(".recipient_count", { count: item.recipientCount })}</Label>
+            {item.revokedAt && <Label color="grey">{_(".revoked")}</Label>}
           </div>
           <div className={style.meta}>
             {new Date(item.createdAt).toLocaleString()} ·{" "}
             {item.audience === "all" ? _(".audience_all") : item.audienceLabel} ·{" "}
             {_(item.push ? ".push_yes" : ".push_no")}
+            {item.revokedAt && <> · {_(".revoked_time", { time: new Date(item.revokedAt).toLocaleString() })}</>}
           </div>
           <Button size="small" onClick={() => setSelected(item)}>
             {_(".history_content")}
           </Button>
+          {!item.revokedAt && (
+            <Button size="small" basic color="red" disabled={busy} onClick={() => setRevokeTarget(item)}>
+              {_(".revoke")}
+            </Button>
+          )}
         </Segment>
       ))}
       {total > 20 && (
@@ -251,13 +355,52 @@ function NotificationAdminPage() {
           </Button>
         </Modal.Actions>
       </Modal>
+      <Modal
+        open={!!revokeTarget}
+        onClose={() => {
+          if (!busy) setRevokeTarget(null);
+        }}
+        size="small"
+        closeOnDimmerClick={!busy}
+        closeOnEscape={!busy}
+      >
+        <Modal.Header>{_(".revoke_confirm_title")}</Modal.Header>
+        <Modal.Content>
+          <p>{_(".revoke_confirm_description")}</p>
+          <p>{_(".recipient_count", { count: revokeTarget?.recipientCount || 0 })}</p>
+          <div className={style.messageBody}>{revokeTarget?.body}</div>
+          {error && <Message negative content={error} />}
+        </Modal.Content>
+        <Modal.Actions>
+          <Button disabled={busy} onClick={() => setRevokeTarget(null)}>
+            {_(".cancel")}
+          </Button>
+          <Button negative loading={busy} disabled={busy} onClick={() => void revoke()}>
+            {_(".revoke")}
+          </Button>
+        </Modal.Actions>
+      </Modal>
       <Modal open={!!selected} onClose={() => setSelected(null)} size="small" closeIcon>
         <Modal.Header>{_(".history_content")}</Modal.Header>
         <Modal.Content>
+          {selected?.revokedAt && <Message content={_(".revoked")} />}
           <div className={style.messageBody}>{selected?.body}</div>
           {selected?.targetPath && <p>{selected.targetPath}</p>}
         </Modal.Content>
         <Modal.Actions>
+          {selected && !selected.revokedAt && (
+            <Button
+              basic
+              color="red"
+              disabled={busy}
+              onClick={() => {
+                setRevokeTarget(selected);
+                setSelected(null);
+              }}
+            >
+              {_(".revoke")}
+            </Button>
+          )}
           <Button onClick={() => setSelected(null)}>{_(".close")}</Button>
         </Modal.Actions>
       </Modal>

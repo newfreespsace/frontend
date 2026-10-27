@@ -5,6 +5,38 @@ import { notificationApi, PushBinding } from "./api";
 import { browserBinding } from "./binding";
 import { rememberPushPromptChoice } from "./pushPromptPreference";
 
+export function browserPushErrorKey(failure: unknown): string {
+  const key = (failure as Error)?.message;
+  return [
+    "push_unsupported",
+    "push_denied",
+    "push_unconfigured",
+    "push_deferred",
+    "push_permission_timeout",
+    "push_worker_timeout",
+    "push_subscription_timeout",
+    "push_subscription_error",
+    "push_network_error",
+    "push_server_timeout"
+  ].includes(key)
+    ? key
+    : "push_error";
+}
+
+async function pushStep<T>(operation: Promise<T>, timeoutKey: string, timeoutMs = 15000): Promise<T> {
+  let timeout: number;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timeout = window.setTimeout(() => reject(new Error(timeoutKey)), timeoutMs);
+      })
+    ]);
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 export function browserPushSupported(): boolean {
   return (
     window.isSecureContext &&
@@ -20,23 +52,25 @@ async function registration() {
 }
 
 async function activeRegistration() {
-  const registered = await registration();
+  const registered = await pushStep(registration(), "push_worker_timeout");
   if (registered.active) return registered;
   await new Promise<void>((resolve, reject) => {
-    const timeout = window.setTimeout(() => reject(new Error("push_error")), 15000);
     const worker = registered.installing || registered.waiting;
     if (!worker) {
-      clearTimeout(timeout);
       reject(new Error("push_error"));
       return;
     }
+    const timeout = window.setTimeout(() => {
+      worker.removeEventListener("statechange", changed);
+      reject(new Error("push_worker_timeout"));
+    }, 15000);
     const changed = () => {
       if (worker.state === "activated") {
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
         worker.removeEventListener("statechange", changed);
         resolve();
       } else if (worker.state === "redundant") {
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
         worker.removeEventListener("statechange", changed);
         reject(new Error("push_error"));
       }
@@ -52,13 +86,37 @@ function applicationServerKey(key: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(decoded, character => character.charCodeAt(0));
 }
 
+async function createSubscription(registered: ServiceWorkerRegistration, publicKey: string) {
+  try {
+    return await pushStep(
+      registered.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey(publicKey)
+      }),
+      "push_subscription_timeout",
+      30000
+    );
+  } catch (failure) {
+    if ((failure as Error)?.message === "push_subscription_timeout") throw failure;
+    // Report only the error name, never subscription URLs, keys or provider bodies.
+    const name = (failure as Error)?.name || "Error";
+    console.warn("[BrowserPush] subscription failed", /^[a-z]+Error$/i.test(name) ? name : "Error");
+    if (name === "NetworkError") throw new Error("push_network_error");
+    if (name === "NotAllowedError") throw new Error("push_denied");
+    throw new Error("push_subscription_error");
+  }
+}
+
 async function clearLocalPush() {
   await browserBinding(null); // Invalidate queued messages before any network call.
-  const registered = await navigator.serviceWorker.getRegistration("/notification-sw.js");
+  const registered = await pushStep(
+    navigator.serviceWorker.getRegistration("/notification-sw.js"),
+    "push_worker_timeout"
+  );
   if (!registered || !registered.active?.scriptURL.endsWith("/notification-sw.js")) return;
-  const subscription = await registered.pushManager.getSubscription();
-  if (subscription) await subscription.unsubscribe();
-  const notifications = await registered.getNotifications();
+  const subscription = await pushStep(registered.pushManager.getSubscription(), "push_subscription_timeout");
+  if (subscription) await pushStep(subscription.unsubscribe(), "push_subscription_timeout");
+  const notifications = await pushStep(registered.getNotifications(), "push_worker_timeout");
   notifications.forEach(notification => notification.close());
 }
 
@@ -69,7 +127,7 @@ export async function disableBrowserPush(): Promise<void> {
   const binding = await browserBinding();
   await clearLocalPush();
   if (binding?.userId === appState.currentUser?.id) {
-    const result = await notificationApi.disablePush({ id: binding.id });
+    const result = await pushStep(notificationApi.disablePush({ id: binding.id }), "push_server_timeout");
     if (result.requestError) throw new Error("push_error");
   }
 }
@@ -85,9 +143,10 @@ export async function enableBrowserPush(): Promise<PushBinding> {
   const userId = appState.currentUser?.id;
   const token = appState.token;
   if (!userId || token !== getAuthToken()) throw new Error("push_error");
+  if (navigator.onLine === false) throw new Error("push_network_error");
   rememberPushPromptChoice(userId, "allowed");
   // Request permission directly in the click handler, before awaiting network.
-  const permission = await Notification.requestPermission();
+  const permission = await pushStep(Notification.requestPermission(), "push_permission_timeout", 60000);
   if (permission !== "granted") {
     rememberPushPromptChoice(userId, permission === "denied" ? "denied" : "later");
     throw new Error(permission === "denied" ? "push_denied" : "push_deferred");
@@ -95,27 +154,23 @@ export async function enableBrowserPush(): Promise<PushBinding> {
   if (token !== getAuthToken() || appState.currentUser?.id !== userId) throw new Error("push_error");
   const previous = await browserBinding();
   if (!previous || previous.userId !== userId) await clearLocalPush();
-  const status = await notificationApi.pushStatus();
+  const status = await pushStep(notificationApi.pushStatus(), "push_server_timeout");
+  if (status.requestError || !status.response) throw new Error("push_error");
   if (!status.response?.enabled) throw new Error("push_unconfigured");
   if (getAuthToken() !== token) throw new Error("push_error");
   const registered = await activeRegistration();
-  let subscription = await registered.pushManager.getSubscription();
-  if (!subscription)
-    subscription = await registered.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey(status.response.publicKey)
-    });
-  let result = await notificationApi.bindPush(subscriptionPayload(subscription));
+  let subscription = await pushStep(registered.pushManager.getSubscription(), "push_subscription_timeout");
+  if (!subscription) subscription = await createSubscription(registered, status.response.publicKey);
+  if (getAuthToken() !== token || appState.currentUser?.id !== userId) throw new Error("push_error");
+  let result = await pushStep(notificationApi.bindPush(subscriptionPayload(subscription)), "push_server_timeout");
   if (result.requestError) {
     // Recreate subscriptions left by a different account or an old VAPID key.
     await browserBinding(null);
-    await subscription.unsubscribe();
-    if (getAuthToken() !== token) throw new Error("push_error");
-    subscription = await registered.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey(status.response.publicKey)
-    });
-    result = await notificationApi.bindPush(subscriptionPayload(subscription));
+    await pushStep(subscription.unsubscribe(), "push_subscription_timeout");
+    if (getAuthToken() !== token || appState.currentUser?.id !== userId) throw new Error("push_error");
+    subscription = await createSubscription(registered, status.response.publicKey);
+    if (getAuthToken() !== token || appState.currentUser?.id !== userId) throw new Error("push_error");
+    result = await pushStep(notificationApi.bindPush(subscriptionPayload(subscription)), "push_server_timeout");
   }
   if (!result.response || getAuthToken() !== token || appState.currentUser?.id !== userId) {
     await clearLocalPush();

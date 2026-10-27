@@ -9,6 +9,7 @@ import PreviewSearch from "./PreviewSearch";
 
 interface GroupSearchProps {
   className?: string;
+  disabled?: boolean;
   placeholder?: string;
   onResultSelect: (group: ApiTypes.GroupMetaDto) => void;
 }
@@ -19,6 +20,7 @@ const GroupSearch: React.FC<GroupSearchProps> = props => {
   return (
     <PreviewSearch
       className={props.className}
+      disabled={props.disabled}
       placeholder={props.placeholder || _(".search_group")}
       noResultsMessage={_(".no_group_result")}
       onGetResultKey={result => result.id}

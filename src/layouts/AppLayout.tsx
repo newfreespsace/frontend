@@ -9,8 +9,8 @@ import "noty/src/themes/semanticui.scss";
 import style from "./AppLayout.module.less";
 
 import NotificationBell from "@/notifications/NotificationBell";
-import BrowserPushPrompt from "@/notifications/BrowserPushPrompt";
 import { disableBrowserPush } from "@/notifications/push";
+import { notificationState } from "@/notifications/state";
 
 import GlobalProgressBar from "@/components/GlobalProgressBar";
 
@@ -177,6 +177,12 @@ let AppLayout: React.FC = props => {
           <Icon name="images" />
           {_(".header.user.gallery")}
         </Dropdown.Item>
+        {appState.activeGroupContests.length === 0 && (
+          <Dropdown.Item as={Link} href="/notifications">
+            <Icon name="bell outline" />
+            {_("notifications.title")}
+          </Dropdown.Item>
+        )}
         {appState.currentUserJoinedGroupsCount > 0 && (
           <Dropdown.Item as={Link} href="/groups">
             <Icon name="users" />
@@ -281,7 +287,7 @@ let AppLayout: React.FC = props => {
 
   const userDropdown = (icon = true) => (
     <Menu.Menu position="right">
-      {appState.activeGroupContests.length === 0 && <NotificationBell />}
+      {appState.activeGroupContests.length === 0 && notificationState.unread > 0 && <NotificationBell />}
       <Dropdown
         simple
         item
@@ -318,7 +324,6 @@ let AppLayout: React.FC = props => {
 
   return (
     <>
-      <BrowserPushPrompt />
       <GlobalProgressBar isAnimating={showProgressBar} />
       <Menu borderless fixed="top" className={style.menu}>
         <Container id={style.mainMenuContainer}>

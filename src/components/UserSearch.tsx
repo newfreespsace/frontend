@@ -10,6 +10,7 @@ import PreviewSearch from "./PreviewSearch";
 
 interface UserSearchProps {
   className?: string;
+  disabled?: boolean;
   placeholder?: string;
   onResultSelect: (user: ApiTypes.UserMetaDto) => void;
 }
@@ -20,6 +21,7 @@ let UserSearch: React.FC<UserSearchProps> = props => {
   return (
     <PreviewSearch
       className={props.className}
+      disabled={props.disabled}
       placeholder={props.placeholder || _(".placeholder")}
       noResultsMessage={_(".no_result")}
       onGetResultKey={result => result.id}
