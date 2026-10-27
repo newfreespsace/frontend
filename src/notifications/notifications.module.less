@@ -1,0 +1,61 @@
+.bell {
+  white-space: nowrap;
+}
+.bellMenu {
+  width: min(340px, 85vw);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.bellPreview {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.messageBody {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+.meta {
+  opacity: 0.65;
+  font-size: 0.9em;
+  margin: 8px 0;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.previewBody {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}

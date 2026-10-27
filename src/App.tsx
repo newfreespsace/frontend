@@ -8,9 +8,15 @@ import { setGlobalTheme } from "./themes";
 
 import { remoteApi } from "./remote-judge/api";
 
+import { startNotifications } from "./notifications/state";
+
 import AppRouter from "./AppRouter";
 
 const App: React.FC = () => {
+  useEffect(
+    () => startNotifications(),
+    [appState.currentUser?.id, appState.token, appState.activeGroupContests.length]
+  );
   useEffect(() => {
     updateCodeFontCss(appState.locale);
     updateContentFontCss(appState.locale);

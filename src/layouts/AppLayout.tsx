@@ -8,6 +8,10 @@ import "noty/src/themes/semanticui.scss";
 
 import style from "./AppLayout.module.less";
 
+import NotificationBell from "@/notifications/NotificationBell";
+import BrowserPushPrompt from "@/notifications/BrowserPushPrompt";
+import { disableBrowserPush } from "@/notifications/push";
+
 import GlobalProgressBar from "@/components/GlobalProgressBar";
 
 import { Locale } from "@/interfaces/Locale";
@@ -73,6 +77,9 @@ let AppLayout: React.FC = props => {
   });
 
   async function onLogoutClick() {
+    // Local binding is invalidated before logout; the server independently
+    // disables all subscriptions belonging to the revoked session.
+    await disableBrowserPush().catch(() => undefined);
     const { requestError, response } = await api.auth.logout();
     if (requestError) {
       toast.error(requestError(_));
@@ -274,6 +281,7 @@ let AppLayout: React.FC = props => {
 
   const userDropdown = (icon = true) => (
     <Menu.Menu position="right">
+      {appState.activeGroupContests.length === 0 && <NotificationBell />}
       <Dropdown
         simple
         item
@@ -310,6 +318,7 @@ let AppLayout: React.FC = props => {
 
   return (
     <>
+      <BrowserPushPrompt />
       <GlobalProgressBar isAnimating={showProgressBar} />
       <Menu borderless fixed="top" className={style.menu}>
         <Container id={style.mainMenuContainer}>
