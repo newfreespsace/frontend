@@ -227,29 +227,30 @@ function editorFixture(count) {
   };
 }
 
-test("editing and moving on page two uses the original testcase index and preserves the full configuration", async () => {
-  const fixture = editorFixture(1000);
+test("all manual testcases stay visible while editing and moving beyond the former page boundary", async () => {
+  const fixture = editorFixture(98);
   await render(React.createElement(fixture.Editor));
-  assert.equal(container.querySelectorAll(".item.selection.dropdown").length, 40);
-  await click(next());
+  assert.equal(container.querySelectorAll(".item.selection.dropdown").length, 196);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
   assert.match(container.textContent, /#21/);
-  const clock = container.querySelectorAll(".clock.icon")[1].parentElement.querySelector("input");
+  const clock = container.querySelectorAll(".clock.icon")[21].parentElement.querySelector("input");
   await act(async () => {
     Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(clock, "2345");
     clock.dispatchEvent(new window.Event("input", { bubbles: true }));
   });
   assert.equal(fixture.info.subtasks[0].testcases[20].timeLimit, 2345);
   assert.equal(fixture.info.subtasks[0].testcases[0].timeLimit, null);
-  const move = [...container.querySelectorAll(".dropdown .menu .item")].find(
+  const move = [...container.querySelectorAll(".dropdown .menu .item")].filter(
     el => el.textContent === ".subtasks.testcase_options.move_up"
-  );
+  )[20];
   await click(move);
   assert.equal(fixture.info.subtasks[0].testcases[19].inputFile, "21.in");
-  assert.match(container.textContent, /#1–20/);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
+  assert.match(container.textContent, /#98/);
   const normalized = JSON.parse(JSON.stringify(fixture.info));
   SubtasksEditor.normalizeJudgeInfo(normalized, fixture.options);
-  assert.equal(normalized.subtasks[0].testcases.length, 1000);
-  assert.equal(normalized.subtasks[0].testcases[999].inputFile, "1000.in");
+  assert.equal(normalized.subtasks[0].testcases.length, 98);
+  assert.equal(normalized.subtasks[0].testcases[97].inputFile, "98.in");
   assert.equal(normalized.subtasks[0].testcases[19].uuid, undefined);
 });
 
@@ -270,9 +271,9 @@ test("automatic detection preserves optional files, case-insensitive matching, o
   assert.equal(detect.detectTestcasesByMatchingInputToOutput(large).length, 10000);
 });
 
-test("submission page with 10,000 results renders 50 titles and mounts only the opened output", async () => {
+test("submission page renders all 98 results and mounts only the opened output", async () => {
   const testcaseResult = {};
-  const testcases = Array.from({ length: 10000 }, (_, i) => {
+  const testcases = Array.from({ length: 98 }, (_, i) => {
     const hash = `hash-${i}`;
     testcaseResult[hash] = {
       status: "Accepted",
@@ -294,14 +295,84 @@ test("submission page with 10,000 results renders 50 titles and mounts only the 
       ProblemTypeSubmissionView: View
     })
   );
-  assert.equal(container.querySelectorAll(".title").length, 50);
+  assert.equal(container.querySelectorAll(".title").length, 98);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
+  assert.match(container.querySelectorAll(".title")[97].textContent, /#98/);
   assert.equal(container.querySelectorAll("pre").length, 0);
   await click(container.querySelector(".title"));
   assert.equal(container.querySelectorAll("pre").length, 2);
   assert.match(container.textContent, /input 1/);
-  await click(next());
-  assert.equal(container.querySelectorAll("pre").length, 0);
-  assert.match(container.querySelector(".title").textContent, /#51/);
+  await click(container.querySelectorAll(".title")[97]);
+  assert.equal(container.querySelectorAll("pre").length, 2);
+  assert.match(container.textContent, /input 98/);
+});
+
+test("automatic testcase preview shows every detected testcase without pagination", async () => {
+  const testData = Array.from({ length: 98 }, (_, i) => [file(`${i + 1}.in`), file(`${i + 1}.out`)]).flat();
+  await render(
+    React.createElement(SubtasksEditor, {
+      options: { enableInputFile: true, enableOutputFile: true },
+      judgeInfo: { subtasks: null, timeLimit: 1000, memoryLimit: 256 },
+      testData,
+      onUpdateJudgeInfo: () => {}
+    })
+  );
+  assert.equal(container.querySelectorAll("tbody tr").length, 98);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
+  assert.equal(container.querySelector("tbody tr:last-child").textContent, "9898.in98.out");
+});
+
+test("judge settings shows all subtasks beyond the former 20-subtask limit", async () => {
+  const options = { enableInputFile: true, enableOutputFile: true };
+  const judgeInfo = SubtasksEditor.parseJudgeInfo(
+    {
+      subtasks: Array.from({ length: 21 }, () => ({ testcases: [] }))
+    },
+    [],
+    options
+  );
+  await render(
+    React.createElement(SubtasksEditor, {
+      options,
+      judgeInfo: { ...judgeInfo, timeLimit: 1000, memoryLimit: 256 },
+      testData: [],
+      onUpdateJudgeInfo: () => {}
+    })
+  );
+  assert.equal(container.querySelectorAll(".minus.square.icon").length, 0);
+  assert.equal(container.querySelectorAll(".circle.outline.icon").length, 21);
+  assert.match(container.textContent, /#21/);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
+});
+
+test("submission shows every subtask, sample and nested testcase without pagination", async () => {
+  const testcaseResult = {};
+  const testcases = Array.from({ length: 98 }, (_, i) => {
+    const testcaseHash = `nested-${i}`;
+    testcaseResult[testcaseHash] = { status: "Accepted", score: 1, time: 1, memory: 1, testcaseInfo: {} };
+    return { testcaseHash };
+  });
+  const View = props => props.getSubtasksView(() => null);
+  await render(
+    React.createElement(SubmissionPage, {
+      meta: { id: 1, status: "Accepted", submitter: { id: 2 } },
+      content: {},
+      progress: {
+        progressType: "Finished",
+        testcaseResult,
+        samples: testcases,
+        subtasks: Array.from({ length: 21 }, () => ({ testcases, score: 100, fullScore: 100 }))
+      },
+      ProblemTypeSubmissionView: View
+    })
+  );
+  assert.equal(container.querySelectorAll(".title").length, 22);
+  await click(container.querySelectorAll(".title")[21]);
+  assert.equal(container.querySelectorAll(".title").length, 120);
+  assert.match(container.querySelectorAll(".title")[119].textContent, /#98/);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
   await click(container.querySelector(".title"));
-  assert.match(container.textContent, /input 51/);
+  assert.equal(container.querySelectorAll(".title").length, 120);
+  assert.match(container.querySelectorAll(".title")[98].textContent, /#98/);
+  assert.equal(container.querySelectorAll(".pagination").length, 0);
 });

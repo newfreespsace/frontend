@@ -8,7 +8,6 @@ import style from "./SubtasksEditor.module.less";
 
 import { useLocalizer, useDialog, useScreenWidthWithin } from "@/utils/hooks";
 import TestDataFileSelector from "./TestDataFileSelector";
-import PaginatedList, { useListPagination } from "@/components/PaginatedList";
 import { JudgeInfoProcessor, EditorComponentProps } from "./interface";
 import { detectTestcasesByMatchingInputToOutput, detectTestcasesByMatchingOutputToInput } from "./detect-testcases";
 
@@ -291,7 +290,6 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
   const _ = useLocalizer("problem_judge_settings");
 
   const [testcasesExpanded, setTestcasesExpanded] = useState(props.subtaskCount === 1);
-  const testcasePagination = useListPagination(props.subtask.testcases.length, 20);
 
   const refOptionsButton = useRef(null);
 
@@ -311,11 +309,9 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
   const [autoAddTestcaseErrorCompileForOutput, setAutoAddTestcaseErrorCompileForOutput] = useState("");
   const [autoAddTestcaseErrorMatching, setAutoAddTestcaseErrorMatching] = useState("");
   const [autoAddTestcaseMatchResult, setAutoAddTestcaseMatchResult] = useState<[string, string][]>([]);
-  const matchPagination = useListPagination(autoAddTestcaseMatchResult.length, 50);
 
   function addTestcase(index: number) {
     props.onAddTestcase(index);
-    testcasePagination.showIndex(index);
     setTestcasesExpanded(true);
   }
 
@@ -465,7 +461,6 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
     props.onUpdate({
       testcases: getNewTestcases(autoAddTestcaseMatchResult)
     });
-    testcasePagination.showIndex(0);
     setTestcasesExpanded(true);
     autoAddTestcaseDialog.close();
   }
@@ -554,7 +549,6 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
               }
             />
           )}
-          {matchPagination.controls}
           {autoAddTestcaseMatchResult.length > 0 && (
             <Table textAlign="center" compact="very" celled unstackable>
               <Table.Header>
@@ -575,12 +569,12 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {[...Array(Math.ceil((matchPagination.end - matchPagination.start) / 2))]
-                  .map((_, i, a) => [matchPagination.start + i, matchPagination.start + a.length + i])
+                {[...Array(Math.ceil(autoAddTestcaseMatchResult.length / 2))]
+                  .map((_, i, a) => [i, a.length + i])
                   .map(ids => (
                     <Table.Row key={ids[0]}>
                       {ids.map(id =>
-                        id >= matchPagination.end ? null : (
+                        id >= autoAddTestcaseMatchResult.length ? null : (
                           <React.Fragment key={id}>
                             <Table.Cell>
                               <strong>{id + 1}</strong>
@@ -814,39 +808,28 @@ let SubtaskEditor: React.FC<SubtaskEditorProps> = props => {
           )}
         </Menu.Menu>
       </Menu>
-      {testcasesExpanded && testcasePagination.controls}
       {testcasesExpanded &&
-        props.subtask.testcases.slice(testcasePagination.start, testcasePagination.end).map((testcase, offset) => {
-          const testcaseIndex = testcasePagination.start + offset;
-          return (
-            <SubtaskEditorTastcaseItem
-              options={props.options}
-              key={testcase.uuid}
-              testData={props.testData}
-              testcaseIndex={testcaseIndex}
-              testcaseCount={props.subtask.testcases.length}
-              testcase={testcase}
-              defaultPercentagePoints={defaultPercentagePoints}
-              defaultTimeLimit={props.subtask.timeLimit != null ? props.subtask.timeLimit : props.defaultTimeLimit}
-              defaultMemoryLimit={
-                props.subtask.memoryLimit != null ? props.subtask.memoryLimit : props.defaultMemoryLimit
-              }
-              onUpdate={updateInfo => props.onUpdateTestcase(testcaseIndex, updateInfo)}
-              onDelete={() => props.onDeleteTestcase(testcaseIndex)}
-              onMoveUp={() => {
-                props.onMoveTestcaseUp(testcaseIndex);
-                testcasePagination.showIndex(testcaseIndex - 1);
-              }}
-              onMoveDown={() => {
-                props.onMoveTestcaseDown(testcaseIndex);
-                testcasePagination.showIndex(testcaseIndex + 1);
-              }}
-              onAddTestcaseBefore={() => addTestcase(testcaseIndex)}
-              onAddTestcaseAfter={() => addTestcase(testcaseIndex + 1)}
-            />
-          );
-        })}
-      {testcasesExpanded && testcasePagination.controls}
+        props.subtask.testcases.map((testcase, testcaseIndex) => (
+          <SubtaskEditorTastcaseItem
+            options={props.options}
+            key={testcase.uuid}
+            testData={props.testData}
+            testcaseIndex={testcaseIndex}
+            testcaseCount={props.subtask.testcases.length}
+            testcase={testcase}
+            defaultPercentagePoints={defaultPercentagePoints}
+            defaultTimeLimit={props.subtask.timeLimit != null ? props.subtask.timeLimit : props.defaultTimeLimit}
+            defaultMemoryLimit={
+              props.subtask.memoryLimit != null ? props.subtask.memoryLimit : props.defaultMemoryLimit
+            }
+            onUpdate={updateInfo => props.onUpdateTestcase(testcaseIndex, updateInfo)}
+            onDelete={() => props.onDeleteTestcase(testcaseIndex)}
+            onMoveUp={() => props.onMoveTestcaseUp(testcaseIndex)}
+            onMoveDown={() => props.onMoveTestcaseDown(testcaseIndex)}
+            onAddTestcaseBefore={() => addTestcase(testcaseIndex)}
+            onAddTestcaseAfter={() => addTestcase(testcaseIndex + 1)}
+          />
+        ))}
       {props.subtaskCount > 1 && (
         <>
           <Menu attached="bottom" className={style.menu + " " + style.menuFooter}>
@@ -882,7 +865,6 @@ let SubtasksEditor: React.FC<SubtasksEditorProps> = props => {
   const _ = useLocalizer("problem_judge_settings");
 
   const judgeInfo = props.judgeInfo;
-  const subtaskPagination = useListPagination(judgeInfo.subtasks?.length || 0, 20);
 
   const autoTestcases = useMemo(() => {
     if (judgeInfo.subtasks) return [];
@@ -960,7 +942,6 @@ let SubtasksEditor: React.FC<SubtasksEditorProps> = props => {
   function onMoveSubtask(subtaskIndex: number, direction: "UP" | "DOWN") {
     const subtask = judgeInfo.subtasks[subtaskIndex],
       swappingSubtask = subtaskIndex + (direction === "UP" ? -1 : 1);
-    subtaskPagination.showIndex(swappingSubtask);
 
     updateSubtasks({
       $splice: [
@@ -977,7 +958,6 @@ let SubtasksEditor: React.FC<SubtasksEditorProps> = props => {
 
   // Add new subtask with the TL/ML/ST of the old
   function onAddSubtask(subtaskIndex: number, template: Subtask) {
-    subtaskPagination.showIndex(subtaskIndex);
     updateSubtasks({
       $splice: [
         [
@@ -1090,74 +1070,64 @@ let SubtasksEditor: React.FC<SubtasksEditorProps> = props => {
       </Form>
       {judgeInfo.subtasks ? (
         <div className={style.subtasksEditor}>
-          {subtaskPagination.controls}
-          {judgeInfo.subtasks.slice(subtaskPagination.start, subtaskPagination.end).map((subtask, offset) => {
-            const index = subtaskPagination.start + offset;
-            return (
-              <SubtaskEditor
-                key={subtask.uuid}
-                options={props.options}
-                testData={props.testData}
-                subtaskIndex={index}
-                subtaskCount={judgeInfo.subtasks.length}
-                subtask={subtask}
-                defaultPercentagePoints={defaultPercentagePoints}
-                defaultTimeLimit={judgeInfo.timeLimit}
-                defaultMemoryLimit={judgeInfo.memoryLimit}
-                onUpdate={updateInfo => onUpdateSubtask(index, updateInfo)}
-                onDelete={() => onDeleteSubtask(index)}
-                onMoveUp={() => onMoveSubtask(index, "UP")}
-                onMoveDown={() => onMoveSubtask(index, "DOWN")}
-                onAddSubtaskBefore={() => onAddSubtask(index, subtask)}
-                onAddSubtaskAfter={() => onAddSubtask(index + 1, subtask)}
-                onUpdateTestcase={(testcaseIndex, updateInfo) => onUpdateTestcase(index, testcaseIndex, updateInfo)}
-                onDeleteTestcase={testcaseIndex => onDeleteTestcase(index, testcaseIndex)}
-                onMoveTestcaseUp={testcaseIndex => onMoveTestcase(index, testcaseIndex, "UP")}
-                onMoveTestcaseDown={testcaseIndex => onMoveTestcase(index, testcaseIndex, "DOWN")}
-                onAddTestcase={testcaseIndex => onAddTestcase(index, testcaseIndex)}
-              />
-            );
-          })}
-          {subtaskPagination.controls}
+          {judgeInfo.subtasks.map((subtask, index) => (
+            <SubtaskEditor
+              key={subtask.uuid}
+              options={props.options}
+              testData={props.testData}
+              subtaskIndex={index}
+              subtaskCount={judgeInfo.subtasks.length}
+              subtask={subtask}
+              defaultPercentagePoints={defaultPercentagePoints}
+              defaultTimeLimit={judgeInfo.timeLimit}
+              defaultMemoryLimit={judgeInfo.memoryLimit}
+              onUpdate={updateInfo => onUpdateSubtask(index, updateInfo)}
+              onDelete={() => onDeleteSubtask(index)}
+              onMoveUp={() => onMoveSubtask(index, "UP")}
+              onMoveDown={() => onMoveSubtask(index, "DOWN")}
+              onAddSubtaskBefore={() => onAddSubtask(index, subtask)}
+              onAddSubtaskAfter={() => onAddSubtask(index + 1, subtask)}
+              onUpdateTestcase={(testcaseIndex, updateInfo) => onUpdateTestcase(index, testcaseIndex, updateInfo)}
+              onDeleteTestcase={testcaseIndex => onDeleteTestcase(index, testcaseIndex)}
+              onMoveTestcaseUp={testcaseIndex => onMoveTestcase(index, testcaseIndex, "UP")}
+              onMoveTestcaseDown={testcaseIndex => onMoveTestcase(index, testcaseIndex, "DOWN")}
+              onAddTestcase={testcaseIndex => onAddTestcase(index, testcaseIndex)}
+            />
+          ))}
         </div>
       ) : (
-        <PaginatedList
-          totalCount={autoTestcases.length}
-          renderRange={(start, end) => (
-            <Table textAlign="center">
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell width={2}>#</Table.HeaderCell>
-                  {props.options.enableInputFile && (
-                    <Table.HeaderCell width={props.options.enableOutputFile ? 7 : 14}>
-                      {_(".subtasks.testcase.input_file")}
-                    </Table.HeaderCell>
-                  )}
-                  {props.options.enableOutputFile && (
-                    <Table.HeaderCell width={props.options.enableInputFile ? 7 : 14}>
-                      {_(".subtasks.testcase.output_file")}
-                    </Table.HeaderCell>
-                  )}
+        <Table textAlign="center">
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell width={2}>#</Table.HeaderCell>
+              {props.options.enableInputFile && (
+                <Table.HeaderCell width={props.options.enableOutputFile ? 7 : 14}>
+                  {_(".subtasks.testcase.input_file")}
+                </Table.HeaderCell>
+              )}
+              {props.options.enableOutputFile && (
+                <Table.HeaderCell width={props.options.enableInputFile ? 7 : 14}>
+                  {_(".subtasks.testcase.output_file")}
+                </Table.HeaderCell>
+              )}
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {autoTestcases.length > 0 ? (
+              autoTestcases.map((testcase, i) => (
+                <Table.Row key={i}>
+                  <Table.Cell>{i + 1}</Table.Cell>
+                  <Table.Cell>{testcase.inputFile}</Table.Cell>
+                  {props.options.enableOutputFile && <Table.Cell>{testcase.outputFile}</Table.Cell>}
                 </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {autoTestcases.length > 0 ? (
-                  autoTestcases.slice(start, end).map((testcase, i) => (
-                    <Table.Row key={start + i}>
-                      <Table.Cell>{start + i + 1}</Table.Cell>
-                      <Table.Cell>{testcase.inputFile}</Table.Cell>
-                      {props.options.enableOutputFile && <Table.Cell>{testcase.outputFile}</Table.Cell>}
-                    </Table.Row>
-                  ))
-                ) : (
-                  <Table.Row>
-                    <Table.Cell colSpan={3}>{_(".subtasks.cannot_detect_testcases_from_testdata")}</Table.Cell>
-                  </Table.Row>
-                )}
-              </Table.Body>
-            </Table>
-          )}
-        />
+              ))
+            ) : (
+              <Table.Row>
+                <Table.Cell colSpan={3}>{_(".subtasks.cannot_detect_testcases_from_testdata")}</Table.Cell>
+              </Table.Row>
+            )}
+          </Table.Body>
+        </Table>
       )}
     </>
   );

@@ -12,7 +12,6 @@ import toast from "@/utils/toast";
 import { useLocalizer, useSocket, useScreenWidthWithin, useNavigationChecked } from "@/utils/hooks";
 import { SubmissionHeader, SubmissionItem, SubmissionItemExtraRows } from "../componments/SubmissionItem";
 import StatusText from "@/components/StatusText";
-import PaginatedList from "@/components/PaginatedList";
 import LazyAccordionContent from "@/components/LazyAccordionContent";
 import formatFileSize from "@/utils/formatFileSize";
 import downloadFile from "@/utils/downloadFile";
@@ -426,12 +425,9 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   const getTestcasesAccordionPanels = (
     testcases: TestcaseProgressReference[],
     isSample: boolean,
-    getAdditionalSections: GetAdditionalSectionsCallback,
-    start: number,
-    end: number
+    getAdditionalSections: GetAdditionalSectionsCallback
   ) =>
-    testcases.slice(start, end).map((testcase, offset) => {
-      const i = start + offset;
+    testcases.map((testcase, i) => {
       const testcaseResult = testcase.testcaseHash && progress.testcaseResult[testcase.testcaseHash];
       let status: string, expandable: boolean;
       if (testcase.waiting) {
@@ -608,18 +604,9 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
     className: string,
     leadingPanels: ReturnType<typeof getSamplePanel>[] = []
   ) => (
-    <PaginatedList
-      totalCount={testcases.length}
-      renderRange={(start, end) => (
-        <Accordion
-          key={start}
-          className={className}
-          panels={[
-            ...leadingPanels,
-            ...getTestcasesAccordionPanels(testcases, isSample, getAdditionalSections, start, end)
-          ]}
-        />
-      )}
+    <Accordion
+      className={className}
+      panels={[...leadingPanels, ...getTestcasesAccordionPanels(testcases, isSample, getAdditionalSections)]}
     />
   );
 
@@ -687,13 +674,8 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
     )
   });
 
-  const getSubtasksAccordionPanels = (
-    getAdditionalSections: GetAdditionalSectionsCallback,
-    start: number,
-    end: number
-  ) =>
-    subtasks.slice(start, end).map((subtask, offset) => {
-      const i = start + offset;
+  const getSubtasksAccordionPanels = (getAdditionalSections: GetAdditionalSectionsCallback) =>
+    subtasks.map((subtask, i) => {
       return {
         key: i,
         // If a subtask is unexpandable, make it unable to be "active"
@@ -786,16 +768,9 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
         leadingPanels
       )
     ) : (
-      <PaginatedList
-        totalCount={subtasks.length}
-        pageSize={20}
-        renderRange={(start, end) => (
-          <Accordion
-            key={start}
-            className={"styled fluid " + style.accordion}
-            panels={[...leadingPanels, ...getSubtasksAccordionPanels(getAdditionalSections, start, end)]}
-          />
-        )}
+      <Accordion
+        className={"styled fluid " + style.accordion}
+        panels={[...leadingPanels, ...getSubtasksAccordionPanels(getAdditionalSections)]}
       />
     );
   };
