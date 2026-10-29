@@ -16,6 +16,9 @@ export function useSocket(
       refSocket.current = SocketIO(window.apiEndpoint + namespace, {
         path: "/api/socket",
         transports: ["websocket"],
+        // Query belongs to the underlying connection. Sharing the notifications
+        // connection would discard this subscription's key.
+        multiplex: false,
         query: query,
         ...{ parser: SocketIOParser }
       });
