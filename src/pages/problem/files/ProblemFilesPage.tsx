@@ -48,7 +48,8 @@ if (!window.WritableStream || true) {
 }
 const apiEndpointUrl = new URL(window.apiEndpoint || "/", window.location.origin);
 if (apiEndpointUrl.protocol === "https:") {
-  (streamsaver as any).mitm = new URL("api/cors/streamsaver/mitm.html", apiEndpointUrl).href;
+  // Refresh the proxy page previously cached for a year before worker isolation.
+  (streamsaver as any).mitm = new URL("api/cors/streamsaver/mitm.html?worker=2", apiEndpointUrl).href;
 }
 
 function showRemainingTestdataDownloads(response: ApiTypes.DownloadProblemFilesResponseDto, _: Localizer) {
