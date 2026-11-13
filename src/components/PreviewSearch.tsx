@@ -16,6 +16,7 @@ interface PreviewSearchProps<T> {
   onSearch: (input: string) => Promise<T[]>;
   onRenderResult: (result: T) => React.ReactNode;
   onResultSelect: (item: T) => void;
+  keepResultsOpen?: boolean;
   onEnterPress?: (searchKeyword: string) => void;
 }
 
@@ -23,6 +24,7 @@ const PreviewSearch = <T extends {}>(props: PropsWithChildren<PreviewSearchProps
   const [searchKeyword, setSearchKeyword] = useState("");
   const [results, setResults] = useState<T[]>([]);
   const [pending, setPending] = useState(false);
+  const [resultsOpen, setResultsOpen] = useState(false);
   const refInput = useRef("");
   const onSearch = useDebouncedCallback(async (input: string) => {
     input = input.trim();
@@ -64,9 +66,19 @@ const PreviewSearch = <T extends {}>(props: PropsWithChildren<PreviewSearchProps
       disabled={props.disabled}
       placeholder={props.placeholder}
       value={searchKeyword}
+      open={props.keepResultsOpen ? resultsOpen && !!searchKeyword.trim() && !hideResults : undefined}
+      onFocus={() => setResultsOpen(true)}
+      onBlur={() => setResultsOpen(false)}
+      onClick={(event: React.MouseEvent<HTMLElement>) => {
+        if ((event.target as HTMLElement).tagName === "INPUT") setResultsOpen(true);
+      }}
+      onKeyDown={(event: React.KeyboardEvent) => {
+        if (event.key === "Escape") setResultsOpen(false);
+      }}
       noResultsMessage={props.noResultsMessage}
       onSearchChange={(e, { value }) => {
         setSearchKeyword(value);
+        setResultsOpen(true);
         setPending(true);
         onSearch(value);
       }}

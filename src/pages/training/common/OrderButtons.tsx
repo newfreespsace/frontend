@@ -17,12 +17,14 @@ const OrderButtons: React.FC<OrderButtonsProps> = props => {
   return (
     <Button.Group basic compact size="small">
       <Button
+        type="button"
         icon="arrow up"
         disabled={props.disabled || props.index === 0}
         title={_(".move_up")}
         onClick={props.onMoveUp}
       />
       <Button
+        type="button"
         icon="arrow down"
         disabled={props.disabled || props.index === props.count - 1}
         title={_(".move_down")}

@@ -15,6 +15,7 @@ import UserSearch from "@/components/UserSearch";
 import UserLink from "@/components/UserLink";
 import GroupSearch from "@/components/GroupSearch";
 import { getContestProblemLabel } from "@/utils/contestProblemLabel";
+import OrderButtons from "@/pages/training/common/OrderButtons";
 
 function toDatetimeLocal(value: string) {
   const date = value ? new Date(value) : new Date();
@@ -92,14 +93,21 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
   });
 
   function addProblem(problem: ApiTypes.QueryProblemSetResponseItemDto) {
-    if (problems.some(item => item.meta.id === problem.meta.id)) return;
-    setProblems([
-      ...problems,
-      {
-        meta: problem.meta,
-        title: problem.title
-      }
-    ]);
+    setProblems(current =>
+      current.some(item => item.meta.id === problem.meta.id)
+        ? current
+        : [...current, { meta: problem.meta, title: problem.title }]
+    );
+  }
+
+  function moveProblem(index: number, direction: -1 | 1) {
+    setProblems(current => {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= current.length) return current;
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
   }
 
   function addAdmin(user: ApiTypes.UserMetaDto) {
@@ -176,17 +184,32 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
 
           <Form.Field>
             <label>{_(".problems")}</label>
-            <ProblemSearch placeholder={_(".add_problem")} onResultSelect={addProblem} />
+            <ProblemSearch
+              placeholder={_(".add_problem")}
+              onResultSelect={addProblem}
+              keepResultsOpen
+              selectedProblemIds={problems.map(problem => problem.meta.id)}
+            />
             <List divided relaxed className={style.list}>
               {problems.map((problem, index) => (
                 <List.Item key={problem.meta.id} className={style.listItem}>
-                  {getContestProblemLabel(index)}. {problem.title}
-                  <Button
-                    icon="trash"
-                    size="mini"
-                    className={style.remove}
-                    onClick={() => setProblems(problems.filter(item => item.meta.id !== problem.meta.id))}
-                  />
+                  <span className={style.problemTitle}>
+                    {getContestProblemLabel(index)}. {problem.title}
+                  </span>
+                  <div className={style.problemActions}>
+                    <OrderButtons
+                      index={index}
+                      count={problems.length}
+                      onMoveUp={() => moveProblem(index, -1)}
+                      onMoveDown={() => moveProblem(index, 1)}
+                    />
+                    <Button
+                      type="button"
+                      icon="trash"
+                      size="mini"
+                      onClick={() => setProblems(current => current.filter(item => item.meta.id !== problem.meta.id))}
+                    />
+                  </div>
                 </List.Item>
               ))}
             </List>

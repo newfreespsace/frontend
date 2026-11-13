@@ -1,5 +1,8 @@
 import React from "react";
 import { observer } from "mobx-react";
+import { Icon } from "semantic-ui-react";
+
+import style from "./ProblemSearch.module.less";
 
 import api from "@/api";
 import { useLocalizer } from "@/utils/hooks";
@@ -17,6 +20,8 @@ interface ProblemSearchProps {
     "locale" | "keyword" | "titleOnly" | "skipCount" | "takeCount"
   >;
   onResultSelect: (problem: ApiTypes.QueryProblemSetResponseItemDto) => void;
+  keepResultsOpen?: boolean;
+  selectedProblemIds?: number[];
   onEnterPress?: (searchKeyword: string) => void;
 }
 
@@ -30,6 +35,7 @@ let ProblemSearch: React.FC<ProblemSearchProps> = props => {
       className={props.className}
       placeholder={props.placeholder || _(".placeholder")}
       noResultsMessage={_(".no_result")}
+      keepResultsOpen={props.keepResultsOpen}
       onGetResultKey={result => result.meta.id}
       onSearch={async input => {
         const wildcardStart = input.startsWith("*");
@@ -53,7 +59,10 @@ let ProblemSearch: React.FC<ProblemSearchProps> = props => {
       }}
       onRenderResult={result => (
         <EmojiRenderer>
-          <div className="title">{getProblemDisplayName(result.meta, result.title, _)}</div>
+          <div className={`title ${style.resultTitle}`}>
+            <span>{getProblemDisplayName(result.meta, result.title, _)}</span>
+            {props.selectedProblemIds?.includes(result.meta.id) && <Icon name="check" color="green" />}
+          </div>
         </EmojiRenderer>
       )}
       onResultSelect={props.onResultSelect}
