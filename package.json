@@ -154,6 +154,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,ts,tsx}\"",
     "check-style": "prettier --ignore-path .prettierignore --check \"**/*.{js,ts,tsx}\"",
     "generate-api": "node scripts/generate-api.js $API_HOST/docs-json && prettier --write \"src/api-generated/**/*.ts\"",
@@ -166,6 +167,7 @@
     "test:submission-progress": "node --test tests/submission-progress.test.cjs"
   },
   "resolutions": {
+    "@types/react": "18.3.30",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/traverse": "7.29.7",

@@ -8,8 +8,19 @@ interface FileLike {
   comment?: string;
 }
 
-export const createZipStream: (underlyingSource: UnderlyingSource<FileLike>) => ReadableStream = (window as any).ZIP;
+interface ZipController {
+  enqueue(file: FileLike): void;
+  close(): void;
+}
 
-export async function createZipBlob(underlyingSource: UnderlyingSource<FileLike>): Promise<Blob> {
+interface ZipSource {
+  start?(controller: ZipController): void | Promise<void>;
+  pull?(controller: ZipController): void | Promise<void>;
+}
+
+export const createZipStream: (underlyingSource: ZipSource) => ReadableStream<Uint8Array<ArrayBuffer>> = (window as any)
+  .ZIP;
+
+export async function createZipBlob(underlyingSource: ZipSource): Promise<Blob> {
   return await new Response(createZipStream(underlyingSource)).blob();
 }

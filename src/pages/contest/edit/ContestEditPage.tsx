@@ -60,7 +60,9 @@ let ContestEditPage: React.FC<ContestEditPageProps> = props => {
   const [isPublic, setIsPublic] = useState(props.response?.meta.isPublic ?? true);
   const [hideStatistics, setHideStatistics] = useState(props.response?.meta.hideStatistics ?? false);
   const [group, setGroup] = useState<ApiTypes.GroupMetaDto>(props.response?.group || null);
-  const [problems, setProblems] = useState<ApiTypes.ContestProblemDto[]>(props.response?.problems || []);
+  const [problems, setProblems] = useState<Pick<ApiTypes.ContestProblemDto, "meta" | "title">[]>(
+    props.response?.problems || []
+  );
   const [admins, setAdmins] = useState<ApiTypes.UserMetaDto[]>(props.response?.admins || []);
 
   useEffect(() => {

@@ -7,9 +7,8 @@ export function unescapeLocalizedMessage(text: string) {
   return text;
 }
 
-const importers = import.meta.glob("./messages/*-*.ts");
-export async function loadLocaleData(locale: Locale): Promise<Record<string, string>>;
-export async function loadLocaleData(locale: Locale): Promise<any> {
+const importers = import.meta.glob<{ default: Record<string, string> }>("./messages/*-*.ts");
+export async function loadLocaleData(locale: Locale): Promise<Record<string, string>> {
   return (await importers[`./messages/${locale.replace("_", "-")}.ts`]()).default;
 }
 

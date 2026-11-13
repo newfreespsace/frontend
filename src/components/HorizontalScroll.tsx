@@ -4,6 +4,7 @@ import style from "./HorizontalScroll.module.less";
 import { useBoundingRect } from "@/utils/hooks";
 
 interface HorizontalScrollProps {
+  children?: React.ReactNode;
   className?: string;
 }
 

@@ -4,6 +4,7 @@ import { UserMeta } from "@/interfaces/UserMeta";
 import { Link } from "@/utils/hooks";
 
 interface UserLinkProps {
+  children?: React.ReactNode;
   user: UserMeta;
 }
 

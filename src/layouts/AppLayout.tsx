@@ -39,7 +39,7 @@ export type NavButtonName =
   | "training"
   | "draw";
 
-let AppLayout: React.FC = props => {
+let AppLayout: React.FC<React.PropsWithChildren> = props => {
   const navigation = useNavigationChecked();
   const loadingRoute = useLoadingRoute();
   const _ = useLocalizer("common");
