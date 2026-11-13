@@ -3,10 +3,10 @@ import SocketIO from "socket.io-client";
 import SocketIOParser from "socket.io-msgpack-parser";
 
 import { appState } from "@/appState";
-import { AUTH_TOKEN_STORAGE_KEY, getAuthToken } from "@/authToken";
+import { getAuthToken } from "@/authToken";
 
 import { notificationApi } from "./api";
-import { clearPushOnAccountChange, reconcileBrowserPush } from "./push";
+import { reconcileBrowserPush } from "./push";
 
 export const notificationState = observable({ unread: 0, revision: 0 });
 
@@ -54,18 +54,7 @@ export function startNotifications(): () => void {
       void reconcileBrowserPush().catch(() => undefined);
     }
   };
-  const accountChanged = (event: StorageEvent) => {
-    if (event.key === AUTH_TOKEN_STORAGE_KEY || event.key === null) {
-      socket?.disconnect();
-      runInAction(() => {
-        notificationState.unread = 0;
-      });
-      void clearPushOnAccountChange().catch(() => undefined);
-      // Session metadata must follow the shared token before another bind.
-      if (getAuthToken() !== token) location.reload();
-    }
-  };
-  window.addEventListener("storage", accountChanged);
+  // Shared login changes are applied on navigation or reload, not by this page's notifications.
   document.addEventListener("visibilitychange", focus);
   window.addEventListener("focus", focus);
   if (allowed) {
@@ -92,7 +81,6 @@ export function startNotifications(): () => void {
     clearTimeout(updateTimer);
     clearTimeout(reconnectTimer);
     socket?.disconnect();
-    window.removeEventListener("storage", accountChanged);
     document.removeEventListener("visibilitychange", focus);
     window.removeEventListener("focus", focus);
     runInAction(() => {

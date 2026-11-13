@@ -223,6 +223,25 @@ test("account changes cancel the previous browser subscription instead of transf
   assert.ok(f.calls.includes("unsubscribe"));
   assert.equal(f.calls.includes("bind"), false);
 });
+test("stale tabs cannot clear the current account's push subscription when focused", async () => {
+  for (const currentUser of [null, { id: 3 }]) {
+    const f = pushFixture();
+    f.appState.currentUser = currentUser;
+    f.appState.token = currentUser ? "old-token" : "";
+    let statusRequests = 0;
+    f.api.pushStatus = async () => {
+      statusRequests++;
+      return { response: { subscriptions: [] } };
+    };
+
+    await f.reconcileBrowserPush();
+
+    assert.equal(f.getSaved().userId, binding.userId);
+    assert.equal(f.calls.includes("clear"), false);
+    assert.equal(f.calls.includes("unsubscribe"), false);
+    assert.equal(statusRequests, 0);
+  }
+});
 test("revoked subscriptions are cleared and denied permission never creates a binding", async () => {
   const f = pushFixture();
   f.api.pushStatus = async () => ({ response: { subscriptions: [] } });

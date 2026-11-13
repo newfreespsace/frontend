@@ -7,6 +7,7 @@ const { JSDOM } = require("jsdom");
 
 const dom = new JSDOM("", { url: "https://nsoj.test/" });
 global.window = dom.window;
+global.document = dom.window.document;
 global.localStorage = dom.window.localStorage;
 global.location = { reload: () => globalThis.__authSyncTest.reloads++ };
 window.apiEndpoint = "https://nsoj.test/";
@@ -100,6 +101,55 @@ test("a recorded logout does not restore a legacy token during migration", async
   assert.equal(localStorage.getItem("nsoj-auth-token"), "");
 });
 
+test("other tabs' login and logout leave this page unchanged, including when focused", async () => {
+  Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+  for (const [initialToken, nextToken] of [
+    ["", "new-token"],
+    ["old-token", ""],
+    ["old-token", "new-token"]
+  ]) {
+    localStorage.clear();
+    localStorage.setItem("nsoj-auth-token", initialToken);
+    const state = (globalThis.__authSyncTest = {
+      appState: {
+        token: initialToken,
+        currentUser: initialToken ? { id: 1 } : null,
+        activeGroupContests: []
+      },
+      reloads: 0,
+      disconnects: 0
+    });
+    const notifications = await compile("../src/notifications/state.ts", {
+      "@/appState": "exports.appState = globalThis.__authSyncTest.appState;",
+      mobx: "exports.observable = value => value; exports.runInAction = fn => fn();",
+      "socket.io-client": `module.exports = () => ({
+        on() {},
+        disconnect() { globalThis.__authSyncTest.disconnects++; }
+      });`,
+      "socket.io-msgpack-parser": "module.exports = {};",
+      "./api": "exports.notificationApi = { unreadCount: async () => ({response: {count: 7}}) };",
+      "./push": "exports.reconcileBrowserPush = async () => {};"
+    });
+    const stop = notifications.startNotifications();
+    notifications.notificationState.unread = 7;
+    try {
+      localStorage.setItem("nsoj-auth-token", nextToken);
+      window.dispatchEvent(new window.StorageEvent("storage", { key: "nsoj-auth-token", newValue: nextToken }));
+      window.dispatchEvent(new window.Event("focus"));
+      document.dispatchEvent(new window.Event("visibilitychange"));
+      await new Promise(resolve => setTimeout(resolve, 175));
+
+      assert.equal(state.reloads, 0);
+      assert.equal(state.appState.token, initialToken);
+      assert.deepEqual(state.appState.currentUser, initialToken ? { id: 1 } : null);
+      assert.equal(notifications.notificationState.unread, 7);
+      assert.equal(state.disconnects, 0);
+    } finally {
+      stop();
+    }
+  }
+});
+
 test("startup rejects another token's cache and navigation picks up the newer login", async () => {
   localStorage.clear();
   localStorage.setItem("nsoj-auth-token", "new-token");
@@ -135,7 +185,7 @@ test("startup rejects another token's cache and navigation picks up the newer lo
     "@/api": `module.exports = {
       auth: {
         getSessionInfo: async ({token}) => ({
-          response: {userMeta: {id: token === "third-token" ? 3 : 2}, serverPreference: {misc: {}}}
+          response: {userMeta: token ? {id: token === "third-token" ? 3 : 2} : null, serverPreference: {misc: {}}}
         })
       }
     };`,
@@ -162,4 +212,13 @@ test("startup rejects another token's cache and navigation picks up the newer lo
   await initApp.refreshSessionIfChanged();
   assert.equal(state.appState.token, "third-token");
   assert.equal(state.appState.currentUser.id, 3);
+
+  localStorage.setItem("nsoj-auth-token", "");
+  window.dispatchEvent(new window.StorageEvent("storage", { key: "nsoj-auth-token", newValue: "" }));
+  assert.equal(state.reloads, 0);
+  assert.equal(state.appState.currentUser.id, 3);
+
+  await initApp.refreshSessionIfChanged();
+  assert.equal(state.appState.token, "");
+  assert.equal(state.appState.currentUser, null);
 });

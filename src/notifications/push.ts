@@ -183,9 +183,11 @@ export async function enableBrowserPush(): Promise<PushBinding> {
 
 export async function reconcileBrowserPush(): Promise<void> {
   if (!browserPushSupported()) return;
-  const binding = await browserBinding();
-  if (!binding) return;
   const token = appState.token;
+  // A tab keeps its displayed session until navigation; it must not clear another session's binding.
+  if (getAuthToken() !== token) return;
+  const binding = await browserBinding();
+  if (!binding || getAuthToken() !== token) return;
   const userId = appState.currentUser?.id;
   if (!userId || binding.userId !== userId || !token || Notification.permission !== "granted") {
     await clearLocalPush();
@@ -200,8 +202,4 @@ export async function reconcileBrowserPush(): Promise<void> {
     await clearLocalPush();
     window.dispatchEvent(new Event("nsoj-push-changed"));
   }
-}
-
-export async function clearPushOnAccountChange(): Promise<void> {
-  if (browserPushSupported()) await clearLocalPush();
 }
