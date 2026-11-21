@@ -76,6 +76,10 @@ return {
     task_range: "{total} 件中 {first}～{end} 件",
     tasks_previous: "前のページ",
     tasks_next: "次のページ",
+    acquisition_fetched: "最後に成功した照会で {count} 件取得",
+    acquisition_waiting_verdict: "判定待ちの提出あり",
+    acquisition_waiting_details: "判定確定、詳細取得待ち",
+    acquisition_retrying_details: "詳細の取得に失敗、再試行待ち",
     task_state: {
       Running: "処理中",
       Queued: "順番待ち",
@@ -90,6 +94,8 @@ return {
       RetryWaiting: "再試行予定時刻",
       Scheduled: "次回同期時刻"
     },
+    sync_countdown: "あと {minutes} 分 {seconds} 秒",
+    sync_due: "同期予定時刻に到達",
     recent_errors: "最近のエラー",
     error_history_hint: "各プラットフォームの直近50件を最大7日間保持し、同期復旧後も確認できます。",
     error_history_unavailable: "エラー履歴を取得できません。",
@@ -186,6 +192,8 @@ return {
       Unavailable: "未対応"
     },
     phase: {
+      CheckingVerdicts: "原サイトの判定を確認中",
+      FetchingDetails: "提出詳細を取得中",
       Syncing: "原サイトを取得中",
       Collecting: "履歴を収集中",
       Importing: "記録を取り込み中"

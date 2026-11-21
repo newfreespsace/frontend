@@ -162,11 +162,18 @@
   gap: 0.5em;
   overflow-wrap: anywhere;
 }
+.tasks {
+  border-bottom: 1px solid var(--theme-border, #e8e8e8);
+}
+.tasks + .metrics {
+  margin-top: 0;
+  border-top: 0;
+}
 .tasks > :global(.ui.header) {
   margin: 0 0 0.35em;
 }
 .tasks > .muted {
-  margin: 0;
+  margin: 0 0 0.65em;
 }
 .taskList {
   list-style: none;
@@ -176,7 +183,7 @@
 .task {
   display: grid;
   grid-template-columns: minmax(0, 1fr) fit-content(55%);
-  align-items: start;
+  align-items: center;
   gap: 0.4em 0.65em;
   padding: 0.4em 0;
   border-top: 1px solid var(--theme-border, #e8e8e8);
@@ -202,6 +209,12 @@
     padding: 0.35em 0.55em;
   }
 }
+.taskAcquisition {
+  flex-basis: 100%;
+  color: var(--theme-secondary-title, #767676);
+  font-size: 0.85em;
+  text-align: right;
+}
 .taskTime {
   grid-column: 1 / -1;
 }
@@ -212,7 +225,7 @@
 .taskPagination {
   justify-content: space-between;
   border-top: 1px solid var(--theme-border, #e8e8e8);
-  padding-top: 0.45em;
+  padding: 0.45em 0;
 }
 .inlineFact {
   display: flex;
@@ -278,11 +291,13 @@
   }
   .task {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 2fr);
-    align-items: center;
     column-gap: 1.25em;
   }
   .taskState {
     justify-content: flex-start;
+  }
+  .taskAcquisition {
+    text-align: left;
   }
   .taskTime {
     grid-column: auto;

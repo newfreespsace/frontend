@@ -76,6 +76,10 @@ return {
     task_range: "第 {first}–{end} 项，共 {total} 项",
     tasks_previous: "上一页任务",
     tasks_next: "下一页任务",
+    acquisition_fetched: "上次成功查询读到 {count} 条原站记录",
+    acquisition_waiting_verdict: "有提交仍待判",
+    acquisition_waiting_details: "已出判定，待取详情",
+    acquisition_retrying_details: "获取详情失败，待重试",
     task_state: {
       Running: "处理中",
       Queued: "排队中",
@@ -90,6 +94,8 @@ return {
       RetryWaiting: "计划重试",
       Scheduled: "计划同步"
     },
+    sync_countdown: "还有 {minutes} 分 {seconds} 秒",
+    sync_due: "已到计划时间",
     recent_errors: "最近错误",
     error_history_hint: "每个平台保留最近 50 条错误，最长 7 天；同步恢复后仍可查看。",
     error_history_unavailable: "暂时无法读取错误历史。",
@@ -184,6 +190,8 @@ return {
       Unavailable: "尚未接入"
     },
     phase: {
+      CheckingVerdicts: "查询原站判定",
+      FetchingDetails: "获取提交详情",
       Syncing: "查询原站",
       Collecting: "收集历史",
       Importing: "导入记录"

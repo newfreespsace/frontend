@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from "react";
+import Countdown from "react-countdown";
 import { Button, Header, Icon, Label, Loader, Message, Segment } from "semantic-ui-react";
 import { Link, useLocalizer } from "@/utils/hooks";
 import TimeAgo from "@/components/TimeAgo";
@@ -26,20 +27,36 @@ const colors = {
   Unknown: "grey"
 } as const;
 
-function Timestamp(props: { value: string | null; showRelative?: boolean }) {
+function Timestamp(props: { value: string | null; showRelative?: boolean; countdown?: boolean }) {
   const _ = useLocalizer("judge_machine.remote");
   const date = props.value ? new Date(props.value) : null;
-  return date && Number.isFinite(+date) ? (
+  if (!date || !Number.isFinite(+date)) return <span className={style.muted}>{_(".no_data")}</span>;
+  const formatted = formatDateTime(date)[1];
+  if (props.countdown)
+    return (
+      <time dateTime={date.toISOString()} title={formatted}>
+        <Countdown
+          key={+date}
+          date={+date}
+          precision={3}
+          renderer={({ total, completed }) => {
+            const seconds = Math.ceil(total / 1000);
+            return completed
+              ? _(".sync_due")
+              : _(".sync_countdown", { minutes: Math.floor(seconds / 60), seconds: seconds % 60 });
+          }}
+        />
+      </time>
+    );
+  return (
     <span className={style.timestamp}>
-      <span>{formatDateTime(date)[1]}</span>
+      <span>{formatted}</span>
       {props.showRelative !== false && (
         <span className={style.muted}>
           <TimeAgo time={date} />
         </span>
       )}
     </span>
-  ) : (
-    <span className={style.muted}>{_(".no_data")}</span>
   );
 }
 
@@ -91,7 +108,8 @@ function TaskList({
           id: String(task.account.accountId),
           account: task.account,
           status: task.status,
-          time: task.nextSyncAt
+          time: task.nextSyncAt,
+          acquisition: task.acquisition
         }))
       ]
     : publicTasks ?? [];
@@ -125,10 +143,22 @@ function TaskList({
                   {_(`.task_state.${task.status}`)}
                 </Label>
                 {task.phase && <span>{_(`.phase.${task.phase}`)}</span>}
+                {task.acquisition && (
+                  <span className={style.taskAcquisition}>
+                    {_(".acquisition_fetched", { count: task.acquisition.fetchedCount })}
+                    {task.acquisition.waitingForVerdict && <> · {_(".acquisition_waiting_verdict")}</>}
+                    {task.acquisition.waitingForDetails && <> · {_(".acquisition_waiting_details")}</>}
+                    {task.acquisition.retryingDetails && <> · {_(".acquisition_retrying_details")}</>}
+                  </span>
+                )}
               </div>
               <div className={style.taskTime}>
                 <span className={style.muted}>{_(`.task_time.${task.status}`)}</span>
-                <Timestamp value={task.time} showRelative={task.status === "Running"} />
+                <Timestamp
+                  value={task.time}
+                  showRelative={task.status === "Running"}
+                  countdown={task.status === "Scheduled" && !stale}
+                />
               </div>
             </li>
           ))}

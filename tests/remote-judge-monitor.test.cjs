@@ -132,7 +132,12 @@ function snapshot() {
         sourceSupport: "PersonalKey",
         taskStatuses: [
           { id: "87ad99d97480", status: "Running", time: now, phase: "Collecting" },
-          { id: "2ceeefb28ddb", status: "RetryWaiting", time: now }
+          {
+            id: "2ceeefb28ddb",
+            status: "RetryWaiting",
+            time: now,
+            acquisition: { fetchedCount: 3, waitingForVerdict: true, waitingForDetails: true, retryingDetails: true }
+          }
         ],
         admin
       },
@@ -235,6 +240,10 @@ test("ordinary viewers see individual task statuses without viewing account or a
   assert.match(container.textContent, /task_reference.*87ad99d97480/);
   assert.match(container.textContent, /task_state.Running.*phase.Collecting/);
   assert.match(container.textContent, /task_state.RetryWaiting.*task_time.RetryWaiting/);
+  assert.match(container.textContent, /acquisition_fetched.*"count":3/);
+  assert.match(container.textContent, /acquisition_waiting_verdict/);
+  assert.match(container.textContent, /acquisition_waiting_details/);
+  assert.match(container.textContent, /acquisition_retrying_details/);
   assert.doesNotMatch(
     container.textContent,
     /private-student|private-remote|queued_accounts|redis_title|source_error_hint/
@@ -301,6 +310,45 @@ test("task rows show schedule states without expanding details and every row is 
   assert.doesNotMatch(card.textContent, /tasks_stale/);
   assert.equal(rows().length, 1);
   assert.match(rows()[0].textContent, /task_state.Running/);
+});
+
+test("scheduled synchronization counts down locally and follows changes to the planned time", async t => {
+  let now = Date.parse(response.updatedAt);
+  t.mock.method(Date, "now", () => now);
+  t.mock.method(window, "setInterval", (fn, ms) => global.setInterval(fn, ms));
+  t.mock.method(window, "clearInterval", id => global.clearInterval(id));
+  const task = { id: "scheduled", status: "Scheduled", time: new Date(now + 65000).toISOString() };
+  response.platforms[1].taskStatuses = [task];
+  const scheduledTime = () => container.querySelector('[data-platform="AtCoder"] li time');
+  const countdownTick = async () =>
+    act(async () => {
+      for (const { fn, ms } of timers.values()) if (ms === 1000) fn();
+    });
+
+  await render({ isAdmin: false });
+  assert.equal(scheduledTime().title, task.time);
+  assert.match(scheduledTime().textContent, /sync_countdown.*"minutes":1,"seconds":5/);
+  now += 1000;
+  await countdownTick();
+  assert.match(scheduledTime().textContent, /sync_countdown.*"minutes":1,"seconds":4/);
+  assert.equal(calls, 1, "countdown ticks do not refresh the monitor endpoint");
+
+  now += 64000;
+  await countdownTick();
+  assert.equal(scheduledTime().textContent, ".sync_due");
+  task.time = new Date(now + 20000).toISOString();
+  response = { ...response, updatedAt: new Date(now).toISOString() };
+  await tick();
+  assert.match(scheduledTime().textContent, /sync_countdown.*"minutes":0,"seconds":20/);
+  now += 1000;
+  await countdownTick();
+  assert.match(scheduledTime().textContent, /sync_countdown.*"minutes":0,"seconds":19/);
+
+  response = { ...response, stale: true };
+  await tick();
+  assert.equal(scheduledTime(), null);
+  assert.ok(container.querySelector('[data-platform="AtCoder"] li').textContent.includes(task.time));
+  assert.equal([...timers.values()].some(({ ms }) => ms === 1000), false);
 });
 
 test("administrators see parse details and retained errors after the account recovers", async () => {

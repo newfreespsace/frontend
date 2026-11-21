@@ -77,6 +77,10 @@ return {
     task_range: "{first}–{end} of {total}",
     tasks_previous: "Previous task page",
     tasks_next: "Next task page",
+    acquisition_fetched: "Last successful check read {count} remote records",
+    acquisition_waiting_verdict: "Verdicts pending",
+    acquisition_waiting_details: "Verdicts ready, details pending",
+    acquisition_retrying_details: "Detail fetch failed, retry pending",
     task_state: {
       Running: "Running",
       Queued: "Queued",
@@ -91,6 +95,8 @@ return {
       RetryWaiting: "Retry scheduled for",
       Scheduled: "Scheduled for"
     },
+    sync_countdown: "In {minutes} min {seconds} sec",
+    sync_due: "Due now",
     recent_errors: "Recent errors",
     error_history_hint: "Up to 50 errors per platform are retained for 7 days, including after sync recovers.",
     error_history_unavailable: "Error history is temporarily unavailable.",
@@ -192,6 +198,8 @@ return {
       Unavailable: "Not integrated"
     },
     phase: {
+      CheckingVerdicts: "Checking remote verdicts",
+      FetchingDetails: "Fetching submission details",
       Syncing: "Fetching results",
       Collecting: "Collecting history",
       Importing: "Importing records"

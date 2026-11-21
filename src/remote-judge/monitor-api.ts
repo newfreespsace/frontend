@@ -42,18 +42,26 @@ export interface MonitorError {
   retryAt: string | null;
   details: RemoteErrorDetails;
 }
+export interface MonitorTaskAcquisition {
+  fetchedCount: number;
+  waitingForVerdict: boolean;
+  waitingForDetails?: boolean;
+  retryingDetails?: boolean;
+}
 export interface MonitorWaitingTask {
   account: Pick<MonitorAccount, "accountId" | "userId" | "username" | "handle">;
   status: "Queued" | "RetryQueued" | "RetryWaiting" | "Scheduled";
   nextSyncAt: string;
+  acquisition?: MonitorTaskAcquisition;
 }
-type MonitorTaskPhase = "Syncing" | "Collecting" | "Importing";
+type MonitorTaskPhase = "Syncing" | "Collecting" | "CheckingVerdicts" | "FetchingDetails" | "Importing";
 
 export interface MonitorPublicTask {
   id: string;
   status: "Running" | MonitorWaitingTask["status"];
   time: string;
   phase?: MonitorTaskPhase;
+  acquisition?: MonitorTaskAcquisition;
 }
 export interface PlatformMonitor {
   platform: "Codeforces" | "AtCoder";
