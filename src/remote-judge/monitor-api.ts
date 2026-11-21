@@ -42,12 +42,26 @@ export interface MonitorError {
   retryAt: string | null;
   details: RemoteErrorDetails;
 }
+export interface MonitorWaitingTask {
+  account: Pick<MonitorAccount, "accountId" | "userId" | "username" | "handle">;
+  status: "Queued" | "RetryQueued" | "RetryWaiting" | "Scheduled";
+  nextSyncAt: string;
+}
+type MonitorTaskPhase = "Syncing" | "Collecting" | "Importing";
+
+export interface MonitorPublicTask {
+  id: string;
+  status: "Running" | MonitorWaitingTask["status"];
+  time: string;
+  phase?: MonitorTaskPhase;
+}
 export interface PlatformMonitor {
   platform: "Codeforces" | "AtCoder";
   state: RemoteMonitorState;
   lastSyncedAt: string | null;
   lastHeartbeatAt: string | null;
   sourceSupport: "PersonalKey" | "PersonalSession" | "Unavailable";
+  taskStatuses?: MonitorPublicTask[];
   admin?: {
     boundAccounts: number;
     activeAccounts: number;
@@ -61,7 +75,8 @@ export interface PlatformMonitor {
     sourceErrorAccounts: number;
     oldestQueuedAt: string | null;
     liveWorkers: number;
-    tasks: { account: MonitorAccount; phase: "Syncing" | "Collecting" | "Importing"; startedAt: string }[];
+    tasks: { account: MonitorAccount; phase: MonitorTaskPhase; startedAt: string }[];
+    waitingTasks?: MonitorWaitingTask[];
     errors: MonitorAccount[];
     errorsTruncated: boolean;
     recentErrors?: MonitorError[];

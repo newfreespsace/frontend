@@ -115,6 +115,7 @@ function snapshot() {
     oldestQueuedAt: now,
     liveWorkers: 2,
     tasks: [{ account, phase: "Collecting", startedAt: now }],
+    waitingTasks: [],
     errors: [account],
     errorsTruncated: false
   };
@@ -129,6 +130,10 @@ function snapshot() {
         lastSyncedAt: now,
         lastHeartbeatAt: now,
         sourceSupport: "PersonalKey",
+        taskStatuses: [
+          { id: "87ad99d97480", status: "Running", time: now, phase: "Collecting" },
+          { id: "2ceeefb28ddb", status: "RetryWaiting", time: now }
+        ],
         admin
       },
       {
@@ -137,6 +142,7 @@ function snapshot() {
         lastSyncedAt: now,
         lastHeartbeatAt: now,
         sourceSupport: "Unavailable",
+        taskStatuses: [],
         admin: {
           ...admin,
           sourceErrorAccounts: 0,
@@ -220,12 +226,15 @@ const visible = async value =>
     document.dispatchEvent(new window.Event("visibilitychange"));
   });
 
-test("ordinary viewers see platform states and source capabilities but never administrator details", async () => {
+test("ordinary viewers see individual task statuses without viewing account or administrator details", async () => {
   await render({ isAdmin: false });
   assert.match(container.textContent, /Codeforces/);
   assert.match(container.textContent, /AtCoder/);
   assert.match(container.textContent, /source_support.PersonalKey/);
   assert.match(container.textContent, /source_support.Unavailable/);
+  assert.match(container.textContent, /task_reference.*87ad99d97480/);
+  assert.match(container.textContent, /task_state.Running.*phase.Collecting/);
+  assert.match(container.textContent, /task_state.RetryWaiting.*task_time.RetryWaiting/);
   assert.doesNotMatch(
     container.textContent,
     /private-student|private-remote|queued_accounts|redis_title|source_error_hint/
@@ -240,8 +249,16 @@ test("administrators can inspect queue stages, account errors, session recovery 
   assert.match(cf.textContent, /state.Healthy/);
   assert.match(cf.textContent, /source_error_hint/);
   assert.match(container.textContent, /redis_rejections_increasing/);
-  await click(cf.querySelector("button[aria-expanded]"));
   assert.match(cf.textContent, /phase.Collecting/);
+  assert.match(cf.textContent, /task_state.Running/);
+  const detailsToggle = cf.querySelector("button[aria-expanded]");
+  const details = document.getElementById(detailsToggle.getAttribute("aria-controls"));
+  assert.equal(detailsToggle.getAttribute("aria-expanded"), "false");
+  assert.equal(detailsToggle.classList.contains("fluid"), false);
+  assert.ok(details.hidden);
+  await click(detailsToggle);
+  assert.equal(detailsToggle.getAttribute("aria-expanded"), "true");
+  assert.equal(details.hidden, false);
   assert.match(cf.textContent, /REMOTE_CF_SOURCE_MISSING/);
   assert.equal(cf.querySelector('a[href="/u/private-student"]').textContent, "private-student");
   assert.match(cf.textContent, /retry_at/);
@@ -249,6 +266,41 @@ test("administrators can inspect queue stages, account errors, session recovery 
   await click(at.querySelector("button[aria-expanded]"));
   assert.doesNotMatch(at.textContent, /session.expired/);
   assert.equal(at.querySelector('a[href="/site-settings"]'), null);
+});
+
+test("task rows show schedule states without expanding details and every row is reachable", async () => {
+  const cf = response.platforms[0];
+  cf.admin.waitingTasks = ["Queued", "RetryQueued", "RetryWaiting", "Scheduled", ...Array(5).fill("Scheduled")].map(
+    (status, index) => ({
+      account: { ...account, accountId: index + 20, username: `task-${index}` },
+      status,
+      nextSyncAt: response.updatedAt
+    })
+  );
+  await render({ isAdmin: true });
+  const card = container.querySelector('[data-platform="Codeforces"]');
+  const rows = () => [...card.querySelectorAll("li")];
+  assert.equal(rows().length, 8);
+  for (const [index, status] of ["Running", "Queued", "RetryQueued", "RetryWaiting", "Scheduled"].entries()) {
+    assert.match(rows()[index].textContent, new RegExp(`task_state\\.${status}`));
+    assert.match(rows()[index].textContent, new RegExp(`task_time\\.${status}`));
+  }
+  assert.equal(card.querySelector('a[href="/u/task-8"]'), null);
+  await click(card.querySelector('[aria-label=".tasks_next"]'));
+  assert.equal(rows().length, 2);
+  assert.equal(card.querySelector('a[href="/u/task-8"]').textContent, "task-8");
+  assert.ok(card.querySelector('[aria-label=".tasks_next"]').disabled);
+
+  response = { ...response, stale: true, unavailable: true };
+  await tick();
+  assert.match(card.textContent, /tasks_stale/);
+  assert.equal(rows().length, 2);
+
+  response = snapshot();
+  await tick();
+  assert.doesNotMatch(card.textContent, /tasks_stale/);
+  assert.equal(rows().length, 1);
+  assert.match(rows()[0].textContent, /task_state.Running/);
 });
 
 test("administrators see parse details and retained errors after the account recovers", async () => {
@@ -415,6 +467,7 @@ test("overlapping refreshes and late responses cannot restore details after priv
   await act(async () => pending[1]({ response: snapshot() }));
   assert.equal(container.querySelectorAll("button[aria-expanded]").length, 0);
   assert.doesNotMatch(container.textContent, /private-student|redis_title|queued_accounts/);
+  assert.match(container.textContent, /task_state.Running/);
 });
 
 test("the judge machine page still renders remote services when there are no local judge machines", async () => {

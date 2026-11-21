@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Button, Header, Icon, Label, Loader, Message, Segment } from "semantic-ui-react";
 import { Link, useLocalizer } from "@/utils/hooks";
 import TimeAgo from "@/components/TimeAgo";
@@ -6,6 +6,7 @@ import formatDateTime from "@/utils/formatDateTime";
 import {
   getRemoteMonitor,
   MonitorAccount,
+  MonitorPublicTask,
   RemoteErrorDetails,
   PlatformMonitor,
   RemoteMonitorSnapshot,
@@ -25,15 +26,17 @@ const colors = {
   Unknown: "grey"
 } as const;
 
-function Timestamp(props: { value: string | null }) {
+function Timestamp(props: { value: string | null; showRelative?: boolean }) {
   const _ = useLocalizer("judge_machine.remote");
   const date = props.value ? new Date(props.value) : null;
   return date && Number.isFinite(+date) ? (
     <span className={style.timestamp}>
       <span>{formatDateTime(date)[1]}</span>
-      <span className={style.muted}>
-        <TimeAgo time={date} />
-      </span>
+      {props.showRelative !== false && (
+        <span className={style.muted}>
+          <TimeAgo time={date} />
+        </span>
+      )}
     </span>
   ) : (
     <span className={style.muted}>{_(".no_data")}</span>
@@ -50,6 +53,109 @@ function AccountLink({ account }: { account: Pick<MonitorAccount, "userId" | "us
       )}
       <span className={style.muted}>{account.handle}</span>
     </span>
+  );
+}
+
+const taskPageSize = 8;
+const taskColors = {
+  Running: "blue",
+  Queued: "yellow",
+  RetryQueued: "orange",
+  RetryWaiting: "orange",
+  Scheduled: "grey"
+} as const;
+
+function TaskList({
+  detail,
+  publicTasks,
+  stale,
+  workersUnknown
+}: {
+  detail?: PlatformMonitor["admin"];
+  publicTasks?: MonitorPublicTask[];
+  stale: boolean;
+  workersUnknown: boolean;
+}) {
+  const _ = useLocalizer("judge_machine.remote");
+  const [page, setPage] = useState(0);
+  const tasks: (MonitorPublicTask & { account?: Pick<MonitorAccount, "userId" | "username" | "handle"> })[] = detail
+    ? [
+        ...detail.tasks.map(task => ({
+          id: String(task.account.accountId),
+          account: task.account,
+          status: "Running" as const,
+          phase: task.phase,
+          time: task.startedAt
+        })),
+        ...(detail.waitingTasks ?? []).map(task => ({
+          id: String(task.account.accountId),
+          account: task.account,
+          status: task.status,
+          time: task.nextSyncAt
+        }))
+      ]
+    : publicTasks ?? [];
+  const hasCompleteList = !!(detail ? detail.waitingTasks : publicTasks);
+  const lastPage = Math.max(0, Math.ceil(tasks.length / taskPageSize) - 1);
+  const first = Math.min(page, lastPage) * taskPageSize;
+  const end = Math.min(first + taskPageSize, tasks.length);
+  useEffect(() => setPage(current => Math.min(current, lastPage)), [lastPage]);
+
+  return (
+    <div className={style.tasks}>
+      <Header as="h4">{_(".tasks")}</Header>
+      {stale && <p className={style.hint}>{_(".tasks_stale")}</p>}
+      {workersUnknown && <p className={style.hint}>{_(".tasks_workers_unknown")}</p>}
+      {!hasCompleteList && (
+        <p className={style.hint}>{_(detail ? ".waiting_tasks_unavailable" : ".tasks_unavailable")}</p>
+      )}
+      {!tasks.length ? (
+        hasCompleteList && <p className={style.muted}>{_(workersUnknown ? ".no_data" : ".no_tasks")}</p>
+      ) : (
+        <ul className={style.taskList}>
+          {tasks.slice(first, end).map(task => (
+            <li className={style.task} key={`${task.id}:${task.status === "Running" ? task.time : "waiting"}`}>
+              {task.account ? (
+                <AccountLink account={task.account} />
+              ) : (
+                <strong>{_(".task_reference", { id: task.id })}</strong>
+              )}
+              <div className={style.taskState}>
+                <Label basic size="small" color={taskColors[task.status]}>
+                  {_(`.task_state.${task.status}`)}
+                </Label>
+                {task.phase && <span>{_(`.phase.${task.phase}`)}</span>}
+              </div>
+              <div className={style.taskTime}>
+                <span className={style.muted}>{_(`.task_time.${task.status}`)}</span>
+                <Timestamp value={task.time} showRelative={task.status === "Running"} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {lastPage > 0 && (
+        <div className={style.taskPagination}>
+          <span className={style.muted}>{_(".task_range", { first: first + 1, end, total: tasks.length })}</span>
+          <Button.Group size="tiny" basic>
+            <Button
+              type="button"
+              icon="angle left"
+              aria-label={_(".tasks_previous")}
+              disabled={first === 0}
+              onClick={() => setPage(page - 1)}
+            />
+            <Button
+              type="button"
+              icon="angle right"
+              aria-label={_(".tasks_next")}
+              disabled={end === tasks.length}
+              onClick={() => setPage(page + 1)}
+            />
+          </Button.Group>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -123,6 +229,7 @@ function ErrorDetails({ error, details }: { error: string; details?: RemoteError
 function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale: boolean }) {
   const _ = useLocalizer("judge_machine.remote");
   const [expanded, setExpanded] = useState(false);
+  const detailsId = useId();
   const row = props.platform;
   const detail = props.admin ? row.admin : undefined;
   const state: RemoteMonitorState = props.stale && row.state !== "Disabled" ? "Unknown" : row.state;
@@ -135,9 +242,25 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
           </span>
           {row.platform}
         </Header>
-        <Label basic color={colors[state]} className={style.status}>
-          {_(`.state.${state}`)}
-        </Label>
+        <div className={style.cardActions}>
+          <Label basic color={colors[state]} className={style.status}>
+            {_(`.state.${state}`)}
+          </Label>
+          {detail && (
+            <Button
+              type="button"
+              className={style.detailsToggle}
+              basic
+              size="tiny"
+              aria-label={_(expanded ? ".collapse" : ".details")}
+              aria-expanded={expanded}
+              aria-controls={detailsId}
+              onClick={() => setExpanded(current => !current)}
+              icon={expanded ? "angle up" : "angle down"}
+              content={_(".details_short")}
+            />
+          )}
+        </div>
       </div>
       <div className={style.summary}>
         <div>
@@ -151,6 +274,14 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
       </div>
       {state === "Idle" && <p className={style.hint}>{_(".idle_hint")}</p>}
       {state === "Unknown" && <p className={style.hint}>{_(".unknown_hint")}</p>}
+      {state !== "Disabled" && (
+        <TaskList
+          detail={detail}
+          publicTasks={row.taskStatuses}
+          stale={props.stale}
+          workersUnknown={!props.stale && state === "Unknown" && !row.lastHeartbeatAt}
+        />
+      )}
       {detail && (
         <>
           <div className={style.metrics}>
@@ -182,121 +313,98 @@ function PlatformCard(props: { platform: PlatformMonitor; admin: boolean; stale:
           {!!detail.sourceErrorAccounts && (
             <Message warning size="small" content={_(".source_error_hint", { count: detail.sourceErrorAccounts })} />
           )}
-          <Button
-            type="button"
-            className={style.detailsToggle}
-            basic
-            size="small"
-            fluid
-            aria-expanded={expanded}
-            onClick={() => setExpanded(!expanded)}
-            icon={expanded ? "angle up" : "angle down"}
-            content={_(expanded ? ".collapse" : ".details")}
-          />
-          {expanded && (
-            <div className={style.details}>
-              <dl className={style.facts}>
-                <dt>{_(".bound_accounts")}</dt>
-                <dd>{detail.boundAccounts}</dd>
-                <dt>{_(".active_accounts")}</dt>
-                <dd>{detail.activeAccounts}</dd>
-                <dt>{_(".retrying_accounts")}</dt>
-                <dd>{detail.retryingAccounts}</dd>
-                <dt title={_(".oldest_queue_hint")}>{_(".oldest_queue")}</dt>
-                <dd>{detail.oldestQueuedAt ? <TimeAgo time={new Date(detail.oldestQueuedAt)} /> : _(".none")}</dd>
-                <dt>{_(".worker_heartbeat")}</dt>
-                <dd>
-                  <Timestamp value={row.lastHeartbeatAt} />
-                </dd>
-                <dt>{_(".live_workers")}</dt>
-                <dd>{detail.liveWorkers}</dd>
-              </dl>
-              <Header as="h4">{_(".running_tasks")}</Header>
-              {!detail.tasks.length ? (
-                <p className={style.muted}>{_(".none")}</p>
-              ) : (
-                <div className={style.taskList}>
-                  {detail.tasks.map(task => (
-                    <div className={style.task} key={`${task.account.accountId}:${task.startedAt}`}>
-                      <AccountLink account={task.account} />
-                      <Label size="small">{_(`.phase.${task.phase}`)}</Label>
-                      <Timestamp value={task.startedAt} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <Header as="h4">{_(".account_errors")}</Header>
-              {!detail.errors.length ? (
-                <p className={style.muted}>{_(".no_errors")}</p>
-              ) : (
-                <div className={style.errorList}>
-                  {detail.errors.map(account => (
-                    <Segment key={account.accountId} className={style.errorItem}>
-                      <AccountLink account={account} />
-                      {account.lastError && (
-                        <div className={style.errorEntry}>
-                          <strong>{_(".result_error")}</strong>
-                          <ErrorDetails error={account.lastError} details={account.lastErrorDetails} />
-                          <div className={style.inlineFact}>
-                            <span>{_(".occurred_at")}</span>
-                            <Timestamp value={account.lastErrorAt} />
-                          </div>
-                          <div className={style.inlineFact}>
-                            <span>{_(".retry_at")}</span>
-                            <Timestamp value={account.nextSyncAt} />
-                          </div>
-                        </div>
-                      )}
-                      {account.sourceError && (
-                        <div className={style.errorEntry}>
-                          <strong>{_(".source_error")}</strong>
-                          <ErrorDetails error={account.sourceError} details={account.sourceErrorDetails} />
-                          <div className={style.inlineFact}>
-                            <span>{_(".occurred_at")}</span>
-                            <Timestamp value={account.sourceErrorAt} />
-                          </div>
-                          <div className={style.inlineFact}>
-                            <span>{_(".retry_at")}</span>
-                            <Timestamp value={account.sourceRetryAt} />
-                          </div>
-                        </div>
-                      )}
-                    </Segment>
-                  ))}
-                </div>
-              )}
-              {detail.errorsTruncated && <p className={style.muted}>{_(".errors_truncated")}</p>}
-              <Header as="h4">{_(".recent_errors")}</Header>
-              <p className={style.hint}>{_(".error_history_hint")}</p>
-              {detail.errorHistoryAvailable === false ? (
-                <Message warning content={_(".error_history_unavailable")} />
-              ) : !detail.recentErrors?.length ? (
-                <p className={style.muted}>{_(".no_recent_errors")}</p>
-              ) : (
-                <div className={style.historyList}>
-                  {detail.recentErrors.map(event => (
-                    <Segment key={event.id} className={style.errorItem}>
-                      <AccountLink account={event.account} />
-                      <div className={style.errorEntry}>
-                        <strong>{_(event.kind === "Source" ? ".source_error" : ".result_error")}</strong>
-                        <ErrorDetails error={event.error} details={event.details} />
-                        <div className={style.inlineFact}>
-                          <span>{_(".occurred_at")}</span>
-                          <Timestamp value={event.at} />
-                        </div>
-                        {event.retryAt && (
-                          <div className={style.inlineFact}>
-                            <span>{_(".retry_at_when_failed")}</span>
-                            <Timestamp value={event.retryAt} />
+          <div id={detailsId} hidden={!expanded} className={style.details}>
+            {expanded && (
+              <>
+                <dl className={style.facts}>
+                  <dt>{_(".bound_accounts")}</dt>
+                  <dd>{detail.boundAccounts}</dd>
+                  <dt>{_(".active_accounts")}</dt>
+                  <dd>{detail.activeAccounts}</dd>
+                  <dt>{_(".retrying_accounts")}</dt>
+                  <dd>{detail.retryingAccounts}</dd>
+                  <dt title={_(".oldest_queue_hint")}>{_(".oldest_queue")}</dt>
+                  <dd>{detail.oldestQueuedAt ? <TimeAgo time={new Date(detail.oldestQueuedAt)} /> : _(".none")}</dd>
+                  <dt>{_(".worker_heartbeat")}</dt>
+                  <dd>
+                    <Timestamp value={row.lastHeartbeatAt} />
+                  </dd>
+                  <dt>{_(".live_workers")}</dt>
+                  <dd>{detail.liveWorkers}</dd>
+                </dl>
+                <Header as="h4">{_(".account_errors")}</Header>
+                {!detail.errors.length ? (
+                  <p className={style.muted}>{_(".no_errors")}</p>
+                ) : (
+                  <div className={style.errorList}>
+                    {detail.errors.map(account => (
+                      <Segment key={account.accountId} className={style.errorItem}>
+                        <AccountLink account={account} />
+                        {account.lastError && (
+                          <div className={style.errorEntry}>
+                            <strong>{_(".result_error")}</strong>
+                            <ErrorDetails error={account.lastError} details={account.lastErrorDetails} />
+                            <div className={style.inlineFact}>
+                              <span>{_(".occurred_at")}</span>
+                              <Timestamp value={account.lastErrorAt} />
+                            </div>
+                            <div className={style.inlineFact}>
+                              <span>{_(".retry_at")}</span>
+                              <Timestamp value={account.nextSyncAt} />
+                            </div>
                           </div>
                         )}
-                      </div>
-                    </Segment>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                        {account.sourceError && (
+                          <div className={style.errorEntry}>
+                            <strong>{_(".source_error")}</strong>
+                            <ErrorDetails error={account.sourceError} details={account.sourceErrorDetails} />
+                            <div className={style.inlineFact}>
+                              <span>{_(".occurred_at")}</span>
+                              <Timestamp value={account.sourceErrorAt} />
+                            </div>
+                            <div className={style.inlineFact}>
+                              <span>{_(".retry_at")}</span>
+                              <Timestamp value={account.sourceRetryAt} />
+                            </div>
+                          </div>
+                        )}
+                      </Segment>
+                    ))}
+                  </div>
+                )}
+                {detail.errorsTruncated && <p className={style.muted}>{_(".errors_truncated")}</p>}
+                <Header as="h4">{_(".recent_errors")}</Header>
+                <p className={style.hint}>{_(".error_history_hint")}</p>
+                {detail.errorHistoryAvailable === false ? (
+                  <Message warning content={_(".error_history_unavailable")} />
+                ) : !detail.recentErrors?.length ? (
+                  <p className={style.muted}>{_(".no_recent_errors")}</p>
+                ) : (
+                  <div className={style.historyList}>
+                    {detail.recentErrors.map(event => (
+                      <Segment key={event.id} className={style.errorItem}>
+                        <AccountLink account={event.account} />
+                        <div className={style.errorEntry}>
+                          <strong>{_(event.kind === "Source" ? ".source_error" : ".result_error")}</strong>
+                          <ErrorDetails error={event.error} details={event.details} />
+                          <div className={style.inlineFact}>
+                            <span>{_(".occurred_at")}</span>
+                            <Timestamp value={event.at} />
+                          </div>
+                          {event.retryAt && (
+                            <div className={style.inlineFact}>
+                              <span>{_(".retry_at_when_failed")}</span>
+                              <Timestamp value={event.retryAt} />
+                            </div>
+                          )}
+                        </div>
+                      </Segment>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </>
       )}
     </Segment>
@@ -409,7 +517,8 @@ export default function RemoteJudgeMonitor(props: { isAdmin: boolean }) {
     };
   }, [props.isAdmin, refreshVersion]);
   const updatedAt = Date.parse(snapshot?.updatedAt || "");
-  const stale = failed || !!snapshot?.stale || !Number.isFinite(updatedAt) || clock - updatedAt > 90000;
+  const stale =
+    failed || !!snapshot?.stale || !!snapshot?.unavailable || !Number.isFinite(updatedAt) || clock - updatedAt > 90000;
   const redis = props.isAdmin ? snapshot?.admin?.redis : undefined;
   const displayedPlatforms: PlatformMonitor[] =
     snapshot?.platforms ||
