@@ -21,7 +21,7 @@ const { createRoot } = require("react-dom/client");
 let Fields, MethodSettings, SubmitMenuItem, AccountView, SubmissionItem, RemoteDetails, root;
 const container = document.getElementById("root");
 const mockState = { enterNewPage() {}, currentUser: { id: 1, username: "coder" } };
-let activations, status, accountStatus, accountReads, credentialWrites, methodWrites, sessionWrites;
+let activations, status, accountStatus, accountReads, credentialWrites, methodWrites, sessionWrites, visibilityReports;
 
 before(async () => {
   global.__remoteTest = {
@@ -36,6 +36,7 @@ before(async () => {
       return { response: {} };
     },
     status: async () => ({ response: status }),
+    resultVisible: async report => visibilityReports.push(report),
     accounts: async () => {
       accountReads++;
       return { response: accountStatus };
@@ -64,7 +65,7 @@ before(async () => {
       exports.Link = ({href,children,...props}) => React.createElement('a',{...props,href},children);
       exports.useLoginOrRegisterNavigation = () => () => {};`,
     "@/appState": `exports.appState = global.__remoteTest.state;`,
-    "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status,setMethod:global.__remoteTest.setMethod};
+    "./api": `exports.remoteApi = {activate: global.__remoteTest.activate,status: global.__remoteTest.status,setMethod:global.__remoteTest.setMethod,resultVisible:global.__remoteTest.resultVisible};
       exports.isRemoteProblem = meta => !!meta.submissionMethod && meta.submissionMethod !== 'Local';`,
     "@/remote-judge/api": `exports.remoteApi = {accounts:global.__remoteTest.accounts,setCodeforcesCredentials:global.__remoteTest.setCredentials,setAtcoderSession:global.__remoteTest.setSession};`,
     "@/pages/submission/submission/common/FormattableCodeBox": `const React = require('react'); export default React.forwardRef(({code},ref)=>React.createElement('pre',{ref},code));`,
@@ -122,6 +123,7 @@ before(async () => {
 
 beforeEach(() => {
   activations = [];
+  visibilityReports = [];
   sessionWrites = [];
   credentialWrites = [];
   methodWrites = [];
@@ -291,6 +293,27 @@ test("AtCoder uses the real task ID rather than deriving the letter", async () =
       .dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }))
   );
   assert.deepEqual(activations.at(-1), { problemId: 7 });
+});
+
+test("a visible page reports each terminal revision once even when its verdict stays the same", async () => {
+  const context = { problemId: 7 };
+  let refreshes = 0;
+  status.latest = { id: 101, status: "Accepted", revision: 1000 };
+  await act(async () => root.render(React.createElement(SubmitMenuItem, {
+    meta: { id: 7, submissionMethod: "Codeforces", remoteProblem: { contestId: "4", taskId: "A" } },
+    context,
+    canSubmit: true,
+    onResult: async () => { refreshes++; }
+  })));
+  await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.equal(visibilityReports.length, 1);
+  status.latest = { ...status.latest, revision: 2000 };
+  await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
+  assert.deepEqual(visibilityReports, [
+    { ...context, submissionId: 101, revision: 1000 },
+    { ...context, submissionId: 101, revision: 2000 }
+  ]);
+  assert.equal(refreshes, 2);
 });
 
 test("the same submit menu item points unbound users to account settings and respects submission restrictions", async () => {

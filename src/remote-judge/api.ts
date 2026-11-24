@@ -51,7 +51,7 @@ export interface RemoteStatus {
   handle?: string;
   lastSyncedAt?: string;
   lastError?: string;
-  latest?: { id: number; status: string; submittedAt: string; remote?: RemoteInfo };
+  latest?: { id: number; status: string; submittedAt: string; remote?: RemoteInfo; revision?: number };
 }
 
 export const remoteApi = {
@@ -75,6 +75,10 @@ export const remoteApi = {
     false
   ),
   status: createPostApi<RemoteContext, RemoteStatus>("remoteJudge/status", false),
+  resultVisible: createPostApi<RemoteContext & { submissionId: number; revision: number }, object>(
+    "remoteJudge/resultVisible",
+    false
+  ),
   setMethod: createPostApi<
     {
       problemId: number;
