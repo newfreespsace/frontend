@@ -6,6 +6,7 @@ import { makeToBeLocalizedText, ToBeLocalizedText } from "./locales";
 
 export interface ApiResponse<T> {
   requestError?: ToBeLocalizedText;
+  errorCode?: string;
   response?: T;
 }
 
@@ -39,6 +40,10 @@ async function request<T>(
   }
 
   if (response.status < 200 || response.status >= 300) {
+    const errorCode =
+      typeof response.data?.message === "string" && /^HACK_[A-Z_]+$/.test(response.data.message)
+        ? (response.data.message as string)
+        : undefined;
     try {
       console.log("response.data:", response.data);
     } catch (e) {
@@ -57,10 +62,12 @@ async function request<T>(
 
     if ([400, 401, 403, 429, 500, 502, 503, 504].includes(response.status))
       return {
+        errorCode,
         requestError: makeToBeLocalizedText(`common.request_error.${response.status}`)
       };
 
     return {
+      errorCode,
       requestError: makeToBeLocalizedText("common.request_error.unknown", {
         text: `${response.status} ${response.statusText}`
       })

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Table, Icon, Accordion, Grid, SemanticWIDTHS, Button, Popup, Menu } from "semantic-ui-react";
 import { observer } from "mobx-react";
 import { v4 as uuid } from "uuid";
@@ -26,6 +26,7 @@ import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
 import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
 import RemoteSubmissionDetails from "@/remote-judge/RemoteSubmissionDetails";
+import { HackHistory } from "@/hack/HackPanel";
 
 async function fetchData(submissionId: number) {
   const { requestError, response } = await api.submission.getSubmissionDetail({
@@ -249,6 +250,14 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 
   const [progress, setProgress] = useState(props.progress);
   const [progressMeta, setProgressMeta] = useState(() => parseProgress(props.progress, props.meta));
+  const reloadHackResult = useCallback(() => {
+    fetchData(props.meta.id)
+      .then(result => {
+        setProgress(result.progress as SubmissionProgress);
+        setProgressMeta(parseProgress(result.progress as SubmissionProgress, result.meta));
+      })
+      .catch(() => undefined);
+  }, [props.meta.id]);
 
   useEffect(() => {
     if (progressMeta.pending) return;
@@ -1053,6 +1062,9 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
           getSubtasksView={getSubtasksView}
           refDefaultCopyCodeBox={refDefaultCopyCodeBox}
         />
+      )}
+      {!meta.remote && props.meta.problem.type === "Traditional" && !appState.activeGroupContests?.length && (
+        <HackHistory key={appState.currentUser?.id} id={props.meta.id} onChange={reloadHackResult} />
       )}
     </>
   );

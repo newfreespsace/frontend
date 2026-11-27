@@ -1,4 +1,5 @@
 import RemoteSubmitMenuItem from "@/remote-judge/RemoteSubmitMenuItem";
+import { HackProblemPanel } from "@/hack/HackPanel";
 import { isRemoteProblem } from "@/remote-judge/api";
 import React, { useEffect, useState, useRef } from "react";
 import {
@@ -572,6 +573,17 @@ let ProblemViewPage: React.FC<ProblemViewPageProps> = props => {
     <>
       {permissionManager}
       {deleteDialog.element}
+      {!remoteProblem &&
+        props.problem.meta.type === ProblemType.Traditional &&
+        (!inContest ||
+          (!props.contestPermissions?.running && new Date(props.contest.endTime).getTime() <= Date.now())) &&
+        !appState.activeGroupContests?.length && (
+          <HackProblemPanel
+            key={`${props.problem.meta.id}-${appState.currentUser?.id}`}
+            problemId={props.problem.meta.id}
+            contestId={props.contest?.id}
+          />
+        )}
       {props.review && (
         <Message info icon>
           <Icon name="repeat" />

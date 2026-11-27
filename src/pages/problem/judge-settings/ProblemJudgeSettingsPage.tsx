@@ -1,4 +1,5 @@
 import SubmissionMethodSettings from "@/remote-judge/SubmissionMethodSettings";
+import HackSettings from "@/hack/HackSettings";
 import { isRemoteProblem } from "@/remote-judge/api";
 import React, { useEffect, useMemo, useState } from "react";
 import { Dropdown, Grid, Header, Popup, Button, Form, Message } from "semantic-ui-react";
@@ -206,6 +207,9 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
   return (
     <>
       <SubmissionMethodSettings meta={props.problem.meta} />
+      {!isRemoteProblem(props.problem.meta) && props.problem.meta.type === ProblemType.Traditional && (
+        <HackSettings problemId={props.problem.meta.id} />
+      )}
       {editRawDialog.element}
       <Grid>
         <Grid.Row>
