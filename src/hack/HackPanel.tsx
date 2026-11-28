@@ -8,6 +8,7 @@ import { Link, useLocalizer } from "@/utils/hooks";
 import StatusText from "@/components/StatusText";
 
 import { HackRecord, HackTarget, hackApi } from "./api";
+import style from "./HackPanel.module.less";
 
 const isPending = (record: HackRecord) => record?.state === "Queued" || record?.state === "Running";
 
@@ -66,24 +67,42 @@ function HackRows({ records, onChange, own }: { records: HackRecord[]; onChange:
       )}
       {records.map(record => (
         <Segment key={record.id}>
-          <Label>
-            #{record.id}
-            {own && " / #" + record.targetSubmissionId}
-          </Label>
-          <Label color={record.state === "Succeeded" ? "green" : undefined}>{_(`.state.${record.state}`)}</Label>
-          {record.verdict && (
-            <Label basic>
-              <StatusText status={record.verdict} />
-            </Label>
-          )}
-          {record.revokedAt && <Label basic>{_(".revoked")}</Label>}
-          {record.recheckFailed && (
-            <Label basic color="red">
-              {_(".recheck_failed")}
-            </Label>
-          )}
-          {record.challengerId != null && <Label basic>#{record.challengerId}</Label>}
-          <span> {new Date(record.createdAt).toLocaleString()}</span>
+          <div className={style.recordHeader}>
+            <div className={style.recordDetails}>
+              <Label>
+                #{record.id}
+                {own && " / #" + record.targetSubmissionId}
+              </Label>
+              <Label color={record.state === "Succeeded" ? "green" : undefined}>{_(`.state.${record.state}`)}</Label>
+              {record.verdict && (
+                <Label basic>
+                  <StatusText status={record.verdict} />
+                </Label>
+              )}
+              {record.revokedAt && <Label basic>{_(".revoked")}</Label>}
+              {record.recheckFailed && (
+                <Label basic color="red">
+                  {_(".recheck_failed")}
+                </Label>
+              )}
+              {record.challengerId != null && <Label basic>#{record.challengerId}</Label>}
+              <span>{new Date(record.createdAt).toLocaleString()}</span>
+            </div>
+            {record.canDownload && (
+              <div className={style.downloadActions}>
+                {[true, false].map(input => (
+                  <Button
+                    key={String(input)}
+                    size="mini"
+                    disabled={busy === record.id}
+                    onClick={() => act(record.id, () => download(record.id, input))}
+                  >
+                    {_(input ? ".download_input" : ".download_output")}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
           <div>
             {own && (
               <Button
@@ -100,17 +119,6 @@ function HackRows({ records, onChange, own }: { records: HackRecord[]; onChange:
                 {_(".input")}
               </Button>
             )}
-            {record.canDownload &&
-              [true, false].map(input => (
-                <Button
-                  key={String(input)}
-                  size="mini"
-                  disabled={busy === record.id}
-                  onClick={() => act(record.id, () => download(record.id, input))}
-                >
-                  {_(input ? ".download_input" : ".download_output")}
-                </Button>
-              ))}
             {record.canCancel && (
               <Button
                 size="mini"

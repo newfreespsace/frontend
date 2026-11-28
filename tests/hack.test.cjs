@@ -73,7 +73,12 @@ async function fixture(t) {
   };
   const panel = loadModule(path.resolve(__dirname, "../src/hack/HackPanel.tsx"), {
     ...mocks,
-    "./api": { hackApi: api }
+    "./api": { hackApi: api },
+    "./HackPanel.module.less": {
+      recordHeader: "hack-record-header",
+      recordDetails: "hack-record-details",
+      downloadActions: "hack-download-actions"
+    }
   });
   const render = view => React.act(async () => root.render(view));
   const click = element => React.act(async () => element.click());
@@ -307,6 +312,38 @@ test("My Hacks opens records from the last action menu item", async t => {
   await click(menuItem);
   assert.match(document.querySelector(".modal").textContent, /#88 \/ #31/);
   assert.ok(mineCalls > 0);
+});
+
+test("Hack history puts both authorized download buttons after the record details on the same row", async t => {
+  const { el, panel, api, target, render, click } = await fixture(t);
+  const requests = [];
+  api.history = async () => ({
+    response: [
+      { id: 88, state: "Failed", createdAt: target.time, canDownload: true },
+      { id: 87, state: "InvalidInput", createdAt: target.time, canDownload: false }
+    ]
+  });
+  api.download = async request => {
+    requests.push(request);
+    return { response: { files: [] } };
+  };
+
+  await render(el(panel.HackHistory, { id: target.id, onChange() {} }));
+  const [downloadable, invalid] = document.querySelectorAll(".hack-record-header");
+  assert.match(downloadable.firstElementChild.textContent, /#88.*\.state\.Failed/);
+  assert.equal(downloadable.firstElementChild.className, "hack-record-details");
+  const downloads = downloadable.lastElementChild;
+  assert.equal(downloads.className, "hack-download-actions");
+  const [input, output] = downloads.querySelectorAll("button");
+  assert.deepEqual([input.textContent, output.textContent], [".download_input", ".download_output"]);
+  assert.equal(invalid.querySelector("button"), null);
+
+  await click(input);
+  await click(output);
+  assert.deepEqual(requests, [
+    { id: 88, input: true, output: false },
+    { id: 88, input: false, output: true }
+  ]);
 });
 
 test("restricted contest details render the authorized Hack form and react to account changes", async t => {

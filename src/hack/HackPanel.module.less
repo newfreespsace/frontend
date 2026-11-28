@@ -1,0 +1,27 @@
+.recordHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.recordDetails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+
+.downloadActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.recordDetails :global(.ui.label),
+.downloadActions :global(.ui.button) {
+  margin: 0;
+}
