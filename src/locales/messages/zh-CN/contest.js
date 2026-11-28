@@ -1,6 +1,9 @@
 return {
   title: "比赛",
   ranklist: "排行榜",
+  official_ranklist_review: "正式榜核验中。{time} 前受理的正式提交 Hack 将计入正式榜。",
+  official_ranklist_settling: "核验期已结束，正在等待已受理的正式提交 Hack 完成。",
+  official_ranklist_finalized: "正式榜已封榜。后续 Hack 改判会反映在赛后排行榜。",
   learning_ranklist: "赛后排行榜",
   learning_ranklist_notice: "本榜统计赛时和赛后的全部提交，仅用于学习进度展示，不影响正式比赛成绩。",
   noi_learning_ranklist_notice:

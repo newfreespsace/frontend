@@ -90,6 +90,16 @@ test("IOI and NOI continue to highlight full scores using the selected submissio
   }
 });
 
+test("a hacked full score does not mark an accepted solve in IOI or NOI", () => {
+  const rows = [
+    row(1, { 101: { ...earlier, score: 100, status: "WrongAnswer" } }),
+    row(2, { 101: { ...later, score: 100, status: "Accepted" } })
+  ];
+  for (const type of ["ioi", "noi"]) {
+    assert.equal(getFirstSolvedRows({ ...contest, type }, problems, rows)[101], 1);
+  }
+});
+
 const pagePromise = esbuild
   .build({
     entryPoints: [path.resolve(__dirname, "../src/pages/contest/ranklist/ContestRanklistPage.tsx")],
@@ -134,11 +144,30 @@ const pagePromise = esbuild
   .then(result => loadModule(result.outputFiles[0].text, path.resolve(__dirname, "ranklist.compiled.cjs")).default);
 
 async function renderPage(rows, overrides = {}) {
-  globalThis.__ranklistResponse = { meta: contest, problems, rows, ranklistScope: "official", ...overrides };
+  const ranklistProblems = overrides.problems ?? problems;
+  const meta = { problemIds: ranklistProblems.map(problem => problem.meta.id), ...contest, ...overrides.meta };
+  globalThis.__ranklistResponse = { problems, rows, ranklistScope: "official", ...overrides, meta };
   const route = await pagePromise;
   const element = await route({ mountpath: "/ranklist", params: { id: "1" } });
   return new JSDOM(renderToStaticMarkup(element)).window.document;
 }
+
+test("only the official board shows the server's review and settlement states", async () => {
+  for (const state of ["review", "settling", "finalized"]) {
+    const response = { officialRanklistStatus: state, officialRanklistReviewEndsAt: "2026-10-09T05:00:00Z" };
+    assert.match((await renderPage([], response)).body.textContent, new RegExp(`official_ranklist_${state}`));
+    const combined = await renderPage([], { ...response, ranklistScope: "combined" });
+    assert.doesNotMatch(combined.body.textContent, /official_ranklist/);
+  }
+});
+
+test("finalized columns keep their order and link to the current problem position", async () => {
+  const document = await renderPage([], { meta: { problemIds: [105, 101] }, officialRanklistStatus: "finalized" });
+  const [first, second] = [...document.querySelectorAll("thead th")].slice(-2);
+  assert.equal(first.querySelector("a").getAttribute("href"), "/c/1/p/2");
+  assert.equal(second.textContent, "B");
+  assert.equal(second.querySelector("a"), null);
+});
 
 test("ACM highlights the first solve without extra text and preserves submission links", async () => {
   const document = await renderPage([row(1, { 101: later }), row(2, { 101: earlier })]);

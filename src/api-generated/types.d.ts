@@ -351,6 +351,8 @@ declare namespace ApiTypes {
     problems?: ApiTypes.ContestProblemDto[];
     rows?: ApiTypes.ContestRanklistRowDto[];
     ranklistScope?: "official" | "combined";
+    officialRanklistStatus?: "review" | "settling" | "finalized";
+    officialRanklistReviewEndsAt?: string; // date-time
   }
   export interface GetContestRequestDto {
     contestId: number;

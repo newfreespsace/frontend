@@ -31,8 +31,7 @@ const ContestProblemNavigation: React.FC<ContestProblemNavigationProps> = props 
           const accepted =
             submitted &&
             !props.hideSubmissionResults &&
-            problem.status !== "Submitted" &&
-            (problem.accepted || problem.score === 100 || problem.status === "Accepted");
+            (problem.status ? problem.status === "Accepted" : problem.accepted || problem.score === 100);
           const submissionState = accepted ? "accepted" : submitted ? "submitted" : "not_submitted";
           const accessibleLabel = _(".contest_navigation.problem_label", {
             label,

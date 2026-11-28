@@ -14,6 +14,7 @@ import { makeToBeLocalizedText } from "@/locales";
 import { Link, useLocalizer } from "@/utils/hooks";
 import UserLink from "@/components/UserLink";
 import { getContestProblemLabel } from "@/utils/contestProblemLabel";
+import formatDateTime from "@/utils/formatDateTime";
 
 async function fetchData(
   contestId: number,
@@ -73,7 +74,7 @@ function renderRank(rank: number, compact: boolean): React.ReactNode {
 
 let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
   const _ = useLocalizer("contest");
-  const { meta, problems, rows } = props.response;
+  const { meta, problems, rows, officialRanklistStatus, officialRanklistReviewEndsAt } = props.response;
   const combined = props.response.ranklistScope === "combined";
   const acm = meta.type === "acm";
   const firstSolvedRows = getFirstSolvedRows(meta, problems, rows);
@@ -101,6 +102,13 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
           header={_(".learning_ranklist")}
           content={meta.type === "noi" ? _(".noi_learning_ranklist_notice") : _(".learning_ranklist_notice")}
         />
+      )}
+      {!combined && officialRanklistStatus && (
+        <Message info>
+          {_(`.official_ranklist_${officialRanklistStatus}`, {
+            time: officialRanklistReviewEndsAt && formatDateTime(officialRanklistReviewEndsAt)[1]
+          })}
+        </Message>
       )}
       <RanklistScrollArea tableLabel={_(combined ? ".learning_ranklist" : ".ranklist")}>
         <Table
@@ -131,13 +139,21 @@ let ContestRanklistPage: React.FC<ContestRanklistPageProps> = props => {
                   <Table.HeaderCell className={style.penalty}>{_(".penalty")}</Table.HeaderCell>
                 </>
               )}
-              {problems.map((problem, index) => (
-                <Table.HeaderCell key={problem.meta.id}>
-                  <Link href={`/c/${meta.id}/p/${index + 1}`} title={problem.title}>
-                    {getContestProblemLabel(index)}
-                  </Link>
-                </Table.HeaderCell>
-              ))}
+              {problems.map((problem, index) => {
+                const currentIndex = meta.problemIds.indexOf(problem.meta.id);
+                const label = getContestProblemLabel(index);
+                return (
+                  <Table.HeaderCell key={problem.meta.id}>
+                    {currentIndex < 0 ? (
+                      <span title={problem.title}>{label}</span>
+                    ) : (
+                      <Link href={`/c/${meta.id}/p/${currentIndex + 1}`} title={problem.title}>
+                        {label}
+                      </Link>
+                    )}
+                  </Table.HeaderCell>
+                );
+              })}
               {meta.type !== "acm" && <Table.HeaderCell>{_(".total_score")}</Table.HeaderCell>}
             </Table.Row>
           </Table.Header>

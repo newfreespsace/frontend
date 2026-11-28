@@ -1,6 +1,11 @@
 return {
   title: "Contest",
   ranklist: "Ranklist",
+  official_ranklist_review:
+    "The official ranklist is under review. Hacks against official submissions received before {time} count toward the official results.",
+  official_ranklist_settling: "The review window has closed. The official ranklist is waiting for pending Hacks.",
+  official_ranklist_finalized:
+    "The official ranklist is final. Later Hack verdicts appear on the post-contest ranklist.",
   learning_ranklist: "Post-contest Ranklist",
   learning_ranklist_notice:
     "This board includes all contest and post-contest submissions for learning progress only. It does not affect the official result.",

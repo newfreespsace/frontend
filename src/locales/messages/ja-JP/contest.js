@@ -1,6 +1,9 @@
 return {
   title: "コンテスト",
   ranklist: "順位表",
+  official_ranklist_review: "公式順位表は確認中です。{time} より前に受け付けた公式提出への Hack が反映されます。",
+  official_ranklist_settling: "確認期間が終了しました。受け付け済みの公式提出への Hack の判定を待っています。",
+  official_ranklist_finalized: "公式順位表が確定しました。以後の Hack の判定はコンテスト後の順位表に反映されます。",
   learning_ranklist: "コンテスト後の順位表",
   learning_ranklist_notice:
     "この表はコンテスト中と終了後のすべての提出を学習進捗として集計し、公式結果には影響しません。",

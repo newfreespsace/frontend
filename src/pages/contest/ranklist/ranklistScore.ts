@@ -45,7 +45,10 @@ export function getFirstSolvedRows(
     let bestUserId = Infinity;
     rows.forEach((row, rowIndex) => {
       const detail = getScoreDetail(row, problem.meta.id);
-      const solved = contest.type === "acm" ? detail?.accepted : detail?.score === 100;
+      const solved =
+        contest.type === "acm"
+          ? detail?.accepted
+          : detail?.score === 100 && (detail.status == null || detail.status === "Accepted");
       const submittedAt = contest.type === "acm" ? detail?.acceptedTime : getSubmissionTime(detail);
       if (!solved || !submittedAt) return;
       const time = new Date(submittedAt).getTime();
