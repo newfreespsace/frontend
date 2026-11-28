@@ -41,6 +41,10 @@ export const hackApi = {
     { problemId: number; contestId?: number; before?: number },
     { enabled: boolean; inputLimit?: number; targets: HackTarget[] }
   >("hack/targets", false),
+  target: createPostApi<{ id: number; contestId?: number }, { target: (HackTarget & { inputLimit: number }) | null }>(
+    "hack/target",
+    false
+  ),
   create: createPostApi<{ id: number; input: string }, HackRecord>("hack/create", false),
   mine: createPostApi<{ id?: number; before?: number }, HackRecord[]>("hack/mine", false),
   history: createPostApi<{ id: number; before?: number }, HackRecord[]>("hack/history", false),

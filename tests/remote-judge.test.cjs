@@ -147,7 +147,16 @@ test("local configuration has no remote URL or score fields", async () => {
   await act(async () =>
     root.render(React.createElement(Fields, { method: "Local", url: "", fullScore: "", onChange() {} }))
   );
-  assert.equal(container.querySelectorAll("input").length, 0);
+  const radios = [...container.querySelectorAll('[role="radiogroup"] input[type="radio"]')];
+  assert.deepEqual(
+    radios.map(radio => radio.value),
+    ["Local", "Codeforces", "AtCoder"]
+  );
+  assert.deepEqual(
+    radios.filter(radio => radio.checked).map(radio => radio.value),
+    ["Local"]
+  );
+  assert.equal(container.querySelector("input:not([type=radio]), .dropdown"), null);
   assert.match(container.textContent, /submission_method/);
 });
 
@@ -177,11 +186,10 @@ for (const method of ["Codeforces", "AtCoder"]) {
       root.render(React.createElement(MethodSettings, { meta: { id: 7, submissionMethod: "Local" } }))
     );
     assert.equal(container.querySelector('input[type="checkbox"]'), null);
-    const choice = [...container.querySelectorAll(".dropdown .menu .item")].find(
-      item => item.textContent === `.method.${method}`
-    );
+    const choice = container.querySelector(`input[type="radio"][value="${method}"]`);
     assert.ok(choice);
-    await act(async () => choice.dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
+    await act(async () => choice.click());
+    assert.equal(choice.checked, true);
     assert.equal(container.querySelector('input[type="checkbox"]').checked, true);
     const url = container.querySelector('input[placeholder^="https://"]');
     const source =
@@ -202,7 +210,7 @@ for (const method of ["Codeforces", "AtCoder"]) {
       submittable: true
     });
     await act(async () => {
-      const toggle = container.querySelector(".ui.checkbox");
+      const toggle = container.querySelector(".ui.toggle.checkbox");
       toggle.dispatchEvent(new window.MouseEvent("mouseup", { bubbles: true }));
       toggle.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     });
@@ -299,12 +307,18 @@ test("a visible page reports each terminal revision once even when its verdict s
   const context = { problemId: 7 };
   let refreshes = 0;
   status.latest = { id: 101, status: "Accepted", revision: 1000 };
-  await act(async () => root.render(React.createElement(SubmitMenuItem, {
-    meta: { id: 7, submissionMethod: "Codeforces", remoteProblem: { contestId: "4", taskId: "A" } },
-    context,
-    canSubmit: true,
-    onResult: async () => { refreshes++; }
-  })));
+  await act(async () =>
+    root.render(
+      React.createElement(SubmitMenuItem, {
+        meta: { id: 7, submissionMethod: "Codeforces", remoteProblem: { contestId: "4", taskId: "A" } },
+        context,
+        canSubmit: true,
+        onResult: async () => {
+          refreshes++;
+        }
+      })
+    )
+  );
   await act(async () => document.dispatchEvent(new window.Event("visibilitychange")));
   assert.equal(visibilityReports.length, 1);
   status.latest = { ...status.latest, revision: 2000 };

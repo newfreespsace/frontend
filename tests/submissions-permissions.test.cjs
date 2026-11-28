@@ -48,6 +48,10 @@ test("qualified ordinary users see others' submission rows and can clear the per
     "@/utils/toast": "export default {error(){}};",
     "@/components/StatusText": "export default ()=>null;",
     "@/components/Pagination": "exports.SimplePagination=()=>null;",
+    "@/hack/HackPanel": `
+      const React=require('react');
+      exports.HackSubmissionLinks=({problemId})=>React.createElement('div',{'data-hack-problem':problemId});
+    `,
     "../componments/SubmissionItem": `
       const React=require('react');
       exports.SubmissionHeader=exports.SubmissionHeaderMobile=()=>React.createElement('tr',null,React.createElement('th',null,'submissions'));
@@ -116,6 +120,18 @@ test("qualified ordinary users see others' submission rows and can clear the per
     }
     await render("below-threshold", {}, false);
     assert.equal(container.querySelector('input[placeholder=".query.submitter"]'), null);
+    await render("problem-ac-links", { problemId: 12 }, false);
+    assert.ok(container.querySelector('[data-hack-problem="12"]'));
+    await render("qualified-problem-list", { problemId: 12 }, true);
+    assert.equal(container.querySelector("[data-hack-problem]"), null);
+    await render("personal-problem-list", { problemId: 12, submitter: "viewer" }, false);
+    assert.equal(container.querySelector("[data-hack-problem]"), null);
+    await render("non-ac-results", { problemId: 12, status: "WrongAnswer" }, false);
+    assert.equal(container.querySelector("[data-hack-problem]"), null);
+    state.activeGroupContests = [{ id: 45 }];
+    await render("contest-locked", { problemId: 12 }, false);
+    assert.equal(container.querySelector("[data-hack-problem]"), null);
+    state.activeGroupContests = [];
     context.mobile = false;
     await render("personal-filter", { submitter: "viewer" }, true);
     const input = container.querySelector('input[placeholder=".query.submitter"]');

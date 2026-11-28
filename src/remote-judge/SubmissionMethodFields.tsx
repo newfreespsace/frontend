@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { Form, Message } from "semantic-ui-react";
 import { useLocalizer } from "@/utils/hooks";
 import { SubmissionMethod } from "./api";
@@ -8,22 +8,32 @@ export interface SubmissionMethodFieldsProps {
   url: string;
   fullScore: string;
   disabled?: boolean;
+  hideMethodLabel?: boolean;
   onChange: (value: { method: SubmissionMethod; url: string; fullScore: string }) => void;
 }
 
+const submissionMethods: SubmissionMethod[] = ["Local", "Codeforces", "AtCoder"];
+
 export default function SubmissionMethodFields(props: SubmissionMethodFieldsProps) {
   const _ = useLocalizer("remote_judge");
+  const radioGroup = useId();
   return (
     <Form>
-      <Form.Select
-        label={_(".submission_method")}
-        value={props.method}
-        disabled={props.disabled}
-        options={["Local", "Codeforces", "AtCoder"].map(value => ({ key: value, value, text: _(`.method.${value}`) }))}
-        onChange={(_, { value }) =>
-          props.onChange({ method: value as SubmissionMethod, url: props.url, fullScore: props.fullScore })
-        }
-      />
+      <Form.Group inline role="radiogroup" aria-label={_(".submission_method")} style={{ flexWrap: "wrap", rowGap: 8 }}>
+        {!props.hideMethodLabel && <label>{_(".submission_method")}</label>}
+        {submissionMethods.map(method => (
+          <Form.Radio
+            key={method}
+            id={`${radioGroup}-${method}`}
+            name={radioGroup}
+            label={_(`.method.${method}`)}
+            value={method}
+            checked={props.method === method}
+            disabled={props.disabled}
+            onChange={() => props.onChange({ method, url: props.url, fullScore: props.fullScore })}
+          />
+        ))}
+      </Form.Group>
       {props.method !== "Local" && (
         <>
           <Form.Input

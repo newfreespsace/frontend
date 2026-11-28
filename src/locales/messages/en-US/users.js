@@ -22,5 +22,6 @@ return {
   no_pending_activation_users: "No users are awaiting activation.",
   bio: "Bio",
   accepted_problem_count: "AC. Count",
-  rating: "Rating"
+  rating: "Rating",
+  successful_hack_count: "Successful Hacks"
 };

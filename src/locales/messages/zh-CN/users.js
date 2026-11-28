@@ -22,5 +22,6 @@ return {
   no_pending_activation_users: "暂无待激活用户。",
   bio: "个性签名",
   accepted_problem_count: "通过题目数",
-  rating: "积分"
+  rating: "积分",
+  successful_hack_count: "成功 Hack"
 };

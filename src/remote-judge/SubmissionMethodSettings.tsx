@@ -54,6 +54,7 @@ export default function SubmissionMethodSettings({
       <SubmissionMethodFields
         {...{ method: value.method, url: value.url, fullScore: value.fullScore }}
         disabled={pending}
+        hideMethodLabel
         onChange={setValue}
       />
       {showSubmittable && (

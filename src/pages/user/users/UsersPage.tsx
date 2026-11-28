@@ -6,7 +6,6 @@ import { useCurrentRoute } from "react-navi";
 import style from "./UsersPage.module.less";
 
 import api from "@/api";
-import { UserMeta } from "@/interfaces/UserMeta";
 import { useLocalizer, useNavigationChecked, Link } from "@/utils/hooks";
 import { appState } from "@/appState";
 import { Pagination } from "@/components/Pagination";
@@ -33,7 +32,7 @@ enum View {
   pendingActivation = "pendingActivation"
 }
 
-async function fetchData(sortBy: SortBy, currentPage: number): Promise<[UserMeta[], number]> {
+async function fetchData(sortBy: SortBy, currentPage: number): Promise<[ApiTypes.UserListItemDto[], number]> {
   const { requestError, response } = await api.user.getUserList({
     sortBy,
     skipCount: USERS_PER_PAGE * (currentPage - 1),
@@ -71,7 +70,7 @@ async function fetchInactiveUsers(currentPage: number): Promise<[ApiTypes.Inacti
 }
 
 interface UsersPageProps {
-  users: UserMeta[];
+  users: ApiTypes.UserListItemDto[];
   activeUsers: ApiTypes.ActiveUserDto[];
   inactiveUsers: ApiTypes.InactiveUserDto[];
   view: View;
@@ -91,7 +90,10 @@ let UsersPage: React.FC<UsersPageProps> = props => {
 
   const activeView = props.view === View.active;
   const pendingActivationView = props.view === View.pendingActivation;
-  const users = activeView ? props.activeUsers.map(activeUser => activeUser.user) : props.users;
+  const allUsersView = props.view === View.all;
+  const users: ApiTypes.UserListItemDto[] = activeView
+    ? props.activeUsers.map(activeUser => activeUser.user)
+    : props.users;
   const [inactiveUsers, setInactiveUsers] = useState(props.inactiveUsers);
   const [inactiveUserCount, setInactiveUserCount] = useState(props.totalCount);
   const [activatingUserIds, setActivatingUserIds] = useState(new Set<number>());
@@ -169,7 +171,12 @@ let UsersPage: React.FC<UsersPageProps> = props => {
           </div>
         )}
       </div>
-      <Table unstackable basic="very" textAlign="center" className={style.table}>
+      <Table
+        unstackable
+        basic="very"
+        textAlign="center"
+        className={allUsersView ? `${style.table} ${style.publicTable}` : style.table}
+      >
         <Table.Header>
           {pendingActivationView ? (
             <Table.Row>
@@ -228,6 +235,11 @@ let UsersPage: React.FC<UsersPageProps> = props => {
                   </Link>
                 )}
               </Table.HeaderCell>
+              {allUsersView && (
+                <Table.HeaderCell className={style.columnSuccessfulHackCount}>
+                  {_(".successful_hack_count")}
+                </Table.HeaderCell>
+              )}
             </Table.Row>
           )}
         </Table.Header>
@@ -285,6 +297,7 @@ let UsersPage: React.FC<UsersPageProps> = props => {
                 </Table.Cell>
                 <Table.Cell>{user.acceptedProblemCount}</Table.Cell>
                 <Table.Cell>{user.rating}</Table.Cell>
+                {allUsersView && <Table.Cell>{user.successfulHackCount ?? "—"}</Table.Cell>}
               </Table.Row>
             ))
           )}

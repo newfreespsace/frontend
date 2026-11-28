@@ -101,10 +101,32 @@
   td:not(.bio) {
     white-space: nowrap;
   }
+
+  th.columnSuccessfulHackCount {
+    width: 112px;
+    white-space: normal;
+  }
 }
 
 
 @media only screen and (max-width: 767px) {
+  .publicTable {
+    .columnRank {
+      width: 3em;
+    }
+
+    .columnUsername {
+      width: auto;
+    }
+
+    th.columnAcceptedProblemCount,
+    th.columnRating,
+    th.columnSuccessfulHackCount {
+      width: 5em;
+      white-space: normal;
+    }
+  }
+
   .header {
     display: block;
 

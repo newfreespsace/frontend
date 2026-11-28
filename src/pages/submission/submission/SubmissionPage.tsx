@@ -26,14 +26,17 @@ import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
 import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
 import RemoteSubmissionDetails from "@/remote-judge/RemoteSubmissionDetails";
-import { HackHistory } from "@/hack/HackPanel";
+import { HackHistory, HackSubmissionPanel, HackTargetPage } from "@/hack/HackPanel";
+import { hackApi } from "@/hack/api";
 
-async function fetchData(submissionId: number) {
-  const { requestError, response } = await api.submission.getSubmissionDetail({
+function requestSubmissionDetail(submissionId: number) {
+  return api.submission.getSubmissionDetail({
     submissionId: submissionId.toString(),
     locale: appState.locale
   });
+}
 
+function readSubmissionDetail({ requestError, response }: Awaited<ReturnType<typeof requestSubmissionDetail>>) {
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
   else if (response.error) throw new RouteError(makeToBeLocalizedText(`submission.error.${response.error}`));
 
@@ -41,6 +44,10 @@ async function fetchData(submissionId: number) {
     [K in keyof T]-?: T[K];
   };
   return response as RemoveOptional<ApiTypes.GetSubmissionDetailResponseDto>;
+}
+
+async function fetchData(submissionId: number) {
+  return readSubmissionDetail(await requestSubmissionDetail(submissionId));
 }
 
 interface SubmissionProgressMessage extends SubmissionProgressMessageMetaOnly {
@@ -333,6 +340,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
   // Ctrl-A to select all code
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable]")) return;
       if (refDefaultCopyCodeBox.current && (event.ctrlKey || event.metaKey) && event.key === "a") {
         var sel = window.getSelection();
         var rg = document.createRange();
@@ -1063,17 +1071,45 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
           refDefaultCopyCodeBox={refDefaultCopyCodeBox}
         />
       )}
-      {!meta.remote && props.meta.problem.type === "Traditional" && !appState.activeGroupContests?.length && (
-        <HackHistory key={appState.currentUser?.id} id={props.meta.id} onChange={reloadHackResult} />
-      )}
+      {!meta.remote &&
+        props.meta.problem.type === "Traditional" &&
+        appState.currentUser &&
+        !appState.activeGroupContests?.length && (
+          <React.Fragment key={appState.currentUser.id}>
+            <HackSubmissionPanel
+              id={props.meta.id}
+              contestId={props.meta.contestId}
+              eligible={progressMeta.status === SubmissionStatus.Accepted}
+              onChange={reloadHackResult}
+            />
+            <HackHistory id={props.meta.id} onChange={reloadHackResult} />
+          </React.Fragment>
+        )}
     </>
   );
 };
 
 SubmissionPage = observer(SubmissionPage);
 
-export default defineRoute(async request => {
-  const queryResult = await fetchData(parseInt(request.params.id) || 0);
+async function renderSubmission(submissionId: number, contestId?: number) {
+  const viewerId = appState.currentUser?.id;
+  const result = await requestSubmissionDetail(submissionId);
+  if (
+    result.response?.error === "PERMISSION_DENIED" &&
+    viewerId === appState.currentUser?.id &&
+    viewerId != null &&
+    !appState.activeGroupContests?.length
+  ) {
+    const { response } = await hackApi.target({ id: submissionId, contestId });
+    if (response?.target) {
+      return <HackTargetPage key={uuid()} target={response.target} contestId={contestId} viewerId={viewerId} />;
+    }
+  }
+
+  const queryResult = readSubmissionDetail(result);
+  if (contestId !== undefined && queryResult.meta.contestId !== contestId) {
+    throw new RouteError(makeToBeLocalizedText("submission.error.PERMISSION_DENIED"));
+  }
 
   const ProblemTypeSubmissionView: ProblemTypeSubmissionView = (
     await (() => {
@@ -1101,40 +1137,9 @@ export default defineRoute(async request => {
   return (
     <SubmissionPage key={uuid()} {...(queryResult as any)} ProblemTypeSubmissionView={ProblemTypeSubmissionView} />
   );
-});
+}
 
-export const contest = defineRoute(async request => {
-  const contestId = Number(request.params.id);
-  const submissionId = Number(request.params.sid);
-  const queryResult = await fetchData(submissionId || 0);
-
-  if (queryResult.meta.contestId !== contestId) {
-    throw new RouteError(makeToBeLocalizedText("submission.error.PERMISSION_DENIED"));
-  }
-
-  const ProblemTypeSubmissionView: ProblemTypeSubmissionView = (
-    await (() => {
-      switch (queryResult.meta.problem.type) {
-        case "Traditional":
-          return import("./types/TraditionalProblemSubmissionView");
-        case "Interaction":
-          return import("./types/InteractionProblemSubmissionView");
-        case "SubmitAnswer":
-          return import("./types/SubmitAnswerProblemSubmissionView");
-      }
-    })()
-  ).default;
-
-  const highlightLanguageList =
-    (ProblemTypeSubmissionView.getHighlightLanguageList &&
-      ProblemTypeSubmissionView.getHighlightLanguageList(queryResult.content)) ||
-    [];
-
-  if (highlightLanguageList.some(lang => CodeFormatter.isLanguageSupported(lang))) {
-    await CodeFormatter.ready;
-  }
-
-  return (
-    <SubmissionPage key={uuid()} {...(queryResult as any)} ProblemTypeSubmissionView={ProblemTypeSubmissionView} />
-  );
-});
+export default defineRoute(request => renderSubmission(parseInt(request.params.id) || 0));
+export const contest = defineRoute(request =>
+  renderSubmission(Number(request.params.sid) || 0, Number(request.params.id))
+);

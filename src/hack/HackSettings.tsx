@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { Button, Form, Header, Message, Segment } from "semantic-ui-react";
 
 import { CodeLanguage, compileAndRunOptions } from "@/interfaces/CodeLanguage";
 import { useLocalizer } from "@/utils/hooks";
 
 import { HackProfile, Program, hackApi } from "./api";
+import style from "./HackSettings.module.less";
 
 const createProgram = (language: CodeLanguage, code = ""): Program => ({
   language,
@@ -16,6 +17,8 @@ const createProgram = (language: CodeLanguage, code = ""): Program => ({
 
 export default function HackSettings({ problemId }: { problemId: number }) {
   const _ = useLocalizer("hack");
+  const codeLanguage = useLocalizer("code_language");
+  const formId = useId();
   const [profile, setProfile] = useState<HackProfile>();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ error: boolean; text: string }>();
@@ -56,27 +59,39 @@ export default function HackSettings({ problemId }: { problemId: number }) {
 
   const program = (key: "validator" | "reference") => {
     const value = profile[key];
+    const label = _(`.${key}`);
+    const headingId = `${formId}-${key}`;
     return (
-      <>
-        <Form.Dropdown
+      <section className={style.program} aria-labelledby={headingId}>
+        <Header as="h4" id={headingId} content={label} />
+        <Form.Select
+          className={style.language}
           selection
-          label={_(`.${key}`)}
+          aria-label={`${label} · ${codeLanguage(".code_language")}`}
           value={value.language}
           options={Object.values(CodeLanguage).map(language => ({
             key: language,
             value: language,
-            text: language
+            text: codeLanguage(`.${language}.name`)
           }))}
           onChange={(_, { value: language }) =>
             setProfile({ ...profile, [key]: createProgram(language as CodeLanguage, value.code) })
           }
         />
         <Form.TextArea
+          className={style.source}
+          rows={9}
           value={value.code}
-          aria-label={_(`.${key}`)}
+          aria-label={label}
+          aria-describedby={key === "validator" ? `${formId}-validator-help` : undefined}
           onChange={(_, { value: code }) => setProfile({ ...profile, [key]: { ...value, code: String(code) } })}
         />
-      </>
+        {key === "validator" && (
+          <p className={style.description} id={`${formId}-validator-help`}>
+            {_(".validator_exit")}
+          </p>
+        )}
+      </section>
     );
   };
 
@@ -85,23 +100,29 @@ export default function HackSettings({ problemId }: { problemId: number }) {
       <Header as="h3" content={_(".settings")} />
       {message && <Message negative={message.error} positive={!message.error} content={message.text} />}
       <Form onSubmit={save}>
-        <Form.Checkbox
-          toggle
-          label={_(".enabled")}
-          checked={profile.enabled}
-          onChange={(_, { checked }) => setProfile({ ...profile, enabled: !!checked })}
-        />
-        <Form.Input
-          type="number"
-          min={1}
-          max={4 * 1024 * 1024}
-          label={_(".input_limit")}
-          value={profile.inputLimit}
-          onChange={(_, { value }) => setProfile({ ...profile, inputLimit: Number(value) })}
-        />
-        {program("validator")}
-        <p>{_(".validator_exit")}</p>
-        {program("reference")}
+        <div className={style.controls}>
+          <Form.Checkbox
+            id={`${formId}-enabled`}
+            toggle
+            label={_(".enabled")}
+            checked={profile.enabled}
+            onChange={(_, { checked }) => setProfile({ ...profile, enabled: !!checked })}
+          />
+          <Form.Input
+            id={`${formId}-input-limit`}
+            className={style.inputLimit}
+            type="number"
+            min={1}
+            max={4 * 1024 * 1024}
+            label={_(".input_limit")}
+            value={profile.inputLimit}
+            onChange={(_, { value }) => setProfile({ ...profile, inputLimit: Number(value) })}
+          />
+        </div>
+        <div className={style.programs}>
+          {program("validator")}
+          {program("reference")}
+        </div>
         <Button loading={busy} disabled={busy || !profile.inputLimit} primary>
           {_(".save")}
         </Button>

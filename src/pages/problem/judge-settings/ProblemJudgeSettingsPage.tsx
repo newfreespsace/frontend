@@ -207,9 +207,6 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
   return (
     <>
       <SubmissionMethodSettings meta={props.problem.meta} />
-      {!isRemoteProblem(props.problem.meta) && props.problem.meta.type === ProblemType.Traditional && (
-        <HackSettings problemId={props.problem.meta.id} />
-      )}
       {editRawDialog.element}
       <Grid>
         <Grid.Row>
@@ -319,6 +316,8 @@ let ProblemJudgeSettingsPage: React.FC<ProblemJudgeSettingsPageProps> = props =>
           </Grid.Column>
         </Grid.Row>
       </Grid>
+      {props.problem.meta.type === ProblemType.Traditional &&
+        props.problem.permissionOfCurrentUser.includes("Modify") && <HackSettings problemId={props.problem.meta.id} />}
     </>
   );
 };

@@ -621,7 +621,7 @@ declare namespace ApiTypes {
   }
   export interface GetUserListResponseDto {
     error?: "TAKE_TOO_MANY";
-    userMetas?: ApiTypes.UserMetaDto[];
+    userMetas?: ApiTypes.UserListItemDto[];
     count?: number;
   }
   export interface GetUserMetaRequestDto {
@@ -1784,6 +1784,22 @@ declare namespace ApiTypes {
     nickname: string;
     email: string;
     registrationTime: string; // date-time
+  }
+  export interface UserListItemDto {
+    id: number;
+    username: string;
+    email: string;
+    nickname: string;
+    bio: string;
+    avatar: ApiTypes.UserAvatarDto;
+    isAdmin: boolean;
+    isActive: boolean;
+    acceptedProblemCount: number;
+    submissionCount: number;
+    rating: number;
+    registrationTime: string; // date-time
+    currentTrainingId?: number | null;
+    successfulHackCount?: number;
   }
   export interface UserMetaDto {
     id: number;

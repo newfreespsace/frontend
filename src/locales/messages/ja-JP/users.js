@@ -22,5 +22,6 @@ return {
   no_pending_activation_users: "[TBT] No users are awaiting activation.",
   bio: "自己紹介",
   accepted_problem_count: "解いた問題数",
-  rating: "レーティング"
+  rating: "レーティング",
+  successful_hack_count: "Hack 成功数"
 };
