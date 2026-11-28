@@ -26,17 +26,13 @@ import { EmojiRenderer } from "@/components/EmojiRenderer";
 import { downloadProblemFile } from "@/pages/problem/files/ProblemFilesPage";
 import { consumeSubmissionCelebration, fireAcceptedSubmissionConfetti } from "@/utils/submissionCelebration";
 import RemoteSubmissionDetails from "@/remote-judge/RemoteSubmissionDetails";
-import { HackHistory, HackSubmissionPanel, HackTargetPage } from "@/hack/HackPanel";
-import { hackApi } from "@/hack/api";
+import { HackHistory, HackSubmissionPanel } from "@/hack/HackPanel";
 
-function requestSubmissionDetail(submissionId: number) {
-  return api.submission.getSubmissionDetail({
+async function fetchData(submissionId: number) {
+  const { requestError, response } = await api.submission.getSubmissionDetail({
     submissionId: submissionId.toString(),
     locale: appState.locale
   });
-}
-
-function readSubmissionDetail({ requestError, response }: Awaited<ReturnType<typeof requestSubmissionDetail>>) {
   if (requestError) throw new RouteError(requestError, { showRefresh: true, showBack: true });
   else if (response.error) throw new RouteError(makeToBeLocalizedText(`submission.error.${response.error}`));
 
@@ -44,10 +40,6 @@ function readSubmissionDetail({ requestError, response }: Awaited<ReturnType<typ
     [K in keyof T]-?: T[K];
   };
   return response as RemoveOptional<ApiTypes.GetSubmissionDetailResponseDto>;
-}
-
-async function fetchData(submissionId: number) {
-  return readSubmissionDetail(await requestSubmissionDetail(submissionId));
 }
 
 interface SubmissionProgressMessage extends SubmissionProgressMessageMetaOnly {
@@ -1092,21 +1084,7 @@ let SubmissionPage: React.FC<SubmissionPageProps> = props => {
 SubmissionPage = observer(SubmissionPage);
 
 async function renderSubmission(submissionId: number, contestId?: number) {
-  const viewerId = appState.currentUser?.id;
-  const result = await requestSubmissionDetail(submissionId);
-  if (
-    result.response?.error === "PERMISSION_DENIED" &&
-    viewerId === appState.currentUser?.id &&
-    viewerId != null &&
-    !appState.activeGroupContests?.length
-  ) {
-    const { response } = await hackApi.target({ id: submissionId, contestId });
-    if (response?.target) {
-      return <HackTargetPage key={uuid()} target={response.target} contestId={contestId} viewerId={viewerId} />;
-    }
-  }
-
-  const queryResult = readSubmissionDetail(result);
+  const queryResult = await fetchData(submissionId);
   if (contestId !== undefined && queryResult.meta.contestId !== contestId) {
     throw new RouteError(makeToBeLocalizedText("submission.error.PERMISSION_DENIED"));
   }

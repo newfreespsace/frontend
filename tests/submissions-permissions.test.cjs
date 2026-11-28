@@ -6,7 +6,7 @@ const Module = require("node:module");
 const esbuild = require("esbuild");
 const { JSDOM } = require("jsdom");
 
-test("qualified ordinary users see others' submission rows and can clear the personal submission filter", async () => {
+test("qualified readers see admin submissions and unqualified readers use the regular empty state", async () => {
   const dom = new JSDOM('<div id="root"></div>', { url: "https://nsoj.test/s" });
   Object.assign(global, {
     window: dom.window,
@@ -106,7 +106,9 @@ test("qualified ordinary users see others' submission rows and can clear the per
           canViewGroupSubmissions: false,
           queryResult: {
             permissionViewOthers,
-            submissions: [{ id: 100, submitter: { id: 2, username: "other-user" }, status: "Accepted" }]
+            submissions: permissionViewOthers
+              ? [{ id: 100, submitter: { id: 2, username: "admin", isAdmin: true }, status: "Accepted" }]
+              : []
           }
         })
       )
@@ -115,18 +117,15 @@ test("qualified ordinary users see others' submission rows and can clear the per
     for (const mobile of [false, true]) {
       context.mobile = mobile;
       await render(`qualified-${mobile}`, {}, true);
-      assert.ok(container.querySelector('tr[data-submitter="other-user"]'));
+      assert.ok(container.querySelector('tr[data-submitter="admin"]'));
       assert.ok(container.querySelector('input[placeholder=".query.submitter"]'));
     }
     await render("below-threshold", {}, false);
     assert.equal(container.querySelector('input[placeholder=".query.submitter"]'), null);
-    await render("problem-ac-links", { problemId: 12 }, false);
-    assert.ok(container.querySelector('[data-hack-problem="12"]'));
+    await render("unqualified-problem-list", { problemId: 12 }, false);
+    assert.equal(container.querySelector("[data-hack-problem]"), null);
+    assert.match(container.textContent, /\.empty\.message_filtered/);
     await render("qualified-problem-list", { problemId: 12 }, true);
-    assert.equal(container.querySelector("[data-hack-problem]"), null);
-    await render("personal-problem-list", { problemId: 12, submitter: "viewer" }, false);
-    assert.equal(container.querySelector("[data-hack-problem]"), null);
-    await render("non-ac-results", { problemId: 12, status: "WrongAnswer" }, false);
     assert.equal(container.querySelector("[data-hack-problem]"), null);
     state.activeGroupContests = [{ id: 45 }];
     await render("contest-locked", { problemId: 12 }, false);

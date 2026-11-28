@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { observer } from "mobx-react";
 import { Button, Form, Header, Label, Loader, Menu, Message, Modal, Segment } from "semantic-ui-react";
 
-import api from "@/api";
 import { appState } from "@/appState";
-import { Link, useLocalizer } from "@/utils/hooks";
+import { useLocalizer } from "@/utils/hooks";
 import StatusText from "@/components/StatusText";
 
-import { HackRecord, HackTarget, hackApi } from "./api";
+import { HackRecord, hackApi } from "./api";
 import style from "./HackPanel.module.less";
 
 const isPending = (record: HackRecord) => record?.state === "Queued" || record?.state === "Running";
@@ -88,37 +86,38 @@ function HackRows({ records, onChange, own }: { records: HackRecord[]; onChange:
               {record.challengerId != null && <Label basic>#{record.challengerId}</Label>}
               <span>{new Date(record.createdAt).toLocaleString()}</span>
             </div>
-            {record.canDownload && (
-              <div className={style.downloadActions}>
-                {[true, false].map(input => (
+            {(own || record.canDownload) && (
+              <div className={style.recordActions}>
+                {record.canDownload &&
+                  [true, false].map(input => (
+                    <Button
+                      key={String(input)}
+                      size="mini"
+                      disabled={busy === record.id}
+                      onClick={() => act(record.id, () => download(record.id, input))}
+                    >
+                      {_(input ? ".download_input" : ".download_output")}
+                    </Button>
+                  ))}
+                {own && (
                   <Button
-                    key={String(input)}
                     size="mini"
                     disabled={busy === record.id}
-                    onClick={() => act(record.id, () => download(record.id, input))}
+                    onClick={() =>
+                      act(record.id, async () => {
+                        const { response } = await hackApi.mine({ id: record.id });
+                        if (response?.[0]?.input == null) throw new Error();
+                        setSelectedInput(response[0].input);
+                      })
+                    }
                   >
-                    {_(input ? ".download_input" : ".download_output")}
+                    {_(".input")}
                   </Button>
-                ))}
+                )}
               </div>
             )}
           </div>
           <div>
-            {own && (
-              <Button
-                size="mini"
-                disabled={busy === record.id}
-                onClick={() =>
-                  act(record.id, async () => {
-                    const { response } = await hackApi.mine({ id: record.id });
-                    if (response?.[0]?.input == null) throw new Error();
-                    setSelectedInput(response[0].input);
-                  })
-                }
-              >
-                {_(".input")}
-              </Button>
-            )}
             {record.canCancel && (
               <Button
                 size="mini"
@@ -239,115 +238,6 @@ export function MyHacksMenuItem({ problemId, contestId }: { problemId: number; c
   );
 }
 
-interface HackSubmissionLinksProps {
-  problemId?: number;
-  problemDisplayId?: number;
-  contestId?: number;
-  contestProblemIndex?: number;
-  codeLanguage?: string;
-  visibleSubmissions: { id: number }[];
-  emptyState?: React.ReactElement;
-}
-
-export function HackSubmissionLinks({
-  problemId,
-  problemDisplayId,
-  contestId,
-  contestProblemIndex,
-  codeLanguage,
-  visibleSubmissions,
-  emptyState
-}: HackSubmissionLinksProps) {
-  const _ = useLocalizer("hack");
-  const [resolvedProblemId, setResolvedProblemId] = useState<number>();
-  const [targets, setTargets] = useState<HackTarget[]>([]);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      let id = problemId;
-      if (problemDisplayId) {
-        const { response } = await api.problem.getProblem({ displayId: problemDisplayId });
-        id = response?.meta?.id;
-        if (response?.meta?.type !== "Traditional") return;
-      }
-      if (contestId) {
-        const { response } = await api.contest.getContest({ contestId, locale: appState.locale });
-        const contest = response?.meta;
-        if (!contest || new Date(contest.endTime).getTime() > Date.now()) return;
-        if (contestProblemIndex) {
-          const contestProblemId = contest.problemIds?.[contestProblemIndex - 1];
-          if (id && id !== contestProblemId) return;
-          id = contestProblemId;
-        }
-      }
-      if (!active || !id) return;
-      const { response } = await hackApi.targets({ problemId: id, contestId });
-      if (!active || !response?.enabled) return;
-      setResolvedProblemId(id);
-      setTargets(response.targets);
-      setHasMore(response.targets.length === 30);
-    };
-    void load().finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => {
-      active = false;
-    };
-  }, [problemId, problemDisplayId, contestId, contestProblemIndex]);
-
-  const visibleIds = new Set(visibleSubmissions.map(row => row.id));
-  const links = targets.filter(row => !visibleIds.has(row.id) && (!codeLanguage || row.language === codeLanguage));
-  if (!links.length && !hasMore) {
-    return loading && emptyState ? <Loader active inline="centered" /> : emptyState ?? null;
-  }
-
-  const loadMore = async () => {
-    if (loadingMore) return;
-    setLoadingMore(true);
-    setError(false);
-    const { response } = await hackApi.targets({
-      problemId: resolvedProblemId,
-      contestId,
-      before: targets[targets.length - 1].id
-    });
-    if (response) {
-      setTargets(previous => [...previous, ...response.targets]);
-      setHasMore(response.targets.length === 30);
-    } else {
-      setError(true);
-    }
-    setLoadingMore(false);
-  };
-
-  return (
-    <Segment>
-      <Header as="h3" content={_(".accepted_submissions")} />
-      {links.length > 0 && (
-        <ul>
-          {links.map(row => (
-            <li key={row.id}>
-              <Link href={contestId ? `/c/${contestId}/s/${row.id}` : `/s/${row.id}`}>
-                #{row.id} · {row.language} · {new Date(row.time).toLocaleString()}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      {error && <Message negative content={_(".error")} />}
-      {hasMore && (
-        <Button type="button" size="mini" loading={loadingMore} disabled={loadingMore} onClick={loadMore}>
-          {_(".more")}
-        </Button>
-      )}
-    </Segment>
-  );
-}
-
 function cleanInput(input: string) {
   const start = input.trimStart();
   const text = start.trimEnd();
@@ -363,17 +253,15 @@ export function HackSubmissionPanel({
   id,
   contestId,
   eligible,
-  initialInputLimit,
   onChange
 }: {
   id: number;
   contestId?: number;
   eligible: boolean;
-  initialInputLimit?: number;
   onChange?: () => void;
 }) {
   const _ = useLocalizer("hack");
-  const [limit, setLimit] = useState(initialInputLimit);
+  const [limit, setLimit] = useState<number>();
   const [input, setInput] = useState("");
   const [cleanWhitespace, setCleanWhitespace] = useState(false);
   const [error, setError] = useState("");
@@ -387,7 +275,7 @@ export function HackSubmissionPanel({
   const showForm = eligible && limit != null && !targetWasHacked;
 
   useEffect(() => {
-    if (!eligible || initialInputLimit != null) return;
+    if (!eligible) return;
     let active = true;
     setLimit(undefined);
     hackApi.target({ id, contestId }).then(({ response }) => {
@@ -396,7 +284,7 @@ export function HackSubmissionPanel({
     return () => {
       active = false;
     };
-  }, [id, contestId, eligible, initialInputLimit]);
+  }, [id, contestId, eligible]);
 
   useEffect(() => {
     if (targetWasHacked) onChange?.();
@@ -447,34 +335,6 @@ export function HackSubmissionPanel({
     </Segment>
   );
 }
-
-export const HackTargetPage = observer(function HackTargetPage({
-  target,
-  contestId,
-  viewerId
-}: {
-  target: HackTarget & { inputLimit: number };
-  contestId?: number;
-  viewerId: number;
-}) {
-  const _ = useLocalizer("hack");
-  const title = _(".submission_title", { id: target.id });
-  const visible = appState.currentUser?.id === viewerId && !appState.activeGroupContests?.length;
-  useEffect(() => {
-    if (visible) appState.enterNewPage(title, contestId ? "contests" : "submissions");
-  }, [visible, title, contestId]);
-
-  if (!visible) return null;
-  return (
-    <>
-      <Header as="h2" content={title} />
-      <p>
-        {target.language} · {new Date(target.time).toLocaleString()}
-      </p>
-      <HackSubmissionPanel id={target.id} contestId={contestId} eligible initialInputLimit={target.inputLimit} />
-    </>
-  );
-});
 
 export function HackHistory({ id, onChange }: { id: number; onChange: () => void }) {
   const _ = useLocalizer("hack");

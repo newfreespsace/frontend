@@ -28,7 +28,6 @@ import {
 } from "../componments/SubmissionItem";
 import { SimplePagination } from "@/components/Pagination";
 import { defineRoute, RouteError } from "@/AppRouter";
-import { HackSubmissionLinks } from "@/hack/HackPanel";
 import { SubmissionProgressMessageMetaOnly, SubmissionProgressType } from "../common";
 
 const SUBMISSIONS_PER_PAGE = appState.serverPreference.pagination.submissions;
@@ -210,18 +209,6 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
 
   const isWideScreen = useScreenWidthWithin(1024, Infinity);
   const isMobile = useScreenWidthWithin(0, 768);
-  const { problemId, problemDisplayId, contestId, contestProblemIndex, submitter, codeLanguage, status, minId, maxId } =
-    props.query;
-  const showHackSubmissions =
-    appState.currentUser &&
-    !appState.activeGroupContests?.length &&
-    !props.queryResult.error &&
-    !props.queryResult.permissionViewOthers &&
-    (problemId || problemDisplayId || (contestId && contestProblemIndex)) &&
-    !submitter &&
-    !minId &&
-    !maxId &&
-    (!status || status === SubmissionStatus.Accepted);
   const emptyState = (
     <Segment placeholder>
       <Header icon>
@@ -347,7 +334,7 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
         </Form.Group>
       </Form>
       {submissions.length === 0 ? (
-        !showHackSubmissions && emptyState
+        emptyState
       ) : (
         <>
           <Table textAlign="center" basic="very" className={style.table} unstackable fixed>
@@ -405,18 +392,6 @@ let SubmissionsPage: React.FC<SubmissionsPageProps> = props => {
             </div>
           )}
         </>
-      )}
-      {showHackSubmissions && (
-        <HackSubmissionLinks
-          key={appState.currentUser.id}
-          problemId={problemId}
-          problemDisplayId={problemDisplayId}
-          contestId={contestId}
-          contestProblemIndex={contestProblemIndex}
-          codeLanguage={codeLanguage}
-          visibleSubmissions={submissions}
-          emptyState={submissions.length === 0 ? emptyState : undefined}
-        />
       )}
     </>
   );

@@ -77,7 +77,7 @@ async function fixture(t) {
     "./HackPanel.module.less": {
       recordHeader: "hack-record-header",
       recordDetails: "hack-record-details",
-      downloadActions: "hack-download-actions"
+      recordActions: "hack-record-actions"
     }
   });
   const render = view => React.act(async () => root.render(view));
@@ -131,15 +131,19 @@ test("the public user list shows successful Hacks after rating for each user", a
 
   await render(await route({ query: { page: "2", sortBy: "rating" } }));
   assert.deepEqual(requests, [{ sortBy: "rating", skipCount: 20, takeCount: 20 }]);
-  assert.deepEqual(
-    Array.from(document.querySelectorAll("thead th"), cell => cell.textContent.trim()).slice(-2),
-    [".rating", ".successful_hack_count"]
-  );
+  assert.deepEqual(Array.from(document.querySelectorAll("thead th"), cell => cell.textContent.trim()).slice(-2), [
+    ".rating",
+    ".successful_hack_count"
+  ]);
   assert.deepEqual(
     Array.from(document.querySelectorAll("tbody tr"), row =>
       Array.from(row.cells, cell => cell.textContent.trim()).slice(-2)
     ),
-    [["1500", "3"], ["1200", "0"], ["1100", "—"]]
+    [
+      ["1500", "3"],
+      ["1200", "0"],
+      ["1100", "—"]
+    ]
   );
 
   canManageUsers = true;
@@ -245,54 +249,15 @@ test("judge settings put the Hack profile after the ordinary editor and save bot
   assert.deepEqual(reads, [{ id: 12 }]);
 });
 
-test("submission records link additional authorized ACs to practice and contest details", async t => {
-  const { el, panel, api, target, render } = await fixture(t);
-  const requests = [];
-  api.targets = async request => {
-    requests.push(request);
-    return {
-      response: {
-        enabled: true,
-        targets: [target, { ...target, id: 32 }, { ...target, id: 33, language: "python" }]
-      }
-    };
-  };
-  for (const [scope, expected] of [
-    [{ problemId: 12 }, "/s/31"],
-    [{ problemDisplayId: 112 }, "/s/31"],
-    [{ contestId: 45, contestProblemIndex: 1 }, "/c/45/s/31"]
-  ]) {
-    await render(
-      el(panel.HackSubmissionLinks, {
-        key: JSON.stringify(scope),
-        ...scope,
-        codeLanguage: "cpp",
-        visibleSubmissions: [{ id: 32 }],
-        emptyState: el("p", null, "no-submissions")
-      })
-    );
-    const [link] = document.querySelectorAll("a");
-    assert.equal(link.getAttribute("href"), expected);
-    assert.match(link.textContent, /#31 · cpp/);
-    assert.equal(document.querySelectorAll("a").length, 1);
-    assert.doesNotMatch(document.body.textContent, /no-submissions/);
-    assert.equal(document.querySelector("button, select, textarea, form"), null);
-  }
-  assert.deepEqual(requests, [
-    { problemId: 12, contestId: undefined },
-    { problemId: 12, contestId: undefined },
-    { problemId: 12, contestId: 45 }
-  ]);
-});
-
-test("My Hacks opens records from the last action menu item", async t => {
+test("My Hacks opens from the last menu item and puts counterexample input after the record details", async t => {
   const { el, panel, api, render, click, button } = await fixture(t);
   const { Menu } = require("semantic-ui-react");
-  let mineCalls = 0;
-  api.mine = async () => {
-    mineCalls++;
+  const mineCalls = [];
+  api.mine = async request => {
+    mineCalls.push(request);
+    if (request.id) return { response: [{ input: "1\n  2\n" }] };
     return {
-      response: [{ id: 88, targetSubmissionId: 31, state: "Queued", createdAt: "2026-11-27T00:00:00Z" }]
+      response: [{ id: 88, targetSubmissionId: 31, state: "InvalidInput", createdAt: "2026-11-27T00:00:00Z" }]
     };
   };
   await render(
@@ -308,10 +273,18 @@ test("My Hacks opens records from the last action menu item", async t => {
   const menuItem = button(".mine");
   assert.equal(menuItem, document.querySelector(".menu").lastElementChild);
   assert.equal(document.querySelectorAll(".menu .item").length, 4);
-  assert.equal(mineCalls, 0);
+  assert.equal(mineCalls.length, 0);
   await click(menuItem);
-  assert.match(document.querySelector(".modal").textContent, /#88 \/ #31/);
-  assert.ok(mineCalls > 0);
+  const header = document.querySelector(".modal .hack-record-header");
+  assert.match(header.firstElementChild.textContent, /#88 \/ #31/);
+  assert.equal(header.lastElementChild.className, "hack-record-actions");
+  const inputButton = header.lastElementChild.querySelector("button");
+  assert.equal(inputButton.textContent, ".input");
+  await click(inputButton);
+  assert.deepEqual(mineCalls, [{}, { id: 88 }]);
+  assert.equal(document.querySelector(".modal pre").textContent, "1\n  2\n");
+  await click(button(".close"));
+  assert.equal(document.querySelector(".modal pre"), null);
 });
 
 test("Hack history puts both authorized download buttons after the record details on the same row", async t => {
@@ -333,7 +306,7 @@ test("Hack history puts both authorized download buttons after the record detail
   assert.match(downloadable.firstElementChild.textContent, /#88.*\.state\.Failed/);
   assert.equal(downloadable.firstElementChild.className, "hack-record-details");
   const downloads = downloadable.lastElementChild;
-  assert.equal(downloads.className, "hack-download-actions");
+  assert.equal(downloads.className, "hack-record-actions");
   const [input, output] = downloads.querySelectorAll("button");
   assert.deepEqual([input.textContent, output.textContent], [".download_input", ".download_output"]);
   assert.equal(invalid.querySelector("button"), null);
@@ -346,12 +319,13 @@ test("Hack history puts both authorized download buttons after the record detail
   ]);
 });
 
-test("restricted contest details render the authorized Hack form and react to account changes", async t => {
-  const { React, panel, api, target, appState, mocks, render, button } = await fixture(t);
+test("submission details honor the server decision and only eligible ACs show the Hack form", async t => {
+  const { el, panel, api, target, mocks, render, button } = await fixture(t);
   const requests = [];
+  let authorized = false;
   api.target = async request => {
     requests.push(request);
-    return { response: { target: request.contestId === 45 ? { ...target, inputLimit: 100 } : null } };
+    return { response: { target: authorized ? { ...target, inputLimit: 100 } : null } };
   };
   const routes = loadModule(path.resolve(__dirname, "../src/pages/submission/submission/SubmissionPage.tsx"), {
     ...mocks,
@@ -366,22 +340,21 @@ test("restricted contest details render the authorized Hack form and react to ac
     "../componments/SubmissionItem": {},
     "../common": {}
   });
-  await assert.rejects(routes.contest({ params: { id: "46", sid: "31" } }), /PERMISSION_DENIED/);
-  await render(await routes.contest({ params: { id: "45", sid: "31" } }));
-  assert.deepEqual(requests, [
-    { id: 31, contestId: 46 },
-    { id: 31, contestId: 45 }
-  ]);
-  assert.match(document.body.textContent, /cpp/);
-  assert.ok(button(".send"));
-  assert.equal(button(".mine"), undefined);
-  assert.equal(document.querySelector("select, code, table"), null);
-  await React.act(async () => {
-    require("mobx").runInAction(() => {
-      appState.currentUser = { id: 5 };
-    });
-  });
+  await assert.rejects(routes.default({ params: { id: "31" } }), /PERMISSION_DENIED/);
+  await assert.rejects(routes.contest({ params: { id: "45", sid: "31" } }), /PERMISSION_DENIED/);
+  assert.deepEqual(requests, []);
+
+  const props = { id: target.id, contestId: 45 };
+  await render(el(panel.HackSubmissionPanel, { ...props, eligible: false }));
+  assert.deepEqual(requests, []);
   assert.equal(document.querySelector("form"), null);
+  await render(el(panel.HackSubmissionPanel, { ...props, eligible: true }));
+  assert.deepEqual(requests, [{ id: target.id, contestId: 45 }]);
+  assert.equal(document.querySelector("form"), null);
+
+  authorized = true;
+  await render(el(panel.HackSubmissionPanel, { ...props, eligible: true, key: "authorized-account" }));
+  assert.ok(button(".send"));
 });
 
 test("Hack input preserves whitespace by default and uses cleaned bytes only when selected", async t => {
@@ -405,9 +378,8 @@ test("Hack input preserves whitespace by default and uses cleaned bytes only whe
   assert.match(document.body.textContent, /state\.Queued/);
 
   const limit = Buffer.byteLength(cleaned);
-  await render(
-    el(panel.HackSubmissionPanel, { key: "clean", id: target.id, eligible: true, initialInputLimit: limit })
-  );
+  api.target = async () => ({ response: { target: { ...target, inputLimit: limit } } });
+  await render(el(panel.HackSubmissionPanel, { key: "clean", id: target.id, eligible: true }));
   await setInput(input);
   assert.equal(button(".send").disabled, true);
   const checkboxLabel = document.querySelector('label[for="hack-clean-whitespace"]');
